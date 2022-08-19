@@ -19,11 +19,14 @@
 #endif
 
 // TODO: insert other include files here
+#include "io/pins.h"
 
 // TODO: insert other definitions and declarations here
 
 int main(void)
 {
+  PINS_Init();
+  LED_A = LED_B = LED_C = LED_D = 1;
 
   // Start M0APP slave processor
 #if defined(__MULTICORE_MASTER_SLAVE_M0APP)
@@ -32,16 +35,22 @@ int main(void)
 
   // Start M0SUB slave processor
 #if defined(__MULTICORE_MASTER_SLAVE_M0SUB)
-  cr_start_m0(SLAVE_M0SUB, &__core_m0sub_START__);
+//    cr_start_m0(SLAVE_M0SUB,&__core_m0sub_START__);
 #endif
 
   // TODO: insert code here
 
   // Force the counter to be placed into memory
-  volatile static int i = 0;
+  static volatile int i = 0;
   // Enter an infinite loop, just incrementing a counter
   while (1)
   {
+    if (i > 100000)
+      i = 0;
+    if (i == 0)
+    {
+      LED_B = !LED_B;
+    }
     i++;
   }
   return 0;

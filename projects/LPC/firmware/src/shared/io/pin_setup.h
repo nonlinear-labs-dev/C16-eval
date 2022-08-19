@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stdint.h>
 #include "cmsis/LPC43xx.h"
 
 // clang-format off
@@ -73,3 +74,5 @@
 #define GPIO_Byte(bank, bit)     *( pGPIO_Byte(bank, bit)     )
 #define GPIO_Halfword(bank, bit) *( pGPIO_Halfword(bank, bit) )
 #define GPIO_Word(bank, bit)     *( pGPIO_Word(bank, bit)     )
+
+// clang-format on

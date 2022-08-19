@@ -14,6 +14,7 @@ src/main/Debug
 src/co-proc/.settings
 src/co-proc/Release
 src/co-proc/Debug
+*.launch
 
 # Whitelist our folders we want to sync
 # trailing "/" is optional for folders, may match file though.

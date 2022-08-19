@@ -15,6 +15,7 @@
 #include <cr_section_macros.h>
 
 // TODO: insert other include files here
+#include "io/pins.h"
 
 // TODO: insert other definitions and declarations here
 
@@ -39,6 +40,12 @@ int main(void)
   // Enter an infinite loop, just incrementing a counter
   while (1)
   {
+    if (i > 100000)
+      i = 0;
+    if (i == 0)
+    {
+      LED_A = !LED_A;
+    }
     i++;
   }
   return 0;
