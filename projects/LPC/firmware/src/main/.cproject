@@ -36,10 +36,10 @@
 									<listOptionValue builtIn="false" value="__MULTICORE_MASTER_SLAVE_M0APP"/>
 								</option>
 								<option id="gnu.cpp.compiler.option.other.other.243282651" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -fno-builtin -ffunction-sections -fdata-sections -fno-rtti -fno-exceptions" valueType="string"/>
-								<option id="gnu.cpp.compiler.option.optimization.flags.446298693" name="Other optimization flags" superClass="gnu.cpp.compiler.option.optimization.flags" value="-fno-common" valueType="string"/>
+								<option id="gnu.cpp.compiler.option.optimization.flags.446298693" name="Other optimization flags" superClass="gnu.cpp.compiler.option.optimization.flags" value="-fno-common -Wshadow -Wundef -fstack-usage -Wpadded" valueType="string"/>
 								<option id="com.crt.advproject.cpp.hdrlib.1617652805" name="Library headers" superClass="com.crt.advproject.cpp.hdrlib" value="Newlib" valueType="enumerated"/>
 								<option id="com.crt.advproject.cpp.exe.debug.option.optimization.level.1472010209" name="Optimization Level" superClass="com.crt.advproject.cpp.exe.debug.option.optimization.level" value="gnu.cpp.compiler.optimization.level.general" valueType="enumerated"/>
-								<option id="gnu.cpp.compiler.option.warnings.wconversion.1741229766" name="Implicit conversion warnings (-Wconversion)" superClass="gnu.cpp.compiler.option.warnings.wconversion" value="false" valueType="boolean"/>
+								<option id="gnu.cpp.compiler.option.warnings.wconversion.1741229766" name="Implicit conversion warnings (-Wconversion)" superClass="gnu.cpp.compiler.option.warnings.wconversion" value="true" valueType="boolean"/>
 								<option id="gnu.cpp.compiler.option.include.paths.1873511723" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/src}&quot;"/>
 									<listOptionValue builtIn="false" value="../../shared"/>
@@ -65,7 +65,7 @@
 									<listOptionValue builtIn="false" value="__MULTICORE_MASTER_SLAVE_M0APP"/>
 								</option>
 								<option id="gnu.c.compiler.option.misc.other.978919113" name="Other flags" superClass="gnu.c.compiler.option.misc.other" value="-c -fmessage-length=0 -fno-builtin -ffunction-sections -fdata-sections" valueType="string"/>
-								<option id="gnu.c.compiler.option.optimization.flags.1486984137" name="Other optimization flags" superClass="gnu.c.compiler.option.optimization.flags" value="-fno-common" valueType="string"/>
+								<option id="gnu.c.compiler.option.optimization.flags.1486984137" name="Other optimization flags" superClass="gnu.c.compiler.option.optimization.flags" value="-fno-common -Wshadow -Wundef -fstack-usage -Wpadded" valueType="string"/>
 								<option id="com.crt.advproject.gcc.exe.debug.option.optimization.level.2094151081" name="Optimization Level" superClass="com.crt.advproject.gcc.exe.debug.option.optimization.level" value="gnu.c.optimization.level.general" valueType="enumerated"/>
 								<option id="gnu.c.compiler.option.include.paths.1159221872" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/src}&quot;"/>
@@ -73,6 +73,7 @@
 								</option>
 								<option id="com.crt.advproject.gcc.lto.10466606" name="Enable Link-time optimization (-flto)" superClass="com.crt.advproject.gcc.lto" value="false" valueType="boolean"/>
 								<option id="com.crt.advproject.gcc.exe.debug.option.debugging.level.2122970187" name="Debug Level" superClass="com.crt.advproject.gcc.exe.debug.option.debugging.level" value="gnu.c.debugging.level.max" valueType="enumerated"/>
+								<option id="gnu.c.compiler.option.warnings.wconversion.1263215857" name="Implicit conversion warnings (-Wconversion)" superClass="gnu.c.compiler.option.warnings.wconversion" value="true" valueType="boolean"/>
 								<inputType id="com.crt.advproject.compiler.input.1572124386" superClass="com.crt.advproject.compiler.input"/>
 							</tool>
 							<tool id="com.crt.advproject.gas.exe.debug.1443811760" name="MCU Assembler" superClass="com.crt.advproject.gas.exe.debug">
@@ -155,10 +156,10 @@
 									<listOptionValue builtIn="false" value="__MULTICORE_MASTER_SLAVE_M0APP"/>
 								</option>
 								<option id="gnu.cpp.compiler.option.other.other.582656767" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -fno-builtin -ffunction-sections -fdata-sections -fno-rtti -fno-exceptions" valueType="string"/>
-								<option id="gnu.cpp.compiler.option.optimization.flags.32398689" name="Other optimization flags" superClass="gnu.cpp.compiler.option.optimization.flags" value="-fno-common" valueType="string"/>
+								<option id="gnu.cpp.compiler.option.optimization.flags.32398689" name="Other optimization flags" superClass="gnu.cpp.compiler.option.optimization.flags" value="-fno-common -Wshadow -Wundef -fstack-usage -Wpadded" valueType="string"/>
 								<option id="com.crt.advproject.cpp.hdrlib.1952809690" name="Library headers" superClass="com.crt.advproject.cpp.hdrlib" value="Newlib" valueType="enumerated"/>
 								<option id="com.crt.advproject.cpp.exe.debug.option.optimization.level.74682019" name="Optimization Level" superClass="com.crt.advproject.cpp.exe.debug.option.optimization.level" value="gnu.cpp.compiler.optimization.level.most" valueType="enumerated"/>
-								<option id="gnu.cpp.compiler.option.warnings.wconversion.1162552338" name="Implicit conversion warnings (-Wconversion)" superClass="gnu.cpp.compiler.option.warnings.wconversion" value="false" valueType="boolean"/>
+								<option id="gnu.cpp.compiler.option.warnings.wconversion.1162552338" name="Implicit conversion warnings (-Wconversion)" superClass="gnu.cpp.compiler.option.warnings.wconversion" value="true" valueType="boolean"/>
 								<option id="gnu.cpp.compiler.option.include.paths.1817026844" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/src}&quot;"/>
 									<listOptionValue builtIn="false" value="../../shared"/>
@@ -184,7 +185,7 @@
 									<listOptionValue builtIn="false" value="__MULTICORE_MASTER_SLAVE_M0APP"/>
 								</option>
 								<option id="gnu.c.compiler.option.misc.other.888154449" name="Other flags" superClass="gnu.c.compiler.option.misc.other" value="-c -fmessage-length=0 -fno-builtin -ffunction-sections -fdata-sections" valueType="string"/>
-								<option id="gnu.c.compiler.option.optimization.flags.2056409910" name="Other optimization flags" superClass="gnu.c.compiler.option.optimization.flags" value="-fno-common" valueType="string"/>
+								<option id="gnu.c.compiler.option.optimization.flags.2056409910" name="Other optimization flags" superClass="gnu.c.compiler.option.optimization.flags" value="-fno-common -Wshadow -Wundef -fstack-usage -Wpadded" valueType="string"/>
 								<option id="com.crt.advproject.gcc.exe.debug.option.optimization.level.1431255282" name="Optimization Level" superClass="com.crt.advproject.gcc.exe.debug.option.optimization.level" value="gnu.c.optimization.level.most" valueType="enumerated"/>
 								<option id="gnu.c.compiler.option.include.paths.85454279" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/src}&quot;"/>
@@ -192,6 +193,7 @@
 								</option>
 								<option id="com.crt.advproject.gcc.lto.278014995" name="Enable Link-time optimization (-flto)" superClass="com.crt.advproject.gcc.lto" value="true" valueType="boolean"/>
 								<option id="com.crt.advproject.gcc.exe.debug.option.debugging.level.933398808" name="Debug Level" superClass="com.crt.advproject.gcc.exe.debug.option.debugging.level" value="gnu.c.debugging.level.none" valueType="enumerated"/>
+								<option id="gnu.c.compiler.option.warnings.wconversion.1484782859" name="Implicit conversion warnings (-Wconversion)" superClass="gnu.c.compiler.option.warnings.wconversion" value="true" valueType="boolean"/>
 								<inputType id="com.crt.advproject.compiler.input.1739350819" superClass="com.crt.advproject.compiler.input"/>
 							</tool>
 							<tool id="com.crt.advproject.gas.exe.debug.1636405545" name="MCU Assembler" superClass="com.crt.advproject.gas.exe.debug">

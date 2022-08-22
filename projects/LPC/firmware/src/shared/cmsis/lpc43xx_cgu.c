@@ -54,7 +54,7 @@
  * GetBaseStatus BASE_SAFE
  * */
 /* Local definition */
-#define CGU_ADDRESS32(x, y) (*(uint32_t *) ((uint32_t) x + y))
+#define CGU_ADDRESS32(x, y) (*(uint32_t *) ((uint32_t) x + (uint32_t) y))
 
 /* Local Variable */
 static const int16_t CGU_Entity_ControlReg_Offset[CGU_ENTITY_NUM] = {
@@ -177,11 +177,11 @@ static const CGU_PERIPHERAL_S CGU_PERIPHERAL_Info[CGU_PERIPHERAL_NUM] = {
 static uint32_t CGU_ClockSourceFrequency[CGU_CLKSRC_NUM] = { 0, 12000000, 0, 0, 0, 0, 0, 480000000, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
 #define CGU_CGU_ADDR             ((uint32_t) LPC_CGU)
-#define CGU_REG_BASE_CTRL(x)     (*(uint32_t *) (CGU_CGU_ADDR + CGU_Entity_ControlReg_Offset[CGU_PERIPHERAL_Info[x].RegBaseEntity]))
+#define CGU_REG_BASE_CTRL(x)     (*(uint32_t *) (CGU_CGU_ADDR + (uint32_t) CGU_Entity_ControlReg_Offset[CGU_PERIPHERAL_Info[x].RegBaseEntity]))
 #define CGU_REG_BRANCH_CTRL(x)   (*(uint32_t *) (CGU_CGU_ADDR + CGU_PERIPHERAL_Info[x].RegBranchOffset))
 #define CGU_REG_BRANCH_STATUS(x) (*(uint32_t *) (CGU_CGU_ADDR + CGU_PERIPHERAL_Info[x].RegBranchOffset + 4))
 
-#define CGU_PER_BASE_CTRL(x)     (*(uint32_t *) (CGU_CGU_ADDR + CGU_Entity_ControlReg_Offset[CGU_PERIPHERAL_Info[x].PerBaseEntity]))
+#define CGU_PER_BASE_CTRL(x)     (*(uint32_t *) (CGU_CGU_ADDR + (uint32_t) CGU_Entity_ControlReg_Offset[CGU_PERIPHERAL_Info[x].PerBaseEntity]))
 #define CGU_PER_BRANCH_CTRL(x)   (*(uint32_t *) (CGU_CGU_ADDR + CGU_PERIPHERAL_Info[x].PerBranchOffset))
 #define CGU_PER_BRANCH_STATUS(x) (*(uint32_t *) (CGU_CGU_ADDR + CGU_PERIPHERAL_Info[x].PerBranchOffset + 4))
 
@@ -263,7 +263,7 @@ uint32_t CGU_ConfigPWR(CGU_PERIPHERAL_T PPType, FunctionalState en)
     /*Get Reg branch status */
     if (CGU_PERIPHERAL_Info[PPType].RegBranchOffset != 0 && CGU_REG_BRANCH_STATUS(PPType) & 1)
     {
-      CGU_REG_BRANCH_CTRL(PPType) &= ~1; /* Disable branch clock */
+      CGU_REG_BRANCH_CTRL(PPType) &= ~1u; /* Disable branch clock */
       while (CGU_REG_BRANCH_STATUS(PPType) & 1)
         ;
     }
@@ -277,7 +277,7 @@ uint32_t CGU_ConfigPWR(CGU_PERIPHERAL_T PPType, FunctionalState en)
     /* Same for Peripheral */
     if ((CGU_PERIPHERAL_Info[PPType].PerBranchOffset != 0) && (CGU_PER_BRANCH_STATUS(PPType) & CGU_BRANCH_STATUS_ENABLE_MASK))
     {
-      CGU_PER_BRANCH_CTRL(PPType) &= ~1; /* Disable branch clock */
+      CGU_PER_BRANCH_CTRL(PPType) &= ~1u; /* Disable branch clock */
       while (CGU_PER_BRANCH_STATUS(PPType) & CGU_BRANCH_STATUS_ENABLE_MASK)
         ;
     }
@@ -454,7 +454,7 @@ uint32_t CGU_SetXTALOSC(uint32_t ClockFrequency)
 {
   if (ClockFrequency < 15000000)
   {
-    LPC_CGU->XTAL_OSC_CTRL &= ~(1 << 2);
+    LPC_CGU->XTAL_OSC_CTRL &= ~(1u << 2);
   }
   else if (ClockFrequency < 25000000)
   {
@@ -491,7 +491,7 @@ uint32_t CGU_SetDIV(CGU_ENTITY_T SelectDivider, uint32_t divisor)
     if (RegOffset == -1)
       return CGU_ERROR_INVALID_ENTITY;
     tempReg = CGU_ADDRESS32(LPC_CGU, RegOffset);
-    tempReg &= ~(0xFF << 2);
+    tempReg &= ~((uint32_t) 0xFF << 2);
     tempReg |= ((divisor - 1) & 0xFF) << 2;
     CGU_ADDRESS32(LPC_CGU, RegOffset) = tempReg;
     return CGU_ERROR_SUCCESS;
@@ -550,13 +550,13 @@ uint32_t CGU_EnableEntity(CGU_ENTITY_T ClockEntity, uint32_t en)
   {
     if (en)
     {
-      LPC_CREG->CREG0 &= ~((1 << 3) | (1 << 2));
-      LPC_CREG->CREG0 |= (1 << 1) | (1 << 0);
+      LPC_CREG->CREG0 &= ~((1u << 3) | (1u << 2));
+      LPC_CREG->CREG0 |= (1u << 1) | (1 << 0);
     }
     else
     {
-      LPC_CREG->CREG0 &= ~((1 << 1) | (1 << 0));
-      LPC_CREG->CREG0 |= (1 << 3);
+      LPC_CREG->CREG0 &= ~((1u << 1) | (1u << 0));
+      LPC_CREG->CREG0 |= (1u << 3);
     }
     for (i = 0; i < 1000000; i++)
       ;
@@ -698,8 +698,8 @@ uint32_t CGU_EntityConnect(CGU_ENTITY_T ClockSource, CGU_ENTITY_T ClockEntity)
       if (RegOffset == -1)
         return CGU_ERROR_INVALID_ENTITY;
       tempReg = CGU_ADDRESS32(LPC_CGU, RegOffset);
-      tempReg &= ~CGU_CTRL_SRC_MASK;
-      tempReg |= ClockSource << 24 | CGU_CTRL_AUTOBLOCK_MASK;
+      tempReg &= ~(uint32_t) CGU_CTRL_SRC_MASK;
+      tempReg |= (uint32_t) ClockSource << 24 | CGU_CTRL_AUTOBLOCK_MASK;
       CGU_ADDRESS32(LPC_CGU, RegOffset) = tempReg;
       return CGU_ERROR_SUCCESS;
     }
@@ -787,7 +787,7 @@ uint32_t CGU_SetPLL1(uint32_t mult)
   freq *= mult;
   msel = mult - 1;
 
-  LPC_CGU->PLL1_CTRL &= ~(CGU_PLL1_FBSEL_MASK | CGU_PLL1_BYPASS_MASK | CGU_PLL1_DIRECT_MASK | (0x03 << 8) | (0xFF << 16) | (0x03 << 12));
+  LPC_CGU->PLL1_CTRL &= ~(uint32_t)(CGU_PLL1_FBSEL_MASK | CGU_PLL1_BYPASS_MASK | CGU_PLL1_DIRECT_MASK | (0x03 << 8) | (0xFF << 16) | (0x03 << 12));
 
   if (freq < 156000000)
   {
@@ -938,7 +938,7 @@ int CGU_FrequencyMonitor(CGU_ENTITY_T Clock, uint32_t *m, uint32_t *d)
   /* Maximum allow RCOUNT number */
   c = 511;
   /* Check Source Clock Freq is larger or smaller */
-  LPC_CGU->FREQ_MON = (Clock << 24) | 1 << 23 | c;
+  LPC_CGU->FREQ_MON = ((uint32_t) Clock << 24) | 1 << 23 | c;
   while (LPC_CGU->FREQ_MON & (1 << 23))
     ;
   for (i = 0; i < 10000; i++)
@@ -957,7 +957,7 @@ int CGU_FrequencyMonitor(CGU_ENTITY_T Clock, uint32_t *m, uint32_t *d)
     do
     {
       c--;
-      LPC_CGU->FREQ_MON = (Clock << 24) | 1 << 23 | c;
+      LPC_CGU->FREQ_MON = ((uint32_t) Clock << 24) | 1 << 23 | c;
       while (LPC_CGU->FREQ_MON & (1 << 23))
         ;
       for (i = 0; i < 10000; i++)

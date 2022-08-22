@@ -65,7 +65,7 @@ static void startSlave(uint32_t slavenum)
       /* 1 = no reset, 0 = reset */
       while (!(u32REG & (1u << 24)))
       {
-        u32Val          = (~(u32REG) & (~(1 << 24)));
+        u32Val          = (~(u32REG) & (~(1u << 24)));
         RGU_RESET_CTRL1 = u32Val;
         u32REG          = RGU_RESET_ACTIVE_STATUS1;
       };
@@ -80,7 +80,7 @@ static void startSlave(uint32_t slavenum)
       /* 1 = no reset, 0 = reset */
       while (!(u32REG & (1u << 12)))
       {
-        u32Val          = (~(u32REG) & (~(1 << 12)));
+        u32Val          = (~(u32REG) & (~(1u << 12)));
         RGU_RESET_CTRL0 = u32Val;
         u32REG          = RGU_RESET_ACTIVE_STATUS0;
       };

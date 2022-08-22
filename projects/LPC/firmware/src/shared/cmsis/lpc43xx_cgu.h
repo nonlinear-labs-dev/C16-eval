@@ -71,7 +71,7 @@ extern "C"
  * Macro defines for CGU control mask bit definitions
  **********************************************************************/
 /** CGU control enable mask bit */
-#define CGU_CTRL_EN_MASK 1
+#define CGU_CTRL_EN_MASK 1u
 /** CGU control clock-source mask bit */
 #define CGU_CTRL_SRC_MASK (0xF << 24)
 /** CGU control auto block mask bit */
@@ -226,6 +226,8 @@ extern "C"
   /*
  * @brief	CGU peripheral clock structure
  */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpadded"
   typedef struct
   {
     uint8_t  RegBaseEntity;   /**< Base register address 		*/
@@ -234,7 +236,7 @@ extern "C"
     uint16_t PerBranchOffset; /**< Base peripheral offset		*/
     uint8_t  next;            /**< Pointer to next structure	*/
   } CGU_PERIPHERAL_S;
-
+#pragma GCC diagnostic pop
   /**
  * @}
  */
