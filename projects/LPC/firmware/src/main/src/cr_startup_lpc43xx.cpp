@@ -28,6 +28,7 @@
 // copyright, permission, and disclaimer notice must appear in all copies of
 // this code.
 //*****************************************************************************
+#include "io/pins.h"
 
 #if defined(__cplusplus)
 #ifdef __REDLIB__
@@ -308,7 +309,6 @@ extern unsigned int __bss_section_table_end;
 //*****************************************************************************
 void ResetISR(void)
 {
-
 // *************************************************************
 // The following conditional block of code manually resets as
 // much of the peripheral set of the LPC43 as possible. This is
@@ -363,6 +363,12 @@ void ResetISR(void)
 #if defined(__USE_LPCOPEN)
   SystemInit();
 #endif
+
+  //
+  // Initialize all critical pins to a save default state (notably GPIO outputs controlling hardware) as soon as possible
+  // this allows
+  //
+  PINS_Init();
 
   //
   // Copy the data sections from flash to SRAM.
@@ -445,6 +451,7 @@ void ResetISR(void)
   //
   // main() shouldn't return, but if it does, we'll just enter an infinite loop
   //
+  PINS_Init();
   while (1)
   {
     ;
@@ -457,54 +464,63 @@ void ResetISR(void)
 //*****************************************************************************
 __attribute__((section(".after_vectors"))) void NMI_Handler(void)
 {
+  PINS_Init();
   while (1)
   {
   }
 }
 __attribute__((section(".after_vectors"))) void HardFault_Handler(void)
 {
+  PINS_Init();
   while (1)
   {
   }
 }
 __attribute__((section(".after_vectors"))) void MemManage_Handler(void)
 {
+  PINS_Init();
   while (1)
   {
   }
 }
 __attribute__((section(".after_vectors"))) void BusFault_Handler(void)
 {
+  PINS_Init();
   while (1)
   {
   }
 }
 __attribute__((section(".after_vectors"))) void UsageFault_Handler(void)
 {
+  PINS_Init();
   while (1)
   {
   }
 }
 __attribute__((section(".after_vectors"))) void SVC_Handler(void)
 {
+  PINS_Init();
   while (1)
   {
   }
 }
 __attribute__((section(".after_vectors"))) void DebugMon_Handler(void)
 {
+  PINS_Init();
   while (1)
   {
   }
 }
 __attribute__((section(".after_vectors"))) void PendSV_Handler(void)
 {
+  PINS_Init();
   while (1)
   {
   }
 }
 __attribute__((section(".after_vectors"))) void SysTick_Handler(void)
 {
+  PINS_Init();
   while (1)
   {
   }
@@ -518,6 +534,7 @@ __attribute__((section(".after_vectors"))) void SysTick_Handler(void)
 //*****************************************************************************
 __attribute__((section(".after_vectors"))) void IntDefaultHandler(void)
 {
+  PINS_Init();
   while (1)
   {
   }

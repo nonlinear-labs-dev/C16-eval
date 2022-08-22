@@ -36,15 +36,15 @@ int main(void)
   // TODO: insert code here
 
   // Force the counter to be placed into memory
-  static volatile int i = 0;
+  static volatile unsigned i = 0;
   // Enter an infinite loop, just incrementing a counter
   while (1)
   {
-    if (i > 100000)
+    if (i > 300000lu)
       i = 0;
     if (i == 0)
     {
-      LED_A = !LED_A;
+      LED_M0HB = ~LED_M0HB;
     }
     i++;
   }

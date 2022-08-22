@@ -33,7 +33,7 @@
 									<listOptionValue builtIn="false" value="CORE_M0APP"/>
 								</option>
 								<option id="gnu.c.compiler.option.misc.other.1445696149" name="Other flags" superClass="gnu.c.compiler.option.misc.other" value="-c -fmessage-length=0 -fno-builtin -ffunction-sections -fdata-sections" valueType="string"/>
-								<option id="gnu.c.compiler.option.optimization.flags.1187604981" name="Other optimization flags" superClass="gnu.c.compiler.option.optimization.flags" value="-fno-common -Wshadow -Wundef -fstack-usage -Wpadded" valueType="string"/>
+								<option id="gnu.c.compiler.option.optimization.flags.1187604981" name="Other optimization flags" superClass="gnu.c.compiler.option.optimization.flags" value="-fno-common -Wshadow -Wundef -fstack-usage -Wpadded -save-temps" valueType="string"/>
 								<option id="com.crt.advproject.gcc.hdrlib.1856098099" name="Library headers" superClass="com.crt.advproject.gcc.hdrlib" value="com.crt.advproject.gcc.hdrlib.none" valueType="enumerated"/>
 								<option id="com.crt.advproject.gcc.specs.641075621" name="Specs" superClass="com.crt.advproject.gcc.specs" value="com.crt.advproject.gcc.specs.none" valueType="enumerated"/>
 								<option id="com.crt.advproject.gcc.exe.debug.option.optimization.level.34441026" name="Optimization Level" superClass="com.crt.advproject.gcc.exe.debug.option.optimization.level" value="gnu.c.optimization.level.general" valueType="enumerated"/>
@@ -132,7 +132,7 @@
 									<listOptionValue builtIn="false" value="CORE_M0APP"/>
 								</option>
 								<option id="gnu.c.compiler.option.misc.other.906219465" name="Other flags" superClass="gnu.c.compiler.option.misc.other" value="-c -fmessage-length=0 -fno-builtin -ffunction-sections -fdata-sections" valueType="string"/>
-								<option id="gnu.c.compiler.option.optimization.flags.1545182832" name="Other optimization flags" superClass="gnu.c.compiler.option.optimization.flags" value="-fno-common -Wshadow -Wundef -fstack-usage -Wpadded" valueType="string"/>
+								<option id="gnu.c.compiler.option.optimization.flags.1545182832" name="Other optimization flags" superClass="gnu.c.compiler.option.optimization.flags" value="-fno-common -Wshadow -Wundef -fstack-usage -Wpadded -save-temps" valueType="string"/>
 								<option id="com.crt.advproject.gcc.hdrlib.904523419" name="Library headers" superClass="com.crt.advproject.gcc.hdrlib" value="com.crt.advproject.gcc.hdrlib.none" valueType="enumerated"/>
 								<option id="com.crt.advproject.gcc.specs.1751425212" name="Specs" superClass="com.crt.advproject.gcc.specs" value="com.crt.advproject.gcc.specs.none" valueType="enumerated"/>
 								<option id="com.crt.advproject.gcc.exe.debug.option.optimization.level.1413385369" name="Optimization Level" superClass="com.crt.advproject.gcc.exe.debug.option.optimization.level" value="gnu.c.optimization.level.most" valueType="enumerated"/>

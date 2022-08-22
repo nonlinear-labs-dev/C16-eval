@@ -25,8 +25,7 @@
 
 int main(void)
 {
-  PINS_Init();
-  LED_A = LED_B = LED_C = LED_D = 1;
+  LED_WARNING = LED_ERROR = 0;
 
   // Start M0APP slave processor
 #if defined(__MULTICORE_MASTER_SLAVE_M0APP)
@@ -41,15 +40,15 @@ int main(void)
   // TODO: insert code here
 
   // Force the counter to be placed into memory
-  static volatile int i = 0;
+  static volatile unsigned i = 0;
   // Enter an infinite loop, just incrementing a counter
   while (1)
   {
-    if (i > 100000)
+    if (i > 300000lu)
       i = 0;
     if (i == 0)
     {
-      LED_B = !LED_B;
+      LED_M4HB = ~LED_M4HB;
     }
     i++;
   }
