@@ -34,29 +34,15 @@
 // this code.
 //*****************************************************************************
 
-#ifndef CR_START_M0_H_
-#define CR_START_M0_H_
-
-#define SLAVE_M0APP 0
-#define SLAVE_M0SUB 1
-
+#pragma once
 #include <stdint.h>
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
+#include "cppbegin.inc"
+extern uint8_t __core_m0app_START__;
 
-  extern uint8_t __core_m0app_START__;
-  extern uint8_t __core_m0sub_START__;
-
-  /*******************************************************************
+/*******************************************************************
  * Function to start required CM0 slave cpu executing
  *******************************************************************/
-  void cr_start_m0(uint32_t slavenum, uint8_t *CM0image_start);
+void cr_start_m0(uint8_t *CM0image_start);
 
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* CR_START_M0_H_ */
+#include "cppend.inc"

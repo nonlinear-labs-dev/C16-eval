@@ -301,6 +301,11 @@ extern unsigned int __data_section_table_end;
 extern unsigned int __bss_section_table;
 extern unsigned int __bss_section_table_end;
 
+inline void M4Error(void)
+{
+  LED_ERROR = LED_M4HB = 1;
+}
+
 //*****************************************************************************
 // Reset entry point for your code.
 // Sets up a simple runtime environment and initializes the C/C++
@@ -453,9 +458,7 @@ void ResetISR(void)
   //
   PINS_Init();
   while (1)
-  {
-    ;
-  }
+    M4Error();
 }
 
 //*****************************************************************************
@@ -466,64 +469,55 @@ __attribute__((section(".after_vectors"))) void NMI_Handler(void)
 {
   PINS_Init();
   while (1)
-  {
-  }
+    M4Error();
 }
 __attribute__((section(".after_vectors"))) void HardFault_Handler(void)
 {
   PINS_Init();
   while (1)
-  {
-  }
+    M4Error();
 }
 __attribute__((section(".after_vectors"))) void MemManage_Handler(void)
 {
   PINS_Init();
   while (1)
-  {
-  }
+    M4Error();
 }
 __attribute__((section(".after_vectors"))) void BusFault_Handler(void)
 {
   PINS_Init();
   while (1)
-  {
-  }
+    M4Error();
 }
 __attribute__((section(".after_vectors"))) void UsageFault_Handler(void)
 {
   PINS_Init();
   while (1)
-  {
-  }
+    M4Error();
 }
 __attribute__((section(".after_vectors"))) void SVC_Handler(void)
 {
   PINS_Init();
   while (1)
-  {
-  }
+    M4Error();
 }
 __attribute__((section(".after_vectors"))) void DebugMon_Handler(void)
 {
   PINS_Init();
   while (1)
-  {
-  }
+    M4Error();
 }
 __attribute__((section(".after_vectors"))) void PendSV_Handler(void)
 {
   PINS_Init();
   while (1)
-  {
-  }
+    M4Error();
 }
 __attribute__((section(".after_vectors"))) void SysTick_Handler(void)
 {
   PINS_Init();
   while (1)
-  {
-  }
+    M4Error();
 }
 
 //*****************************************************************************
@@ -536,6 +530,5 @@ __attribute__((section(".after_vectors"))) void IntDefaultHandler(void)
 {
   PINS_Init();
   while (1)
-  {
-  }
+    M4Error();
 }

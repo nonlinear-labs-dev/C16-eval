@@ -28,6 +28,8 @@
 // copyright, permission, and disclaimer notice must appear in all copies of
 // this code.
 //*****************************************************************************
+#include "io/pins.h"
+
 #if defined(__cplusplus)
 #ifdef __REDLIB__
 #error Redlib does not support C++
@@ -325,6 +327,11 @@ extern unsigned int __data_section_table_end;
 extern unsigned int __bss_section_table;
 extern unsigned int __bss_section_table_end;
 
+inline void M0Error(void)
+{
+  LED_ERROR = LED_M0HB = 1;
+}
+
 //*****************************************************************************
 // Reset entry point for your code.
 // Sets up a simple runtime environment and initializes the C/C++
@@ -393,9 +400,7 @@ void ResetISR(void)
   // main() shouldn't return, but if it does, we'll just enter an infinite loop
   //
   while (1)
-  {
-    ;
-  }
+    M0Error();
 }
 
 //*****************************************************************************
@@ -410,8 +415,7 @@ void M0_NMI_Handler(void)
 #endif
 {
   while (1)
-  {
-  }
+    M0Error();
 }
 
 __attribute__((section(".after_vectors")))
@@ -422,8 +426,7 @@ void M0_HardFault_Handler(void)
 #endif
 {
   while (1)
-  {
-  }
+    M0Error();
 }
 
 __attribute__((section(".after_vectors")))
@@ -434,8 +437,7 @@ void M0_SVC_Handler(void)
 #endif
 {
   while (1)
-  {
-  }
+    M0Error();
 }
 
 __attribute__((section(".after_vectors")))
@@ -446,8 +448,7 @@ void M0_PendSV_Handler(void)
 #endif
 {
   while (1)
-  {
-  }
+    M0Error();
 }
 
 //*****************************************************************************
@@ -464,6 +465,5 @@ void M0_IntDefaultHandler(void)
 #endif
 {
   while (1)
-  {
-  }
+    M0Error();
 }

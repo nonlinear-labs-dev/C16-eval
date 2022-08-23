@@ -33,6 +33,7 @@
 //*****************************************************************************
 
 #include <stdlib.h>
+#include "io/pins.h"
 
 void *operator new(size_t size)
 {
@@ -87,6 +88,8 @@ namespace __gnu_cxx
 {
   void __verbose_terminate_handler()
   {
+    __asm volatile("cpsid i");
+    PINS_Init();
     while (1)
       ;
   }

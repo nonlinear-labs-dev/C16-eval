@@ -1,56 +1,66 @@
-/*
-===============================================================================
- Name        : main.c
- Author      : $(author)
- Version     :
- Copyright   : $(copyright)
- Description : main definition
-===============================================================================
-*/
-
-#ifdef __USE_CMSIS
-#include "LPC43xx.h"
-#endif
-
-#include <cr_section_macros.h>
-
-#if defined(__MULTICORE_MASTER_SLAVE_M0APP) | defined(__MULTICORE_MASTER_SLAVE_M0SUB)
 #include "cr_start_m0.h"
-#endif
-
-// TODO: insert other include files here
 #include "io/pins.h"
+#include "CPU_clock.h"
+#include "drv/nl_cgu.h"
+#include "ipc/ipc.h"
+#include "sys/ledHeartBeatM4.h"
+#include "sys/ledErrorWarning.h"
 
-// TODO: insert other definitions and declarations here
+static inline void Init(void);
 
+Task::LedHeartBeatM4  ledHeartBeatM4(0u, 4000u);
+Task::LedErrorWarning ledErrorWarning(1u, 800u);
+
+// ---------------
 int main(void)
 {
-  LED_WARNING = LED_ERROR = 0;
+  Init();
 
-  // Start M0APP slave processor
-#if defined(__MULTICORE_MASTER_SLAVE_M0APP)
-  cr_start_m0(SLAVE_M0APP, &__core_m0app_START__);
-#endif
-
-  // Start M0SUB slave processor
-#if defined(__MULTICORE_MASTER_SLAVE_M0SUB)
-//    cr_start_m0(SLAVE_M0SUB,&__core_m0sub_START__);
-#endif
-
-  // TODO: insert code here
-
-  // Force the counter to be placed into memory
-  static volatile unsigned i = 0;
-  // Enter an infinite loop, just incrementing a counter
   while (1)
   {
-    if (i > 300000lu)
-      i = 0;
-    if (i == 0)
-    {
-      LED_M4HB = ~LED_M4HB;
-    }
-    i++;
+    ledHeartBeatM4.run();
+    ledErrorWarning.run();
   }
   return 0;
+}
+
+// ----------------
+static inline void M4SysTick_Init(void);
+
+static inline void Init(void)
+{
+  CPU_ConfigureClocks();
+  IPC_Init();
+  cr_start_m0(&__core_m0app_START__);
+  M4SysTick_Init();
+
+  LED_WARNING = LED_ERROR = 0;
+}
+
+/*************************************************************************
+ * @brief	ticker interrupt routines using the standard M4 system ticker
+ *        IRQ will be triggered every 125us, our basic scheduler time-slice
+ ******************************************************************************/
+static inline void M4SysTick_Init(void)
+{
+#define SYST_CSR   (uint32_t *) (0xE000E010)  // SysTick Control & Status Reg
+#define SYST_RVR   (uint32_t *) (0xE000E014)  // SysTick Reload Value
+#define SYST_CVR   (uint32_t *) (0xE000E018)  // SysTick Counter Value
+#define SYST_CALIB (uint32_t *) (0xE000E01C)  // SysTick Calibration
+  *SYST_RVR = (NL_LPC_CLK / M4_FREQ_HZ) - 1;
+  *SYST_CVR = 0;
+  *SYST_CSR = 0b111;  // processor clock | IRQ enabled | counter enabled
+}
+
+extern "C" void SysTick_Handler(void)
+{
+  static unsigned cntr = 25u;  // 25 * 5us   = 125us time slice
+
+  s.ticker++;
+  if (!--cntr)
+  {
+    cntr = 25u;
+    ledHeartBeatM4.dispatch();
+    ledErrorWarning.dispatch();
+  }
 }
