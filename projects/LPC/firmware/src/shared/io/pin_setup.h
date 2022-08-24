@@ -57,8 +57,8 @@
 // GPIO direction control :
 // the indirection *(&item)) helps the compiler to resolve literal memory addresses at compile time
 // the memory clobber keeps instructions sequence as written
-#define GPIO_DIR_IN(bank, bit)  __CL__ *( __pIO32__ &LPC_GPIO_PORT->DIR[(bank)] ) &= ~(1 << bit )
-#define GPIO_DIR_OUT(bank, bit) __CL__ *( __pIO32__ &LPC_GPIO_PORT->DIR[(bank)] ) |=  (1 << bit )
+#define GPIO_DIR_IN(bank, bit)  __CL__ *( __pIO32__ &LPC_GPIO_PORT->DIR[(bank)] ) &= (uint32_t) ~(1u << bit )
+#define GPIO_DIR_OUT(bank, bit) __CL__ *( __pIO32__ &LPC_GPIO_PORT->DIR[(bank)] ) |= (uint32_t) (1u << bit )
 
 // create index into the B[] and W[] array of "LPC_SCU" struct
 #define __GPIOID(bank, bit)     ((bank) * 32 + (bit))

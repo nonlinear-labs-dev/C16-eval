@@ -3,13 +3,9 @@
 #include "CPU_clock.h"
 #include "drv/nl_cgu.h"
 #include "ipc/ipc.h"
-#include "sys/ledHeartBeatM4.h"
-#include "sys/ledErrorWarning.h"
+#include "tasks/tasks.h"
 
 static inline void Init(void);
-
-Task::LedHeartBeatM4  ledHeartBeatM4(0u, 4000u);
-Task::LedErrorWarning ledErrorWarning(1u, 800u);
 
 // ---------------
 int main(void)
@@ -20,6 +16,7 @@ int main(void)
   {
     ledHeartBeatM4.run();
     ledErrorWarning.run();
+    keybedScanner.run();
   }
   return 0;
 }
@@ -62,5 +59,6 @@ extern "C" void SysTick_Handler(void)
     cntr = 25u;
     ledHeartBeatM4.dispatch();
     ledErrorWarning.dispatch();
+    keybedScanner.dispatch();
   }
 }

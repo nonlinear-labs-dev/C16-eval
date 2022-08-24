@@ -25,9 +25,8 @@
   * @{
   */
 
-#ifndef __LPC43XX_H__
-#define __LPC43XX_H__
-
+#pragma once
+// clang-format off
 #ifdef __cplusplus
 extern "C"
 {
@@ -34792,4 +34791,4 @@ extern "C"
 }
 #endif
 
-#endif  // __LPC43xx_H__
+// clang-format on

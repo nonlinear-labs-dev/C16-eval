@@ -1,11 +1,11 @@
 #pragma once
 #include <stdint.h>
 
-#define IPC_KEYBUFFER_SIZE       (64)  // number of key events that can be processed in 125us
-#define IPC_KEYBUFFER_MASK       (IPC_KEYBUFFER_SIZE - 1)
+#define IPC_KEYBUFFER_SIZE       (64u)  // number of key events that can be processed in 125us
+#define IPC_KEYBUFFER_MASK       (IPC_KEYBUFFER_SIZE - 1u)
 #define IPC_KEYBUFFER_KEYMASK    (0x3F)
 #define IPC_KEYBUFFER_NOTEON     (0x40)
-#define IPC_KEYBUFFER_TIME_SHIFT (7)
+#define IPC_KEYBUFFER_TIME_SHIFT (7u)
 
 typedef struct
 {
@@ -16,6 +16,7 @@ typedef struct
 #endif
       uint32_t keyBufferWritePos;
   uint32_t     keyBufferReadPos;
+  uint32_t     M0_KbsIrqOvers;
 } SharedData_T;
 
 extern SharedData_T s;
@@ -28,6 +29,7 @@ inline static void IPC_Init(void)
   s.ticker            = 0;
   s.keyBufferWritePos = 0;
   s.keyBufferReadPos  = 0;
+  s.M0_KbsIrqOvers    = 0;
 }
 
 /******************************************************************************
@@ -39,7 +41,7 @@ inline static void IPC_Init(void)
      @param[in] keyEvent: A struct containing the index of the key
                 and the direction and travel time of the last key action
 *******************************************************************************/
-static inline void Emphase_IPC_M0_KeyBuffer_WriteKeyEvent(uint32_t const keyEvent)
+static inline void IPC_M0_KeyBuffer_WriteKeyEvent(uint32_t const keyEvent)
 {
   // !! this is a potentially critical section !!
   // Emphase_IPC_M4_KeyBuffer_ReadBuffer() should not run while we are here
@@ -59,7 +61,7 @@ static inline void Emphase_IPC_M0_KeyBuffer_WriteKeyEvent(uint32_t const keyEven
                 maxNumOfEventsToRead: size of the array pointed by pKeyEvent
     @return     Number of new key events (0: nothing to do)
 *******************************************************************************/
-static inline uint32_t Emphase_IPC_M4_KeyBuffer_ReadBuffer(uint32_t* const pKeyEvent, uint8_t const maxNumOfEventsToRead)
+static inline unsigned IPC_M4_KeyBuffer_ReadBuffer(uint32_t* const pKeyEvent, unsigned const maxNumOfEventsToRead)
 {
   // !! this is a potentially critical section !!
   // Emphase_IPC_M0_KeyBuffer_WriteKeyEvent() should not run while we are here
@@ -80,7 +82,7 @@ static inline uint32_t Emphase_IPC_M4_KeyBuffer_ReadBuffer(uint32_t* const pKeyE
 /******************************************************************************/
 /** @brief      Return size of key buffer
 *******************************************************************************/
-static inline uint32_t Emphase_IPC_KeyBuffer_GetSize()
+static inline unsigned IPC_KeyBuffer_GetSize()
 {
   return IPC_KEYBUFFER_SIZE;
 }
