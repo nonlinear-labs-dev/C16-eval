@@ -34,7 +34,7 @@
 									<listOptionValue builtIn="false" value="LPC43_MULTICORE_M0APP"/>
 									<listOptionValue builtIn="false" value="__MULTICORE_MASTER"/>
 									<listOptionValue builtIn="false" value="__MULTICORE_MASTER_SLAVE_M0APP"/>
-									<listOptionValue builtIn="false" value="DONT_RESET_ON_RESTART"/>
+									<listOptionValue builtIn="false" value="__NO__DONT_RESET_ON_RESTART"/>
 								</option>
 								<option id="gnu.cpp.compiler.option.other.other.243282651" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -fno-builtin -ffunction-sections -fdata-sections -fno-rtti -fno-exceptions" valueType="string"/>
 								<option id="gnu.cpp.compiler.option.optimization.flags.446298693" name="Other optimization flags" superClass="gnu.cpp.compiler.option.optimization.flags" value="-fno-common -Wshadow -Wundef -fstack-usage -Wpadded -save-temps" valueType="string"/>
@@ -65,7 +65,7 @@
 									<listOptionValue builtIn="false" value="LPC43_MULTICORE_M0APP"/>
 									<listOptionValue builtIn="false" value="__MULTICORE_MASTER"/>
 									<listOptionValue builtIn="false" value="__MULTICORE_MASTER_SLAVE_M0APP"/>
-									<listOptionValue builtIn="false" value="DONT_RESET_ON_RESTART"/>
+									<listOptionValue builtIn="false" value="__NO__DONT_RESET_ON_RESTART"/>
 								</option>
 								<option id="gnu.c.compiler.option.misc.other.978919113" name="Other flags" superClass="gnu.c.compiler.option.misc.other" value="-c -fmessage-length=0 -fno-builtin -ffunction-sections -fdata-sections" valueType="string"/>
 								<option id="gnu.c.compiler.option.optimization.flags.1486984137" name="Other optimization flags" superClass="gnu.c.compiler.option.optimization.flags" value="-fno-common -Wshadow -Wundef -fstack-usage -Wpadded -save-temps" valueType="string"/>

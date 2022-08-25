@@ -48,7 +48,7 @@ namespace Task
       LED_WARNING = !m_warningTimerFlicker;
     };
 
-    inline virtual void body(void)
+    inline void body(void)
     {
       if (m_errorTimerFlicker)
       {

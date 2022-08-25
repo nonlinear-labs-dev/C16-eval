@@ -7,8 +7,9 @@
 //
 static inline void PINS_Init(void)
 {
-
+  //
   // -------- System LEDs --------
+  //
   // (LED.A, green)
 #define LED_M0HB GPIO_Word(2, 10)
   GPIO_DIR_OUT(2, 10);
@@ -33,7 +34,9 @@ static inline void PINS_Init(void)
   SFSP(1, 8) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 0;
   LED_ERROR  = 1;
 
+  //
   // -------- KeybedScanner --------
+  //
 #define KS_LINE_0 GPIO_Word(0, 0)
   GPIO_DIR_OUT(0, 0);
   SFSP(0, 0) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 0;
@@ -85,6 +88,29 @@ static inline void PINS_Init(void)
 #define KS_KEY_7 GPIO_Word(2, 7)
   GPIO_DIR_IN(2, 7);
   SFSP(5, 7) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 0;
+
+  //
+  // -------- ADC Muxer Groups --------
+  //
+#define ADC_MG0_A0 GPIO_Word(3, 14)
+  GPIO_DIR_OUT(3, 14);
+  SFSP(7, 6) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 0;
+  ADC_MG0_A0 = 0u;
+
+#define ADC_MG0_A1 GPIO_Word(3, 15)
+  GPIO_DIR_OUT(3, 15);
+  SFSP(7, 7) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 0;
+  ADC_MG0_A1 = 0u;
+
+#define ADC_MG1_A0 GPIO_Word(5, 9)
+  GPIO_DIR_OUT(5, 9);
+  SFSP(3, 2) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 4;
+  ADC_MG1_A0 = 0u;
+
+#define ADC_MG1_A1 GPIO_Word(3, 11)
+  GPIO_DIR_OUT(3, 11);
+  SFSP(7, 3) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 0;
+  ADC_MG1_A1 = 0u;
 }
 
 static inline void PINS_AllLedsOn(void)

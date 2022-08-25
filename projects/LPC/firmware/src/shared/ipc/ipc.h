@@ -17,6 +17,7 @@ typedef struct
       uint32_t keyBufferWritePos;
   uint32_t     keyBufferReadPos;
   uint32_t     M0_KbsIrqOvers;
+  uint32_t     adcData[32];
 } SharedData_T;
 
 extern SharedData_T s;
@@ -30,6 +31,8 @@ inline static void IPC_Init(void)
   s.keyBufferWritePos = 0;
   s.keyBufferReadPos  = 0;
   s.M0_KbsIrqOvers    = 0;
+  for (unsigned i = 0; i < 32; i++)
+    s.adcData[i] = 0;
 }
 
 /******************************************************************************
@@ -46,7 +49,7 @@ static inline void IPC_M0_KeyBuffer_WriteKeyEvent(uint32_t const keyEvent)
   // !! this is a potentially critical section !!
   // Emphase_IPC_M4_KeyBuffer_ReadBuffer() should not run while we are here
   // because it uses keyBufferWritePos in a compare. Unless keyBufferWritePos
-  // isn't update so fast as to overrun keyBufferReadPos nothing bad will happe, though.
+  // isn't updated so fast as to overrun keyBufferReadPos nothing bad will happen, though.
   // NOTE : No check is done anyway if the write overruns the buffer, we rely
   // on the buffer being big enough to avoid this.
   s.keyBufferData[s.keyBufferWritePos] = keyEvent;
@@ -58,10 +61,9 @@ static inline void IPC_M0_KeyBuffer_WriteKeyEvent(uint32_t const keyEvent)
                 that have been written by the M0
     @param[in]  pKeyEvent: pointer to an array of key events
                 that will be processed by the voice allocation
-                maxNumOfEventsToRead: size of the array pointed by pKeyEvent
     @return     Number of new key events (0: nothing to do)
 *******************************************************************************/
-static inline unsigned IPC_M4_KeyBuffer_ReadBuffer(uint32_t* const pKeyEvent, unsigned const maxNumOfEventsToRead)
+static inline uint32_t IPC_M4_KeyBuffer_ReadBuffer(void)
 {
   // !! this is a potentially critical section !!
   // Emphase_IPC_M0_KeyBuffer_WriteKeyEvent() should not run while we are here
@@ -69,14 +71,13 @@ static inline unsigned IPC_M4_KeyBuffer_ReadBuffer(uint32_t* const pKeyEvent, un
   // As long as keyBufferWritePos, which is volatile from M4's view, doesn't update so fast
   // that it overruns keyBufferReadPos (which is extremely unlikely, only when Emphase_IPC_M4_KeyBuffer_ReadBuffer
   // is interrupted/stalling for a really long time), nothing bad will happen, though.
-  uint8_t count = 0;
-  while ((s.keyBufferReadPos != s.keyBufferWritePos) && (count < maxNumOfEventsToRead))
+  unsigned event = 0;
+  if (s.keyBufferReadPos != s.keyBufferWritePos)
   {
-    pKeyEvent[count]   = s.keyBufferData[s.keyBufferReadPos];
+    event              = s.keyBufferData[s.keyBufferReadPos];
     s.keyBufferReadPos = (s.keyBufferReadPos + 1) & (IPC_KEYBUFFER_MASK);
-    count++;
   }
-  return count;
+  return event;
 }
 
 /******************************************************************************/
@@ -85,4 +86,10 @@ static inline unsigned IPC_M4_KeyBuffer_ReadBuffer(uint32_t* const pKeyEvent, un
 static inline unsigned IPC_KeyBuffer_GetSize()
 {
   return IPC_KEYBUFFER_SIZE;
+}
+
+// ---------------
+static __attribute__((always_inline)) inline void IPC_WriteAdcBuffer(unsigned const adc_id, uint32_t const value)
+{
+  s.adcData[adc_id] = value;
 }

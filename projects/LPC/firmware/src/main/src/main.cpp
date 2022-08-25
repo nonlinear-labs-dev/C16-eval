@@ -14,9 +14,7 @@ int main(void)
 
   while (1)
   {
-    ledHeartBeatM4.run();
-    ledErrorWarning.run();
-    keybedScanner.run();
+    Task::run();
   }
   return 0;
 }
@@ -30,7 +28,6 @@ static inline void Init(void)
   IPC_Init();
   cr_start_m0(&__core_m0app_START__);
   M4SysTick_Init();
-
   LED_WARNING = LED_ERROR = 0;
 }
 
@@ -57,8 +54,6 @@ extern "C" void SysTick_Handler(void)
   if (!--cntr)
   {
     cntr = 25u;
-    ledHeartBeatM4.dispatch();
-    ledErrorWarning.dispatch();
-    keybedScanner.dispatch();
+    Task::dispatch();
   }
 }

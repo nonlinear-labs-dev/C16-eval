@@ -1,5 +1,5 @@
 /******************************************************************************/
-/**	@file		nl_kbs.c
+/**	@file		kbs.c
 	@brief    	Scans Keys of the Fatar Keyboard TP8S 61 Keys
 	@date		2020-04-29 Klaus Strohhaecker : heavy optimizing
   	@author		Stephan Schmitt, Daniel Tzschentke, [2012-12-20]
@@ -45,7 +45,7 @@
 	            For better EMC, a little bit of jitter is introduced by
 	            constantly varying the time until the next timer interrupt triggers.
 *******************************************************************************/
-#include "drv/nl_kbs.h"
+#include "drv/kbs.h"
 #include <stdint.h>
 #include "ipc/ipc.h"
 #include "drv/nl_cgu.h"

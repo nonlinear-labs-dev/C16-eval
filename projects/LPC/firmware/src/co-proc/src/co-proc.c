@@ -1,7 +1,8 @@
-#include "drv/nl_rit.h"
+#include "drv/rit.h"
 #include "io/pins.h"
 #include "ipc/ipc.h"
-#include "drv/nl_kbs.h"
+#include "drv/kbs.h"
+#include "drv/adc.h"
 
 int main(void)
 {
@@ -9,9 +10,11 @@ int main(void)
   KBS_Init();
   RIT_Init_IntervalInHz(M0_IRQ_FREQ_HZ);
 
+  __disable_irq();
   while (1)
   {
     LED_M0HB = ~LED_M4HB;
+    processADCs();
   }
   return 0;
 }

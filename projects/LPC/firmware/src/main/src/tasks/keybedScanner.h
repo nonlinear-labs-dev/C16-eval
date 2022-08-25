@@ -10,18 +10,21 @@ namespace Task
   {
     using Task::Task;
 
-   private:
-    uint32_t m_keyEvent[32];  // array for new events read from the ring buffer for keybed events
-
    public:
     KeybedScanner(uint32_t delay, uint32_t period)
         : Task(delay, period) {};
 
-    inline virtual void body(void)
+    // no dispatcher needed
+    inline void dispatch(void)
     {
-      unsigned numKeyEvents = IPC_M4_KeyBuffer_ReadBuffer(m_keyEvent, 32);  // reads the latest key up/down events from M0 ring buffer
-      if (numKeyEvents)
-        ;  // TODO
+    }
+
+    // scanner is run unconditionally
+    inline void run(void)
+    {
+      uint32_t event;
+      while ((event = IPC_M4_KeyBuffer_ReadBuffer()))  // reads the latest key up/down events from M0 ring buffer
+        ledErrorWarning.Warning_TimedOn(1);
     };
   };
 

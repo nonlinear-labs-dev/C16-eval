@@ -1,11 +1,3 @@
-/******************************************************************************/
-/** @file		nl_rit.h
-    @date		2015-01-30
-    @brief    	RIT driver for LPC43xx
-    @example
-    @ingroup  	LPC_RIT
-    @author		Nemanja Nikodijevic 2014-08-15
-*******************************************************************************/
 #pragma once
 
 #include <stdint.h>
