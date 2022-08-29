@@ -14,13 +14,13 @@ static inline void PINS_Init(void)
 #define LED_M0HB GPIO_Word(2, 10)
   GPIO_DIR_OUT(2, 10);
   SFSP(5, 1) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 0;
-  LED_M0HB   = 1u;
+  LED_M0HB   = 0u;
 
   // (LED.B, green)
 #define LED_M4HB GPIO_Word(0, 11)
   GPIO_DIR_OUT(0, 11);
   SFSP(1, 4) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 0;
-  LED_M4HB   = 1u;
+  LED_M4HB   = 0u;
 
   // (LED.C, orange)
 #define LED_WARNING GPIO_Word(1, 9)
@@ -111,6 +111,15 @@ static inline void PINS_Init(void)
   GPIO_DIR_OUT(3, 11);
   SFSP(7, 3) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 0;
   ADC_MG1_A1 = 0u;
+
+  //
+  // -------- Debug Pins --------
+  //
+  // TP_1_0 M0 ADC Cycle (toggles state after a complete cycle
+#define DBG_ADC_CYCLE GPIO_Word(0, 4)
+  GPIO_DIR_OUT(0, 4);
+  SFSP(1, 0)    = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 0;
+  DBG_ADC_CYCLE = 0u;
 }
 
 static inline void PINS_AllLedsOn(void)

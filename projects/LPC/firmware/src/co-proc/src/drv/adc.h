@@ -3,7 +3,9 @@
 #include <stdint.h>
 #include "cmsis/LPC43xx.h"
 #include "cmsis/core_cmFunc.h"
+#include "cmsis/core_cmInstr.h"
 #include "ipc/ipc.h"
+#include "io/pins.h"
 
 enum
 {  // ADCs
@@ -135,8 +137,26 @@ static __attribute__((always_inline)) inline void adcCycle(unsigned const outCha
 
 static __attribute__((always_inline)) inline void processADCs(void)
 {
+  static unsigned cntr = IPC_ADC_BUFFER_SIZE;
+
+  // now, all adc channels have been read ==> sync read index to last write index
+  IPC_AdcUpdateReadIndex();
+  // Starting a new round of adc channel value read-ins, advance ipc write index first
+  IPC_AdcBufferWriteNext();
+
   adcCycle(0x00, MCH0);  // CH00..CH07 : ERP0_W0..ERP3_W1
   adcCycle(0x08, MCH1);  // CH08..CH15 : ERP4_W0..ERP7_W1
   adcCycle(0x10, MCH2);  // CH16..CH23 : EHC0_C0..EHC3_C1
   adcCycle(0x18, MCH3);  // CH24..CH31 : Aftertouch, Bender, Ribbon0+1, AmbLight0+1, Voltage0+1
+
+  // signal an interrrupt to M4 when a 2kHz sample cycle is over
+  // 2kHz comes from doing 4 averages on a 8kHz sample rate
+  if (!--cntr)
+  {
+    cntr = IPC_ADC_BUFFER_SIZE;
+
+    // __DSB();
+    // __SEV();
+    LPC_CREG->M0TXEVENT = 0x1;
+  }
 }

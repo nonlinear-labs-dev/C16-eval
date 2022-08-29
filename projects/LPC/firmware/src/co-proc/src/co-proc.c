@@ -6,7 +6,6 @@
 
 int main(void)
 {
-  IPC_Init();
   KBS_Init();
   RIT_Init_IntervalInHz(M0_IRQ_FREQ_HZ);
 

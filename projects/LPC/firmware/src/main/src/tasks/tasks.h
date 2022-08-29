@@ -13,6 +13,9 @@ extern Task::LedHeartBeatM4 ledHeartBeatM4;
 #include "tasks/keybedScanner.h"
 extern Task::KeybedScanner keybedScanner;
 
+#include "tasks/adc.h"
+extern Task::Adc adc;
+
 //
 //  Dispatcher/Scheduler and Run functions
 //
@@ -24,12 +27,14 @@ namespace Task
     ledHeartBeatM4.dispatch();
     ledErrorWarning.dispatch();
     keybedScanner.dispatch();
+    adc.dispatch();
   };
 
   inline void run(void)
   {
-    (void) ledHeartBeatM4.run();
-    (void) ledErrorWarning.run();
-    (void) keybedScanner.run();
+    ledHeartBeatM4.run();
+    ledErrorWarning.run();
+    keybedScanner.run();
+    adc.run();
   }
 }
