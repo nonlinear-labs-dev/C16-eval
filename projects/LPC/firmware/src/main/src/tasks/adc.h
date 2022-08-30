@@ -2,9 +2,27 @@
 
 #include "ipc/ipc.h"
 #include "tasks/mtask.h"
+#include "usb/nl_usb_midi.h"
+#include "io/pins.h"
 
 namespace Task
 {
+
+#warning temp
+  // clang-format off
+  static uint8_t midiData[36] =
+  {
+    0x14, 0xF0, 0x00, 0x00,  // 0
+	0x14, 0x01, 0x01, 0x02,  // 4
+	0x14, 0x02, 0x03, 0x03,  // 8
+	0x14, 0x04, 0x04, 0x05,  // 12
+	0x14, 0x05, 0x06, 0x06,  // 16
+	0x14, 0x07, 0x07, 0x08,  // 20
+	0x14, 0x08, 0x09, 0x09,  // 24
+	0x14, 0x10, 0x10, 0x11,  // 28
+	0x16, 0x11, 0xF7, 0x00,  // 32
+  };
+  // clang-format on
 
   class Adc : public Task::Task
   {
@@ -51,6 +69,33 @@ namespace Task
         DBG_ADC_CYCLE      = ~DBG_ADC_CYCLE;
         for (unsigned i = 0; i < IPC_ADC_NUMBER_OF_CHANNELS; i++)
           ch.array[i] = IPC_ReadAdcBufferSum(i);
+
+#warning temp
+        midiData[2]  = (ch.data.erp[0].w0 & 0b11111110000000) >> 7;
+        midiData[3]  = ch.data.erp[0].w0 & 0b1111111;
+        midiData[5]  = (ch.data.erp[0].w1 & 0b11111110000000) >> 7;
+        midiData[6]  = ch.data.erp[0].w1 & 0b1111111;
+        midiData[7]  = (ch.data.erp[1].w0 & 0b11111110000000) >> 7;
+        midiData[9]  = ch.data.erp[1].w0 & 0b1111111;
+        midiData[10] = (ch.data.erp[1].w1 & 0b11111110000000) >> 7;
+        midiData[11] = ch.data.erp[1].w1 & 0b1111111;
+        midiData[13] = (ch.data.erp[2].w0 & 0b11111110000000) >> 7;
+        midiData[14] = ch.data.erp[2].w0 & 0b1111111;
+        midiData[15] = (ch.data.erp[2].w1 & 0b11111110000000) >> 7;
+        midiData[17] = ch.data.erp[2].w1 & 0b1111111;
+        midiData[18] = (ch.data.erp[3].w0 & 0b11111110000000) >> 7;
+        midiData[19] = ch.data.erp[3].w0 & 0b1111111;
+        midiData[21] = (ch.data.erp[3].w1 & 0b11111110000000) >> 7;
+        midiData[22] = ch.data.erp[3].w1 & 0b1111111;
+        midiData[23] = (ch.data.erp[4].w0 & 0b11111110000000) >> 7;
+        midiData[25] = ch.data.erp[4].w0 & 0b1111111;
+        midiData[26] = (ch.data.erp[4].w1 & 0b11111110000000) >> 7;
+        midiData[27] = ch.data.erp[4].w1 & 0b1111111;
+        midiData[29] = (ch.data.erp[5].w0 & 0b11111110000000) >> 7;
+        midiData[30] = ch.data.erp[5].w0 & 0b1111111;
+        midiData[31] = (ch.data.erp[5].w1 & 0b11111110000000) >> 7;
+        midiData[33] = ch.data.erp[5].w1 & 0b1111111;
+        LED_ERROR    = (USB_MIDI_Send(0, midiData, sizeof midiData) == -1);
       }
     }
   };

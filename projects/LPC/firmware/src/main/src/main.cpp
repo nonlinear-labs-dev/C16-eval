@@ -6,6 +6,9 @@
 #include "tasks/tasks.h"
 #include "cmsis/core_cm4.h"
 
+#include "usb/nl_usb_midi.h"
+#include "usb/nl_usb_descmidi.h"
+
 static inline void Init(void);
 
 // ---------------
@@ -23,6 +26,10 @@ int main(void)
 // ----------------
 static inline void M4SysTick_Init(void);
 
+static void Receive_IRQ_Callback(uint8_t const port, uint8_t *buff, uint32_t len)
+{
+}
+
 static inline void Init(void)
 {
   CPU_ConfigureClocks();
@@ -30,6 +37,12 @@ static inline void Init(void)
 
   M4SysTick_Init();
   cr_start_m0(&__core_m0app_START__);
+
+  USB_MIDI_Config(0, Receive_IRQ_Callback);
+  USB_MIDI_Config(1, Receive_IRQ_Callback);
+  USB_MIDI_SetupDescriptors();
+  USB_MIDI_Init(0);
+  USB_MIDI_Init(1);
 
   LED_WARNING = LED_ERROR = 0;
 }
