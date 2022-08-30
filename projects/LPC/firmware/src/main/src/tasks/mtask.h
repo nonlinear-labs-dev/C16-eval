@@ -26,8 +26,8 @@ namespace Task
     {
       if (m_cntr)
       {
-        m_cntr--;
-        return;
+        if (--m_cntr)
+          return;
       }
 
       if (m_start)  // overrun

@@ -25,6 +25,7 @@ static uint16_t adc_val;
 typedef struct
 {
   uint32_t values[IPC_ADC_NUMBER_OF_CHANNELS][IPC_ADC_BUFFER_SIZE];
+  int32_t  sumTmp[IPC_ADC_NUMBER_OF_CHANNELS];
   int32_t  sum[IPC_ADC_NUMBER_OF_CHANNELS];
 } ADC_BUFFER_ARRAY_T;
 
@@ -43,6 +44,7 @@ typedef struct
 typedef struct
 {
   volatile uint32_t ticker;
+  volatile uint32_t adcCycleFinished;
   uint32_t          keyBufferData[IPC_KEYBUFFER_SIZE];
 #ifdef CORE_M4
   volatile
@@ -63,6 +65,7 @@ extern SharedData_T s;
 inline static void IPC_Init(void)
 {
   s.ticker            = 0;
+  s.adcCycleFinished  = 0;
   s.keyBufferWritePos = 0;
   s.keyBufferReadPos  = 0;
   s.M0_KbsIrqOvers    = 0;
@@ -71,7 +74,7 @@ inline static void IPC_Init(void)
   {
     for (unsigned k = 0; k < IPC_ADC_BUFFER_SIZE; k++)
       s.adcBufferData.values[i][k] = IPC_ADC_DEFAULT;
-    s.adcBufferData.sum[i] = IPC_ADC_DEFAULT * IPC_ADC_BUFFER_SIZE;
+    s.adcBufferData.sum[i] = s.adcBufferData.sumTmp[i] = IPC_ADC_DEFAULT * IPC_ADC_BUFFER_SIZE;
   }
   s.adcBufferReadIndex  = 0;
   s.adcBufferWriteIndex = 0;
@@ -170,7 +173,7 @@ static inline uint32_t IPC_ReadAdcBufferAveraged(unsigned const adc_id)
 static inline uint32_t IPC_ReadAdcBufferSum(unsigned const adc_id)
 {
   // see notes for IPC_ReadAdcBufferAveraged
-  return ((uint32_t) s.adcBufferData.sum[adc_id] + 2u);
+  return ((uint32_t) s.adcBufferData.sum[adc_id] + IPC_ADC_BUFFER_SIZE / 2u);
 }
 
 /******************************************************************************/
@@ -189,9 +192,15 @@ static inline void IPC_WriteAdcBuffer(unsigned const adc_id, uint32_t const valu
   // see notes for IPC_ReadAdcBufferAveraged above.
   // Interrupts should be disabled.
   // subtract out the overwritten value and add in new value to sum
-  s.adcBufferData.sum[adc_id] += -((int32_t)(s.adcBufferData.values[adc_id][s.adcBufferWriteIndex])) + (int32_t) value;
+  s.adcBufferData.sumTmp[adc_id] += -((int32_t)(s.adcBufferData.values[adc_id][s.adcBufferWriteIndex])) + (int32_t) value;
   // write value to ring buffer
   s.adcBufferData.values[adc_id][s.adcBufferWriteIndex] = (uint32_t) value;
+}
+
+static inline void IPC_CopyAdcData(void)
+{
+  for (unsigned i = 0; i < IPC_ADC_NUMBER_OF_CHANNELS; i++)
+    s.adcBufferData.sum[i] = s.adcBufferData.sumTmp[i];
 }
 
 /******************************************************************************/

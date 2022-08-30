@@ -9,7 +9,6 @@ int main(void)
   KBS_Init();
   RIT_Init_IntervalInHz(M0_IRQ_FREQ_HZ);
 
-  __disable_irq();
   while (1)
   {
     LED_M0HB = ~LED_M4HB;

@@ -30,8 +30,6 @@ static inline void Init(void)
 
   M4SysTick_Init();
   cr_start_m0(&__core_m0app_START__);
-  NVIC_SetPriority(M0CORE_IRQn, 7);
-  NVIC_EnableIRQ(M0CORE_IRQn);
 
   LED_WARNING = LED_ERROR = 0;
 }
@@ -61,10 +59,4 @@ extern "C" void SysTick_Handler(void)
     cntr = 25u;
     Task::dispatch();
   }
-}
-
-extern "C" void M0CORE_IRQHandler(void)
-{
-  LPC_CREG->M0TXEVENT = 0;
-  DBG_ADC_CYCLE       = ~DBG_ADC_CYCLE;
 }

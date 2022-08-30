@@ -11,9 +11,6 @@ namespace Task
     using Task::Task;
 
    public:
-    KeybedScanner(uint32_t delay, uint32_t period)
-        : Task(delay, period) {};
-
     // no dispatcher needed
     inline void dispatch(void)
     {

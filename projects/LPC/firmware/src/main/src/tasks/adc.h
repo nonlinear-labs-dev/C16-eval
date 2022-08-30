@@ -11,13 +11,43 @@ namespace Task
     using Task::Task;
 
    private:
-    int32_t m_sum[IPC_ADC_NUMBER_OF_CHANNELS];
+    union
+    {
+      struct
+      {
+        struct
+        {
+          int32_t w0;
+          int32_t w1;
+        } erp[8];
+        int32_t ehc[8];
+        int32_t aftertouch;
+        int32_t bender;
+        int32_t ribbon[2];
+        int32_t light[2];
+        int32_t mon19V;
+        int32_t mon5V;
+
+      } data;
+      int32_t array[32];
+    } ch;
 
    public:
-    inline void body(void)
+    // no dispatcher needed
+    inline void dispatch(void)
     {
-      for (unsigned i = 0; i < IPC_ADC_NUMBER_OF_CHANNELS; i++)
-        m_sum[i] = IPC_ReadAdcBufferSum(i);
+    }
+
+    // we check for the signal from M0 core here and run the job directly
+    inline void run(void)
+    {
+      if (s.adcCycleFinished)
+      {
+        s.adcCycleFinished = 0;
+        DBG_ADC_CYCLE      = ~DBG_ADC_CYCLE;
+        for (unsigned i = 0; i < IPC_ADC_NUMBER_OF_CHANNELS; i++)
+          ch.array[i] = IPC_ReadAdcBufferSum(i);
+      }
     }
   };
 
