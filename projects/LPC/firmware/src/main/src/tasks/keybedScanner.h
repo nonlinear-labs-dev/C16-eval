@@ -11,8 +11,12 @@ namespace Task
     using Task::Task;
 
    public:
-    // no dispatcher needed
+    // no dispatcher and body needed
     inline void dispatch(void)
+    {
+    }
+
+    inline void body(void)
     {
     }
 
