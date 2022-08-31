@@ -115,11 +115,62 @@ static inline void PINS_Init(void)
   //
   // -------- Debug Pins --------
   //
-  // TP_1_0 M0 ADC Cycle (toggles state after a complete cycle
-#define DBG_ADC_CYCLE GPIO_Word(0, 4)
+  // TP_1_0 : M0 ADC Cycle (toggles state after a complete cycle)
+#define DBG_TP1_0 GPIO_Word(0, 4)
   GPIO_DIR_OUT(0, 4);
-  SFSP(1, 0)    = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 0;
-  DBG_ADC_CYCLE = 0u;
+  SFSP(1, 0) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 0;
+  DBG_TP1_0  = 0u;
+
+  //
+  // -------- Aux/Debug LEDs --------
+  //
+  // LED_E (TP2_4)
+#define LED_E GPIO_Word(5, 4)
+  GPIO_DIR_OUT(5, 4);
+  SFSP(2, 4) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 4;
+  LED_E      = 0u;
+
+  // LED_F (TP2_3)
+#define LED_F GPIO_Word(5, 3)
+  GPIO_DIR_OUT(5, 3);
+  SFSP(2, 3) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 4;
+  LED_F      = 0u;
+
+  // LED_G (TP6_8)
+#define LED_G GPIO_Word(5, 16)
+  GPIO_DIR_OUT(5, 16);
+  SFSP(6, 8) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 4;
+  LED_G      = 0u;
+
+  // LED_H (TP6_7)
+#define LED_H GPIO_Word(5, 15)
+  GPIO_DIR_OUT(5, 15);
+  SFSP(6, 7) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 4;
+  LED_H      = 0u;
+
+  // LED_I (TP2_2)
+#define LED_I GPIO_Word(5, 2)
+  GPIO_DIR_OUT(5, 2);
+  SFSP(2, 2) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 4;
+  LED_I      = 0u;
+
+  // LED_J (TP6_6)
+#define LED_J GPIO_Word(0, 5)
+  GPIO_DIR_OUT(0, 5);
+  SFSP(6, 6) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 0;
+  LED_J      = 0u;
+
+  // LED_K (TP6_5)
+#define LED_K GPIO_Word(3, 4)
+  GPIO_DIR_OUT(3, 4);
+  SFSP(6, 5) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 0;
+  LED_K      = 0u;
+
+  // LED_L (TP6_4)
+#define LED_L GPIO_Word(3, 3)
+  GPIO_DIR_OUT(3, 3);
+  SFSP(6, 4) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 0;
+  LED_L      = 0u;
 }
 
 static inline void PINS_AllLedsOn(void)

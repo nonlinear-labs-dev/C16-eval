@@ -152,13 +152,18 @@ static __attribute__((always_inline)) inline void processADCs(void)
 
   __enable_irq();
 
-  // signal an interrrupt to M4 when a 2kHz sample cycle is over
-  // 2kHz comes from doing 4 averages on a 8kHz sample rate
+  // signal to M4 when a 2kHz sample cycle is over
+  // 2kHz comes from doing 4 averages on a ~8kHz sample rate
   if (!--cntr)
   {
     cntr = IPC_ADC_BUFFER_SIZE;
-    // TODO :  check & log overrun
-    IPC_CopyAdcData();
-    s.adcCycleFinished = 1;
+    if (!s.adcCycleFinished)
+    {
+      IPC_CopyAdcData();
+      __disable_irq();
+      s.adcCycleFinished = 1;
+      DBG_TP1_0          = ~DBG_TP1_0;
+      __enable_irq();
+    }
   }
 }

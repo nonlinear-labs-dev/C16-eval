@@ -65,8 +65,11 @@ namespace Task
     {
       if (s.adcCycleFinished)
       {
+        __disable_irq();
         s.adcCycleFinished = 0;
-        DBG_ADC_CYCLE      = ~DBG_ADC_CYCLE;
+        LED_E              = ~LED_E;
+        __enable_irq();
+
         for (unsigned i = 0; i < IPC_ADC_NUMBER_OF_CHANNELS; i++)
           ch.array[i] = IPC_ReadAdcBufferSum(i);
 
