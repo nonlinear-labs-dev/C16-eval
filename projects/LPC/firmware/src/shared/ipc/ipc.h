@@ -4,7 +4,7 @@
 #define LPC_DGB_ADC_STRESS_TEST (0)
 
 #if LPC_DGB_ADC_STRESS_TEST
-// use a free-running 0..4095 counter rather than real ADC values
+// use a free-running 0..1024 counter rather than real ADC values
 // counter is incremented when adcBufferWriteIndex is advanced
 #warning "ADC stress test is on, no real ADC values will be used"
 static uint16_t adc_val;
@@ -17,15 +17,14 @@ static uint16_t adc_val;
 
 // ADC ring buffers
 // Must be 2^N in size and <= 16. This also determines the averaging.
-// Size should NOT be larger than the number of aquisitions between M4 read-out operations
-#define IPC_ADC_BUFFER_SIZE (4u)
+// Size should NOT be very much larger than the number of aquisitions between M4 read-out operations
+#define IPC_ADC_BUFFER_SIZE (8u)
 #define IPC_ADC_BUFFER_MASK (IPC_ADC_BUFFER_SIZE - 1)
 #define IPC_ADC_DEFAULT     (512u)
 
 typedef struct
 {
   uint32_t values[IPC_ADC_NUMBER_OF_CHANNELS][IPC_ADC_BUFFER_SIZE];
-  int32_t  sumTmp[IPC_ADC_NUMBER_OF_CHANNELS];
   int32_t  sum[IPC_ADC_NUMBER_OF_CHANNELS];
 } ADC_BUFFER_ARRAY_T;
 
@@ -44,7 +43,6 @@ typedef struct
 typedef struct
 {
   volatile uint32_t ticker;
-  volatile uint32_t adcCycleFinished;
   uint32_t          keyBufferData[IPC_KEYBUFFER_SIZE];
 #ifdef CORE_M4
   volatile
@@ -65,7 +63,6 @@ extern SharedData_T s;
 inline static void IPC_Init(void)
 {
   s.ticker            = 0;
-  s.adcCycleFinished  = 0;
   s.keyBufferWritePos = 0;
   s.keyBufferReadPos  = 0;
   s.M0_KbsIrqOvers    = 0;
@@ -74,7 +71,7 @@ inline static void IPC_Init(void)
   {
     for (unsigned k = 0; k < IPC_ADC_BUFFER_SIZE; k++)
       s.adcBufferData.values[i][k] = IPC_ADC_DEFAULT;
-    s.adcBufferData.sum[i] = s.adcBufferData.sumTmp[i] = IPC_ADC_DEFAULT * IPC_ADC_BUFFER_SIZE;
+    s.adcBufferData.sum[i] = IPC_ADC_DEFAULT * IPC_ADC_BUFFER_SIZE;
   }
   s.adcBufferReadIndex  = 0;
   s.adcBufferWriteIndex = 0;
@@ -137,42 +134,23 @@ static inline unsigned IPC_KeyBuffer_GetSize()
 //  -------- ADC --------
 //
 /******************************************************************************/
-/**	@brief      Read ADC channel value
-*   @param[in]	IPC id of the adc channel 0...15
-*   @return     adc channel value
-******************************************************************************/
-static inline uint32_t IPC_ReadAdcBuffer(unsigned const adc_id)
-{
-  // M0 may advance adcBufferReadIndex while we are reading values for a number
-  // of ADCs during an M4 time-slice. This means values of different ADCs may
-  // not all be from the same conversion cycle of M0. Since the conversion cycle
-  // runs 4 times per M4 time-slice the error is neglegible, though.
-  return s.adcBufferData.values[adc_id][s.adcBufferReadIndex];
-}
-
-/******************************************************************************/
-/**	@brief      Read ADC channel value as average of whole ring buffer contents
-*   @param[in]	IPC id of the adc channel 0...15
-*   @return     adc channel value
-******************************************************************************/
-static inline uint32_t IPC_ReadAdcBufferAveraged(unsigned const adc_id)
-{
-  // Again, values in the buffers for different ADCs may not be in sync with
-  // M4's time-slice, but because of the averaging the error is even smaller.
-  // More importantly, M0 may be just in the middle of its non-atomic
-  // read-modify-write operation in IPC_WriteAdcBuffer, but again the error
-  // is very small because only a delta is added/subtracted.
-  return ((uint32_t) s.adcBufferData.sum[adc_id] + IPC_ADC_BUFFER_SIZE / 2u) / IPC_ADC_BUFFER_SIZE;
-}
-
-/******************************************************************************/
 /**	@brief      Read ADC channel value as sum of whole ring buffer contents
 *   @param[in]	IPC id of the adc channel 0...31
 *   @return     adc channel value
 ******************************************************************************/
 static inline uint32_t IPC_ReadAdcBufferSum(unsigned const adc_id)
 {
-  // see notes for IPC_ReadAdcBufferAveraged
+  // M0 may advance adcBufferReadIndex while we are reading values for a number
+  // of ADCs during an M4 time-slice. This means values of different ADCs may
+  // not all be from the same conversion cycle of M0. Since the conversion cycle
+  // runs several times per M4 time-slice the error is neglegible, though.
+  // More importantly, M0 may be just in the middle of its non-atomic
+  // read-modify-write operation in IPC_WriteAdcBuffer, but again the error
+  // is very small because only a delta is added/subtracted.
+  // The addition of 1/2 of the buffer(=averaging) size make the final
+  // value range more symmetric, now spanning from 4 to 8192-4 rather than
+  // from 0 to 8192-8 (which comes from 8*1023). Better round results should
+  // a process decide it wants less bits of resolution.
   return ((uint32_t) s.adcBufferData.sum[adc_id] + IPC_ADC_BUFFER_SIZE / 2u);
 }
 
@@ -192,15 +170,10 @@ static inline void IPC_WriteAdcBuffer(unsigned const adc_id, uint32_t const valu
   // see notes for IPC_ReadAdcBufferAveraged above.
   // Interrupts should be disabled.
   // subtract out the overwritten value and add in new value to sum
-  s.adcBufferData.sumTmp[adc_id] += -((int32_t)(s.adcBufferData.values[adc_id][s.adcBufferWriteIndex])) + (int32_t) value;
+  int32_t const tmp = -((int32_t)(s.adcBufferData.values[adc_id][s.adcBufferWriteIndex])) + (int32_t) value;
+  s.adcBufferData.sum[adc_id] += tmp;
   // write value to ring buffer
   s.adcBufferData.values[adc_id][s.adcBufferWriteIndex] = (uint32_t) value;
-}
-
-static inline void IPC_CopyAdcData(void)
-{
-  for (unsigned i = 0; i < IPC_ADC_NUMBER_OF_CHANNELS; i++)
-    s.adcBufferData.sum[i] = s.adcBufferData.sumTmp[i];
 }
 
 /******************************************************************************/
@@ -209,8 +182,11 @@ static inline void IPC_CopyAdcData(void)
 static inline void IPC_AdcBufferWriteNext(void)
 {
   s.adcBufferWriteIndex = (s.adcBufferWriteIndex + 1) & IPC_ADC_BUFFER_MASK;
-#if LPC_DGB_ADC_STRESS_TEST
+}
 
+static inline void IPC_NextAdcValue(void)
+{
+#if LPC_DGB_ADC_STRESS_TEST
   adc_val = (adc_val + 1u) & 1023u;
 #endif
 }
