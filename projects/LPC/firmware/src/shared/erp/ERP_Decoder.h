@@ -174,7 +174,7 @@ typedef struct
 
 static inline void mapWiperToAngleCandidates(int const wiperValue, int const wiperSelect, AngleData_t* const result);
 static inline int  angleDiff(int const a, int const b);
-static inline int  abs(int const x)
+static inline int  myabs(int const x)
 {
   return (x < 0) ? -x : x;
 }
@@ -191,10 +191,10 @@ static inline int getAngle(int w1_wiperValue, int w2_wiperValue)
   int const w1 = w[1].weight;
 
   // sanity check wiper values
-  int const wp1 = abs(w1_wiperValue);
-  int const wp2 = abs(w2_wiperValue);
+  int const wp1 = myabs(w1_wiperValue);
+  int const wp2 = myabs(w2_wiperValue);
   if (w0 | w1)  // check only when both wiper values are outside the danger zones
-    if (abs(wp1 - (int) (ERP_WIPER_MAX - wp2)) > ERP_WIPER_MISMATCH)
+    if (myabs(wp1 - (int) (ERP_WIPER_MAX - wp2)) > ERP_WIPER_MISMATCH)
       return ERP_INT_MAX;  // wiper matching is outside allowed tolerance
   if (w0 == 0 && w1 == 0)
     return ERP_INT_MAX;  // both wiper values are inside the danger zones
@@ -233,7 +233,7 @@ static inline void mapWiperToAngleCandidates(
     AngleData_t* const result)
 {
   // calculate wheight based on distance to edges
-  int const distance = (int) (ERP_WIPER_MAX - abs(wiperValue));
+  int const distance = (int) (ERP_WIPER_MAX - myabs(wiperValue));
   result->weight     = (int16_t)(MIN(MAX(0, distance - WIPER_DANGER_ZONE), WIPER_BLEND_ZONE));
 
   // calculate angles
@@ -258,7 +258,7 @@ static inline void mapWiperToAngleCandidates(
 
 static inline int angleDiff(int const a, int const b)
 {
-  int ret = abs(a - b);
+  int ret = myabs(a - b);
   // since angles are modulo [-180, +180[, an angle difference cannot be larger than 180
   if (ret > ERP_ANGLE_180)
     ret = (int) (ERP_ANGLE_360 - ret);

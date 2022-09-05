@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <math.h>
 
+#include "ERP_Decoder.h"
 #include "ERP_Quantizer.h"
 #include "interpol.h"
 
@@ -93,8 +94,8 @@ static inline int64_t abs64(int64_t const x)
 
 static inline uint64_t lookUpDynamicThreshold(ERP_Quantizer_t *const q, int const ticks)
 {
-  q->ticksSmoothed      = q->ticksSmoothed - (q->workingLambda * (q->ticksSmoothed - (double) abs(ticks)));  // number of 0.1deg ticks per 500us
-  int      degPerSecond = (int) (q->initData.sampleRate * q->ticksSmoothed / ERP_TICKS_PER_DEGREE);          // * sample rate / ticks per degree ==> degrees per second
+  q->ticksSmoothed      = q->ticksSmoothed - (q->workingLambda * (q->ticksSmoothed - (double) myabs(ticks)));  // number of 0.1deg ticks per 500us
+  int      degPerSecond = (int) (q->initData.sampleRate * q->ticksSmoothed / ERP_TICKS_PER_DEGREE);            // * sample rate / ticks per degree ==> degrees per second
   uint64_t result       = (uint64_t) lround(ERP_INCR_SCALE_FACTOR * ERP_TICKS_PER_DEGREE * q->fineThreshold / LIB_InterpolateValue(&(q->table), degPerSecond));
   //printf("%6d ", degPerSecond);
   if (q->initData.adaptiveFiltering)
@@ -128,8 +129,8 @@ int ERP_getDynamicIncrement(void *const quantizer, int const increment)
 
   // determine touch
   // TODO : dependencies on sample rate, buffer size, etc. Allow some user parametrization
-#define TOUCH_THRESHOLD (1.5)
-#define TOUCH_TIMEOUT   (200)  // 100msec @2kHzSR
+#define TOUCH_THRESHOLD (7)
+#define TOUCH_TIMEOUT   (300)  // 150msec @2kHzSR
   q->bufAverageSmoothed = q->bufAverageSmoothed - (0.00003 * (q->bufAverageSmoothed - (double) q->bufAverage));
   if (q->bufAverageSmoothed > TOUCH_THRESHOLD)
     q->bufAverageSmoothed = TOUCH_THRESHOLD;

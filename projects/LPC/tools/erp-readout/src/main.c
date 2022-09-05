@@ -19,7 +19,7 @@
 //#include </usr/include/stdarg.h>
 #include <stdarg.h>
 #undef NULL
-#define NULL    ((void *) 0)
+#define NULL ((void *) 0)
 
 #include "ERP_Decoder.h"
 #include "ERP_Quantizer.h"
@@ -67,9 +67,8 @@ static void cursorUp(uint8_t lines)
 static void usage(void)
 {
   printf(
-      "Usage: perf-test -s|-r port\n"
+      "Usage: erp-readout -r port\n"
       "\n"
-      "-s     : send test data\n"
       "-r     : receive test data\n"
       "port   : MIDI port to test (in hw:x,y,z notation, see ouput of 'amidi -l'\n");
 }
@@ -318,6 +317,12 @@ static inline void doSend(void)
 //
 // -------- functions for receiving --------
 //
+
+static inline unsigned getPacketNr(uint8_t const *const data)
+{
+  return (uint32_t) data[0] * 128ul + (uint32_t) data[1];
+}
+
 static inline BOOL examineContent(void const *const data, unsigned const len)
 {
   static uint64_t time     = 0;
@@ -333,7 +338,7 @@ static inline BOOL examineContent(void const *const data, unsigned const len)
   static unsigned packetErrors = 0;
   static unsigned angleErrors  = 0;
 
-  int32_t const *const pErpData = data;
+  uint8_t const *const pErpData = data;
 
   if (!settling)
   {
@@ -394,7 +399,7 @@ static inline BOOL examineContent(void const *const data, unsigned const len)
   {
     settling--;
     if (settling == 0)
-      packetNr = (uint32_t) pErpData[2];
+      packetNr = getPacketNr(pErpData);
     else
       return TRUE;
   }
@@ -407,7 +412,7 @@ static inline BOOL examineContent(void const *const data, unsigned const len)
   }
   time = now;
 
-#define CHECK_SIZE (35 * 4)
+#define CHECK_SIZE (36)
 
   if (len != CHECK_SIZE)
   {
@@ -415,16 +420,16 @@ static inline BOOL examineContent(void const *const data, unsigned const len)
     return FALSE;
   }
 
-  if ((uint32_t) pErpData[2] != packetNr)
-    while ((uint32_t) pErpData[2] != packetNr)
+  if (getPacketNr(pErpData) != packetNr)
+    while (getPacketNr(pErpData) != packetNr)
     {
       packetErrors++;
-      packetNr++;
+      packetNr = (packetNr + 1) & 0b11111111111111;
     }
-  packetNr = (uint32_t) pErpData[2] + 1;
+  packetNr = (getPacketNr(pErpData) + 1u) & 0b11111111111111;
 
-  int angle = pErpData[3];
-  if (angle == ERP_INT_MAX)
+  int angle = (int) pErpData[2] * 128u * 128u + pErpData[3] * 128u + pErpData[4];
+  if (angle == 0b111111111111111111111)
   {
     ++angleErrors;
     // cursorUp(1);
@@ -432,6 +437,8 @@ static inline BOOL examineContent(void const *const data, unsigned const len)
   }
   else
   {
+    if (angle & 0b100000000000000000000)
+      angle |= 0b11111111111000000000000000000000;
     //printf("%8.2lf\n", (double) angle / ERP_SCALE_FACTOR);
     //return TRUE;
     //printf("%+9.3lf\n", angle * ERP_AngleMultiplier360()), cursorUp(1);
@@ -441,7 +448,7 @@ static inline BOOL examineContent(void const *const data, unsigned const len)
     static char *color    = normal;
 
     int diff;
-    int delta = ERP_getDynamicIncrement(quantizer, diff = -10 * ERP_GetAngleDifference(angle, oldAngle));
+    int delta = ERP_getDynamicIncrement(quantizer, diff = 10 * ERP_GetAngleDifference(angle, oldAngle));
     oldAngle  = angle;
 
 #if 0
@@ -512,17 +519,14 @@ static inline BOOL parseReceivedByte(uint8_t byte)
 
   static uint8_t  buf[PARSER_BUFFER_SIZE];
   static unsigned bufPos = 0;
-  static uint8_t  topBitsMask;
-  static uint8_t  topBits;
 
   switch (step)
   {
     case 0:  // wait for sysex begin
       if (byte == 0xF0)
       {
-        bufPos      = 0;
-        topBitsMask = 0;
-        step        = 1;
+        bufPos = 0;
+        step   = 1;
         if (dump)
           printf("\n%2X ", byte);
       }
@@ -542,23 +546,12 @@ static inline BOOL parseReceivedByte(uint8_t byte)
         error("unexpected byte >= 0x80 within sysex!");
         return FALSE;
       }
-      if (topBitsMask == 0)
+      if (bufPos >= PARSER_BUFFER_SIZE)
       {
-        topBitsMask = 0x40;  // reset top bit mask to first bit (bit6)
-        topBits     = byte;  // save top bits
+        error("unexpected buffer overrun (no sysex terminator found)!");
+        return FALSE;
       }
-      else
-      {
-        if (topBits & topBitsMask)
-          byte |= 0x80;  // set top bit when required
-        topBitsMask >>= 1;
-        if (bufPos >= PARSER_BUFFER_SIZE)
-        {
-          error("unexpected buffer overrun (no sysex terminator found)!");
-          return FALSE;
-        }
-        buf[bufPos++] = byte;
-      }
+      buf[bufPos++] = byte;
       break;
   }
   return TRUE;
