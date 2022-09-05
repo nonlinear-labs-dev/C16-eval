@@ -42,6 +42,11 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
+			<name>src/shared/erp</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
 			<name>src/shared/io</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
@@ -75,6 +80,11 @@
 			<name>src/shared/drv/nl_cgu.h</name>
 			<type>1</type>
 			<locationURI>PARENT-1-PROJECT_LOC/shared/drv/nl_cgu.h</locationURI>
+		</link>
+		<link>
+			<name>src/shared/erp/ERP_Decoder.h</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/shared/erp/ERP_Decoder.h</locationURI>
 		</link>
 		<link>
 			<name>src/shared/io/pin_setup.h</name>

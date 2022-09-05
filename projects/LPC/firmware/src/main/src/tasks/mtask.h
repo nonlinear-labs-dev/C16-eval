@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 #include "io/pins.h"
+#include "ipc/ipc.h"
 
 namespace Task
 {
@@ -9,15 +10,16 @@ namespace Task
   class Task
   {
    private:
-    unsigned          m_period;
-    volatile unsigned m_cntr;
-    volatile int      m_start;
+    unsigned m_period;
+    unsigned m_cntr;
+    int      m_start;
+    unsigned m_taskMaxTime;
 
    public:
     Task(uint32_t const delay, uint32_t const period)
         : m_period(period)  // period is the repeat time in ticks, must be > 0
         , m_cntr(delay)     // delay is the amount of ticks until first start
-        , m_start(0) {};
+        {};
 
     inline virtual void body(void) {};
 
@@ -46,6 +48,9 @@ namespace Task
       {
         m_start = 0;
         body();
+        unsigned taskTime = 1 + s.timesliceTicker5us;
+        if (taskTime > m_taskMaxTime)
+          m_taskMaxTime = taskTime;
       }
     }
   };

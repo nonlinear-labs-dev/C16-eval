@@ -413,8 +413,8 @@ void USB_MIDI_SetupDescriptors(void)
     uint32_t idVal = id.data[0] ^ id.data[1] ^ id.data[2] ^ id.data[3];
     for (int i = 0; i < 8; i++, idVal >>= 4)
     {
-      USB0_MIDI_StringDescriptor[sizeof(USB0_MIDI_StringDescriptor) - 20 + (2 * i)] = hexToCharTable[idVal & 0xF];
-      USB1_MIDI_StringDescriptor[sizeof(USB1_MIDI_StringDescriptor) - 20 + (2 * i)] = hexToCharTable[idVal & 0xF];
+      USB0_MIDI_StringDescriptor[sizeof(USB0_MIDI_StringDescriptor) - 20 + (unsigned) (2 * i)] = hexToCharTable[idVal & 0xF];
+      USB1_MIDI_StringDescriptor[sizeof(USB1_MIDI_StringDescriptor) - 20 + (unsigned) (2 * i)] = hexToCharTable[idVal & 0xF];
     }
   }
 }

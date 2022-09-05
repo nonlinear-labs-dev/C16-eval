@@ -42,7 +42,8 @@ typedef struct
 //
 typedef struct
 {
-  volatile uint32_t ticker;
+  volatile uint32_t ticker5us;
+  volatile uint32_t timesliceTicker5us;
   uint32_t          keyBufferData[IPC_KEYBUFFER_SIZE];
 #ifdef CORE_M4
   volatile
@@ -62,10 +63,11 @@ extern SharedData_T s;
 *******************************************************************************/
 inline static void IPC_Init(void)
 {
-  s.ticker            = 0;
-  s.keyBufferWritePos = 0;
-  s.keyBufferReadPos  = 0;
-  s.M0_KbsIrqOvers    = 0;
+  s.ticker5us          = 0;
+  s.timesliceTicker5us = 0;
+  s.keyBufferWritePos  = 0;
+  s.keyBufferReadPos   = 0;
+  s.M0_KbsIrqOvers     = 0;
 
   for (unsigned i = 0; i < IPC_ADC_NUMBER_OF_CHANNELS; i++)
   {

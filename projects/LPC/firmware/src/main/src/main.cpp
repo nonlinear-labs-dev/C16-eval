@@ -64,12 +64,10 @@ static inline void M4SysTick_Init(void)
 
 extern "C" void SysTick_Handler(void)
 {
-  static unsigned cntr = 25u;  // 25 * 5us   = 125us time slice
-
-  s.ticker++;
-  if (!--cntr)
+  s.ticker5us++;
+  if (++s.timesliceTicker5us == 25u)  // 25 * 5us   = 125us time slice)
   {
-    cntr = 25u;
+    s.timesliceTicker5us = 0u;
     Task::dispatch();
   }
 }
