@@ -1,6 +1,6 @@
 #pragma once
 
-#include "io/pins.h"
+#include "drv/iopins.h"
 #include "tasks/mtask.h"
 
 namespace Task
@@ -13,7 +13,7 @@ namespace Task
    public:
     inline void body(void)
     {
-      LED_M4HB = ~LED_M4HB;
+      LED_M4HeartBeat.toggle();
     }
   };
 

@@ -16,5 +16,5 @@ __attribute__((section(".noinit.$RamAHB_ETB16"))) SharedData_T s;
 // double-check the used memory at compile time
 static inline void CheckSizeAtCompileTime(void)
 {
-  (void) sizeof(char[-!(sizeof(s) < 4000)]);  // must be less than the 4096 bytes in shared mem
+  (void) sizeof(char[-!(sizeof(s) < 3 * 4096 + 2000)]);  // must be less than this # of bytes in shared mem
 }

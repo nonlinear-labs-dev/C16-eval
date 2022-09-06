@@ -6,9 +6,9 @@
     @author		Nemanja Nikodijevic [2014-12-11]
 
 *******************************************************************************/
-#include "usb/nl_usb_midi.h"
-#include "usb/nl_usb_descmidi.h"
-#include "usb/nl_usb_core.h"
+#include "usb/driver/nl_usb_midi.h"
+#include "usb/driver/nl_usb_descmidi.h"
+#include "usb/driver/nl_usb_core.h"
 #include "cmsis/LPC43xx.h"
 #include "cmsis/core_cm4.h"
 #include "cmsis/core_cmFunc.h"

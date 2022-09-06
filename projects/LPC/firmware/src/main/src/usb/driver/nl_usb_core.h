@@ -8,6 +8,8 @@
 *******************************************************************************/
 #pragma once
 
+#include "cppbegin.inc"
+
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wundef"
 #pragma GCC diagnostic ignored "-Wpadded"
@@ -15,7 +17,7 @@
 #pragma GCC diagnostic ignored "-Wconversion"
 #pragma GCC diagnostic ignored "-Wpragmas"
 
-#include "usb/nl_usbd.h"
+#include "usb/driver/nl_usbd.h"
 
 /** Total number of interfaces*/
 #define USB_IF_NUM 3
@@ -226,6 +228,7 @@ typedef volatile struct
 /** @} */
 
 void     USB_Core_Init(uint8_t const port);
+void     USB_Core_SetWrapping4kBuffer(uint8_t const port, int const flag);
 uint8_t  USB_GetActivity(uint8_t const port);
 uint8_t  USB_GetError(uint8_t const port);
 uint8_t  USB_SetupComplete(uint8_t const port);
@@ -261,3 +264,5 @@ void     USB_Core_Class_Request_Handler_Set(uint8_t const port, ClassRequestHand
 void     USB_Core_SOF_Event_Handler_Set(uint8_t const port, SOFHandler sofh);
 
 #pragma GCC diagnostic pop
+
+#include "cppend.inc"

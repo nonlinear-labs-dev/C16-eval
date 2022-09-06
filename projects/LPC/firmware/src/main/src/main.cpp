@@ -1,13 +1,13 @@
 #include "cr_start_m0.h"
-#include "io/pins.h"
+#include "drv/iopins.h"
 #include "CPU_clock.h"
 #include "drv/nl_cgu.h"
 #include "ipc/ipc.h"
 #include "tasks/tasks.h"
 #include "cmsis/core_cm4.h"
 
-#include "usb/nl_usb_midi.h"
-#include "usb/nl_usb_descmidi.h"
+#include "usb/driver/nl_usb_midi.h"
+#include "usb/driver/nl_usb_descmidi.h"
 
 static inline void Init(void);
 
@@ -44,7 +44,8 @@ static inline void Init(void)
   USB_MIDI_Init(0);
   USB_MIDI_Init(1);
 
-  LED_WARNING = LED_ERROR = 0;
+  LED_ERROR   = 0;
+  LED_WARNING = 0;
 }
 
 /*************************************************************************

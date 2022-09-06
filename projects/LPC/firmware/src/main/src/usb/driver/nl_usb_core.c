@@ -9,8 +9,8 @@
 #include "cmsis/LPC43xx.h"
 #include "cmsis/core_cm4.h"
 #include "cmsis/lpc_types.h"
-#include "usb/nl_usbd.h"
-#include "usb/nl_usb_core.h"
+#include "usb/driver/nl_usbd.h"
+#include "usb/driver/nl_usb_core.h"
 #include "sys/stdlib.h"
 #include "io/pins.h"
 
@@ -94,6 +94,7 @@ typedef struct
   uint8_t               error;
   uint8_t               gotConfigDescriptorRequest;  // NOT RELIABLE, do not use !!
   uint8_t               connectionEstablished;
+  uint8_t               wrapping4kBuffer;
 } usb_core_t;
 
 static usb_core_t usb[2] = {
@@ -1569,13 +1570,28 @@ void USB_ProgDTD(uint8_t const port, uint32_t Edpt, uint32_t ptrBuff, uint32_t T
   pDTD->total_bytes |= 0x80;
 
   pDTD->buffer0 = ptrBuff;
-  pDTD->buffer1 = (ptrBuff + 0x1000) & 0xfffff000;
-  pDTD->buffer2 = (ptrBuff + 0x2000) & 0xfffff000;
-  pDTD->buffer3 = (ptrBuff + 0x3000) & 0xfffff000;
-  pDTD->buffer4 = (ptrBuff + 0x4000) & 0xfffff000;
+  if (usb[port].wrapping4kBuffer)
+  {
+    pDTD->buffer1 = (ptrBuff) &0xfffff000;
+    pDTD->buffer2 = (ptrBuff) &0xfffff000;
+    pDTD->buffer3 = (ptrBuff) &0xfffff000;
+    pDTD->buffer4 = (ptrBuff) &0xfffff000;
+  }
+  else
+  {
+    pDTD->buffer1 = (ptrBuff + 0x1000) & 0xfffff000;
+    pDTD->buffer2 = (ptrBuff + 0x2000) & 0xfffff000;
+    pDTD->buffer3 = (ptrBuff + 0x3000) & 0xfffff000;
+    pDTD->buffer4 = (ptrBuff + 0x4000) & 0xfffff000;
+  }
 
   usb[port].ep_QH[Edpt].next_dTD = (uint32_t)(&usb[port].ep_TD[Edpt]);
   usb[port].ep_QH[Edpt].total_bytes &= (~0xC0);
+}
+
+void USB_Core_SetWrapping4kBuffer(uint8_t const port, int const flag)
+{
+  usb[port].wrapping4kBuffer = flag != 0;
 }
 
 static void ClearDTD(uint8_t const port, uint32_t Edpt)

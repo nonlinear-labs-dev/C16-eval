@@ -8,9 +8,9 @@
 #include "cmsis/LPC43xx.h"
 #include "cmsis/lpc_types.h"
 
-#include "usb/nl_usbd.h"
-#include "usb/nl_usb_core.h"
-#include "usb/nl_usb_descmidi.h"
+#include "usb/driver/nl_usbd.h"
+#include "usb/driver/nl_usb_core.h"
+#include "usb/driver/nl_usb_descmidi.h"
 #include "sys/flash.h"
 
 /* USB Standard Device Descriptor */
