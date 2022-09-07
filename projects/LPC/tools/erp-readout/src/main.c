@@ -481,8 +481,55 @@ static inline BOOL examineContent(void const *const data, unsigned const len)
     if (delta)
       update = 1;
 
-    static const char subs[10] = "0123456789";
+    static double oldAngle360;
+    double        angle360         = angle * ERP_AngleMultiplier360();
+    static double smoothedAngle360 = 0.0;
+    if (smoothedAngle360 == 0.0)
+      smoothedAngle360 = angle360;
+    static int adjust = 0;
 
+    if ((angle360 > +90.0 || angle360 < -90.0) && (oldAngle360 > +90.0 || oldAngle360 < -90.0))
+    {  // danger zone
+      adjust = 0;
+      if (angle360 < 0 && oldAngle360 > 0)
+      {  // jump cw to negative angle
+        angle360 += 360.0;
+      }
+      else if (angle360 > 0 && oldAngle360 < 0)
+      {  // jump ccw to positive angle
+        angle360 -= 360.0;
+      }
+    }
+    else
+    {
+      if (adjust == 0)
+      {
+        adjust = 1;
+        if (smoothedAngle360 > +180.0)
+          smoothedAngle360 -= 360.0;
+        else if (smoothedAngle360 < -180.0)
+          smoothedAngle360 += 360.0;
+      }
+    }
+    oldAngle360 = angle360;
+
+    double smoothingCoeff;
+    double smDelta = fabs(smoothedAngle360 - angle360);
+    if (smDelta > 100.0)
+      smoothingCoeff = 0.03;
+    else if (smDelta > 10.0)
+      smoothingCoeff = 0.01;
+    else if (smDelta > 1.0)
+      smoothingCoeff = 0.003;
+    else
+      smoothingCoeff = 0.001;
+
+    smoothedAngle360 = smoothedAngle360 - (smoothingCoeff * (smoothedAngle360 - angle360));
+
+    cursorUp(4);
+    printf("%+8.1lf  %+9.2lf\n\n\n\n", angle360, smoothedAngle360);
+
+    static const char subs[10] = "0123456789";
     if (update)
     {
       cursorUp(3);
@@ -507,7 +554,7 @@ static inline BOOL examineContent(void const *const data, unsigned const len)
       fflush(stdout);
     }
   }
-  printf("\n%6u %6u \n", packetErrors, angleErrors);
+  printf("\n%6u packet errors, %6u angle errors \n", packetErrors, angleErrors);
   cursorUp(2);
 
   return TRUE;
@@ -615,7 +662,7 @@ static inline void doReceive(void)
     return;
   }
 
-  printf("Receiving data from port: %s\n\n\n", pName);
+  printf("Receiving data from port: %s\n\n\n\n\n", pName);
 
   do
   {
