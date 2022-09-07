@@ -165,16 +165,22 @@ const uint8_t USB_MIDI_FSConfigDescriptor[] = {
 
 /* USB HSConfiguration Descriptor */
 /*   All Descriptors (Configuration, Interface, Endpoint, Class, Vendor */
+#define CS_MS_IFC_DESC_LEN (7             /* this descriptor                */ \
+                            + (9 + 6) * 3 /* Ext OUT - Emb IN               */ \
+                            + (9 + 6) * 3 /* Ext IN - Emb OUT               */ \
+                            + (9 + 5)     /* Bulk OUT End point descriptors */ \
+                            + (9 + 7))    /* Bulk IN End point descriptors  */
+
 const uint8_t USB_MIDI_HSConfigDescriptor[] = {
   /** Configuration 1 */
   USB_CONFIGURATION_DESC_SIZE,       /* bLength */
   USB_CONFIGURATION_DESCRIPTOR_TYPE, /* bDescriptorType */
-  WBVAL(9 + 9 + 9 + 9 + 7 + 30 + 30 + 30),
-  0x02,                     /* bNumInterfaces */
-  0x01,                     /* bConfigurationValue: 0x01 is used to select this configuration */
-  0x00,                     /* iConfiguration: no string to describe this configuration */
-  USB_CONFIG_BUS_POWERED,   /* bmAttributes */
-  USB_CONFIG_POWER_MA(200), /* bMaxPower, device power consumption is 200 mA */
+  WBVAL(9 + 9 + 9 + 9 + CS_MS_IFC_DESC_LEN),
+  0x02,                    /* bNumInterfaces */
+  0x01,                    /* bConfigurationValue: 0x01 is used to select this configuration */
+  0x00,                    /* iConfiguration: no string to describe this configuration */
+  USB_CONFIG_SELF_POWERED, /* bmAttributes */
+  USB_CONFIG_POWER_MA(0),  /* bMaxPower, device power consumption is 200 mA */
 
   /** Interface 0: Standard Audio Control interface */
   USB_INTERFACE_DESC_SIZE,
@@ -212,7 +218,7 @@ const uint8_t USB_MIDI_HSConfigDescriptor[] = {
   USB_CS_INTERFACE_DESC_TYPE,
   USB_MIDI_HEADER_SUBTYPE,
   WBVAL(BCDADC_1_0),
-  WBVAL(7 + (9 + 6) * 2 + (9 + 6) * 2 + (9 + 6) * 2),
+  WBVAL(CS_MS_IFC_DESC_LEN),
 
   //
   // Patch Board
@@ -226,37 +232,18 @@ const uint8_t USB_MIDI_HSConfigDescriptor[] = {
   USB_CS_INTERFACE_DESC_TYPE,
   USB_MIDI_OUT_JACK_SUBTYPE,
   USB_MIDI_JACK_EXTERNAL,
-  0x01,
-  0x01,
-  0x02,
-  0x01,
+  0x01,  // bJackID
+  0x01,  // bNrInputPins
+  0x02,  // BaSourceID(2)
+  0x01,  // BaSourcePin(1)
   0x00,
   /** 02 MIDI IN jack - embedded */
   USB_MIDI_IN_JACK_SIZE,
   USB_CS_INTERFACE_DESC_TYPE,
   USB_MIDI_IN_JACK_SUBTYPE,
   USB_MIDI_JACK_EMBEDDED,
-  0x02,
-  0x00,
-
-  // --- Ext OUT Jack 03 -- Emb IN Jack 04 ---
-  /** 03 MIDI OUT jack - external */
-  USB_MIDI_OUT_JACK_SIZE,
-  USB_CS_INTERFACE_DESC_TYPE,
-  USB_MIDI_OUT_JACK_SUBTYPE,
-  USB_MIDI_JACK_EXTERNAL,
-  0x03,
-  0x01,
-  0x04,
-  0x01,
-  0x00,
-  /** 04 MIDI IN jack - embedded */
-  USB_MIDI_IN_JACK_SIZE,
-  USB_CS_INTERFACE_DESC_TYPE,
-  USB_MIDI_IN_JACK_SUBTYPE,
-  USB_MIDI_JACK_EMBEDDED,
-  0x04,
-  0x00,
+  0x02,  // bJackID
+  0x00,  // iJack
 
   // Inputs
 
@@ -266,17 +253,17 @@ const uint8_t USB_MIDI_HSConfigDescriptor[] = {
   USB_CS_INTERFACE_DESC_TYPE,
   USB_MIDI_IN_JACK_SUBTYPE,
   USB_MIDI_JACK_EXTERNAL,
-  0x11,
-  0x00,
+  0x11,  // bJackID
+  0x00,  // iJack
   /** 12 MIDI OUT jack - embedded */
   USB_MIDI_OUT_JACK_SIZE,
   USB_CS_INTERFACE_DESC_TYPE,
   USB_MIDI_OUT_JACK_SUBTYPE,
   USB_MIDI_JACK_EMBEDDED,
-  0x12,
-  0x01,
-  0x11,
-  0x01,
+  0x12,  // bJackID
+  0x01,  // bNrInputPins
+  0x11,  // BaSourceID(1)
+  0x01,  // BaSourcePin(1)
   0x00,
 
   // --- Ext IN Jack 13 -- Emb OUT Jack 14 ---
@@ -285,17 +272,36 @@ const uint8_t USB_MIDI_HSConfigDescriptor[] = {
   USB_CS_INTERFACE_DESC_TYPE,
   USB_MIDI_IN_JACK_SUBTYPE,
   USB_MIDI_JACK_EXTERNAL,
-  0x13,
-  0x00,
+  0x13,  // bJackID
+  0x00,  // iJack
   /** 12 MIDI OUT jack - embedded */
   USB_MIDI_OUT_JACK_SIZE,
   USB_CS_INTERFACE_DESC_TYPE,
   USB_MIDI_OUT_JACK_SUBTYPE,
   USB_MIDI_JACK_EMBEDDED,
-  0x14,
-  0x01,
-  0x13,
-  0x01,
+  0x14,  // bJackID
+  0x01,  // bNrInputPins
+  0x13,  // BaSourceID(1)
+  0x01,  // BaSourcePin(1)
+  0x00,
+
+  // --- Ext IN Jack 15 -- Emb OUT Jack 16 ---
+  /** 11 MIDI IN jack - external */
+  USB_MIDI_IN_JACK_SIZE,
+  USB_CS_INTERFACE_DESC_TYPE,
+  USB_MIDI_IN_JACK_SUBTYPE,
+  USB_MIDI_JACK_EXTERNAL,
+  0x15,  // bJackID
+  0x00,  // iJack
+  /** 12 MIDI OUT jack - embedded */
+  USB_MIDI_OUT_JACK_SIZE,
+  USB_CS_INTERFACE_DESC_TYPE,
+  USB_MIDI_OUT_JACK_SUBTYPE,
+  USB_MIDI_JACK_EMBEDDED,
+  0x16,  // bJackID
+  0x01,  // bNrInputPins
+  0x15,  // BaSourceID(1)
+  0x01,  // BaSourcePin(1)
   0x00,
 
   /** Bulk OUT - standard endpoint descriptor */
@@ -308,16 +314,14 @@ const uint8_t USB_MIDI_HSConfigDescriptor[] = {
   0x00,
   0x00,
 
-  // Emb IN Jack 0x02  ----+
-  //                       +----- bulk OUT endpoint
-  // Emb IN Jack 0x04  ----+
+  // Emb IN Jack 0x02  ----+----- bulk OUT endpoint
+
   /** Bulk OUT - class-specific endpoint descriptor */
-  6,
+  5,  // bLength
   USB_CS_ENDPOINT_DESC_TYPE,
   USB_MIDI_EP_GENERAL_SUBTYPE,
-  0x02,
-  0x02,
-  0x04,
+  0x01,  // bNumEmbMIDIJack
+  0x02,  // BaAssocJackID(2)
 
   /** BULK IN - standard endpoint descriptor */
   USB_AUDIO_ENDPOINT_DESC_SIZE,
@@ -330,15 +334,17 @@ const uint8_t USB_MIDI_HSConfigDescriptor[] = {
   0x00,
 
   // Emb OUT Jack 0x12  ----+
-  //                        +----- bulk IN endpoint
-  // Emb OUT Jack 0x14  ----+
+  // Emb OUT Jack 0x14  ----+----- bulk IN endpoint
+  // Emb OUT Jack 0x16  ----+
+
   /** Bulk IN - class-specific endpoint descriptor */
-  6,
+  7,  //bLength
   USB_CS_ENDPOINT_DESC_TYPE,
   USB_MIDI_EP_GENERAL_SUBTYPE,
-  0x02,
-  0x12,
-  0x14,
+  0x03,  // bNumEmbMIDIJack
+  0x12,  // BaAssocJackID(12)
+  0x14,  // BaAssocJackID(14)
+  0x16,  // BaAssocJackID(16)
 
   /* Terminator */
   0
