@@ -18,7 +18,6 @@ namespace Usb
     uint32_t *const m_buffer;
     unsigned        m_bufIndex;
     unsigned        m_sendBufferIndex;
-    unsigned        m_sendBufferLen;
 
    public:
     UsbMidiSysexWriter(uint32_t *const buffer)
@@ -30,13 +29,11 @@ namespace Usb
     inline void advanceIndex(void)
     {
       m_bufIndex = mod1024(m_bufIndex + 1u);
-      m_sendBufferLen += 4;
     }
 
     inline void start(void)
     {
       m_sendBufferIndex = m_bufIndex;
-      m_sendBufferLen   = 0;
     }
 
     inline void write(uint8_t const cableNumber, uint8_t const byte1, uint8_t const byte2, uint8_t const byte3)
@@ -70,11 +67,11 @@ namespace Usb
     int send(void)
     {
       int      result;
-      uint8_t *sendBuffer = (uint8_t *) (&m_buffer[m_sendBufferIndex]);
-      if ((result = USB_MIDI_Send(0, sendBuffer, m_sendBufferLen)) == -1)
+      uint8_t *sendBuffer    = (uint8_t *) (&m_buffer[m_sendBufferIndex]);
+      unsigned sendBufferLen = mod1024(1024u + m_bufIndex - m_sendBufferIndex) * sizeof m_buffer[0];
+      if ((result = USB_MIDI_Send(0, sendBuffer, sendBufferLen)) == -1)
       {  // failed, re-use previous buffer;
-        m_bufIndex      = m_sendBufferIndex;
-        m_sendBufferLen = 0;
+        m_bufIndex = m_sendBufferIndex;
       }
       return result;
     }
