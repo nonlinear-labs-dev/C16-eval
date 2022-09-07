@@ -2,10 +2,10 @@
 
 //
 // Task Objects (items further down in the list may use previous objects)
-// -- actual objects are instantiated in tasks.cpp
+// -- actual objects are instantiated in allTasks.cpp
 //
-#include "tasks/timedIOpin.h"
-extern Task::TimedIoPins timedIoPins;
+#include "tasks/allTimedIOpins.h"
+extern Task::AllTimedIoPins allTimedIoPins;
 
 #include "tasks/ledHeartBeatM4.h"
 extern Task::LedHeartBeatM4 ledHeartBeatM4;
@@ -25,7 +25,7 @@ namespace Task
   inline void dispatch(void)
   {
     ledHeartBeatM4.dispatch();
-    timedIoPins.dispatch();
+    allTimedIoPins.dispatch();
     keybedScanner.dispatch();
     sensorDataWriter.dispatch();
   };
@@ -33,7 +33,7 @@ namespace Task
   inline void run(void)
   {
     ledHeartBeatM4.run();
-    timedIoPins.run();
+    allTimedIoPins.run();
     keybedScanner.run();
     sensorDataWriter.run();
   }

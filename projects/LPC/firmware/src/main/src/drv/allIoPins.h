@@ -47,7 +47,10 @@ namespace IOpins
       {
         m_cntr = ticks;
         if (m_step == 0)  // not already running?
+        {
           m_step = 1;
+          set(1);
+        }
         else if (m_step == 1)  // in normal mode ?
           m_step = 2;
       }
@@ -62,6 +65,7 @@ namespace IOpins
         case 1:
           if (m_cntr)
           {
+            set(1);
             if (!--m_cntr)
             {
               set(0);

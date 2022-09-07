@@ -1,9 +1,9 @@
+#include "drv/allIoPins.h"
+#include "tasks/allTasks.h"
 #include "cr_start_m0.h"
-#include "drv/iopins.h"
 #include "CPU_clock.h"
 #include "drv/nl_cgu.h"
 #include "ipc/ipc.h"
-#include "tasks/tasks.h"
 #include "cmsis/core_cm4.h"
 
 #include "usb/driver/nl_usb_midi.h"

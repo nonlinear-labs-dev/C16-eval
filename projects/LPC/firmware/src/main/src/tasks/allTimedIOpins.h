@@ -1,12 +1,12 @@
 #pragma once
 
-#include "drv/iopins.h"
+#include "drv/allIoPins.h"
 #include "tasks/mtask.h"
 
 namespace Task
 {
 
-  class TimedIoPins : public Task::Task
+  class AllTimedIoPins : public Task::Task
   {
     using Task::Task;
 

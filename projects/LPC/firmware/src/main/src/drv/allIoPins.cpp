@@ -1,4 +1,4 @@
-#include "drv/iopins.h"
+#include "drv/allIoPins.h"
 #include "io/pins.h"
 
 IOpins::IOpin LED_M4HeartBeat(&LED_M4HB);

@@ -1,15 +1,15 @@
 #pragma once
 
+#include <drv/allIoPins.h>
 #include "ipc/ipc.h"
 #include "tasks/mtask.h"
-#include "drv/iopins.h"
 #include "usb/usb.h"
 #include "erp/ERP_Decoder.h"
 
 namespace Task
 {
 
-  static constexpr unsigned SENSOR_DATA_CABLE_NUMBER = 1u;
+  static constexpr unsigned SENSOR_DATA_CABLE_NUMBER = 2u;
 
   static inline uint8_t getSysexHi2Byte(unsigned const value)
   {

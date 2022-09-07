@@ -1,8 +1,8 @@
 #pragma once
 
+#include "drv/allIoPins.h"
 #include "ipc/ipc.h"
 #include "tasks/mtask.h"
-#include "drv/iopins.h"
 
 namespace Task
 {
@@ -26,7 +26,7 @@ namespace Task
     {
       uint32_t event;
       while ((event = IPC_M4_KeyBuffer_ReadBuffer()))  // reads the latest key up/down events from M0 ring buffer
-        LED_KeybedEvent.timedOn(3);
+        LED_KeybedEvent.timedOn(2);
     };
   };
 
