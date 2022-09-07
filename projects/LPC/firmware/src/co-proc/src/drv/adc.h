@@ -88,7 +88,6 @@ static __attribute__((always_inline)) inline void adcCycle(unsigned const outCha
   // cycle 0, using muxer group 0
   startADC(ADC0, ACH0);
   startADC(ADC1, ACH1);
-  muxSelect(GROUP1, nextMuxChannel);  // prepare muxer group 1 for cycle 1
   __enable_irq();
 
   unsigned adc0 = waitAndFetchADC(0);
@@ -104,6 +103,7 @@ static __attribute__((always_inline)) inline void adcCycle(unsigned const outCha
 
   adc0 = waitAndFetchADC(0);
   adc1 = waitAndFetchADC(1);
+  muxSelect(GROUP0, (nextMuxChannel + 1) & 0b11);  // prepare muxer group 0 for cycle 0
 
   __disable_irq();
   IPC_WriteAdcBuffer(outChannel + ACH2, adc0);
@@ -112,7 +112,6 @@ static __attribute__((always_inline)) inline void adcCycle(unsigned const outCha
   // cycle 1, using muxer group 1
   startADC(ADC0, ACH4);
   startADC(ADC1, ACH5);
-  muxSelect(GROUP0, (nextMuxChannel + 1) & 0b11);  // prepare muxer group 0 for cycle 0
   __enable_irq();
   // have some spare time here
 
@@ -129,6 +128,7 @@ static __attribute__((always_inline)) inline void adcCycle(unsigned const outCha
 
   adc0 = waitAndFetchADC(0);
   adc1 = waitAndFetchADC(1);
+  muxSelect(GROUP1, (nextMuxChannel + 2) & 0b11);  // prepare muxer group 1 for cycle 1
 
   __disable_irq();
   IPC_WriteAdcBuffer(outChannel + ACH6, adc0);
