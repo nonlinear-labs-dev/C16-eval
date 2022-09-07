@@ -89,7 +89,7 @@ namespace __gnu_cxx
   void __verbose_terminate_handler()
   {
     __asm volatile("cpsid i");
-    PINS_Init();
+    PINS_CriticalPinsInit();
     while (1)
       ;
   }

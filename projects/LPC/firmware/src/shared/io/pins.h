@@ -2,11 +2,23 @@
 
 #include "pin_setup.h"
 
+static uint32_t __DUMMY__;
+
 //
 // define pins and set default safe states
 //
+static inline void PINS_CriticalPinsInit(void);
+static inline void PINS_NormalPinsInit(void);
+
 static inline void PINS_Init(void)
 {
+  PINS_CriticalPinsInit();
+  PINS_NormalPinsInit();
+}
+
+static inline void PINS_NormalPinsInit(void)
+{
+  __DUMMY__ = 0;
   //
   // -------- System LEDs --------
   //
@@ -171,6 +183,63 @@ static inline void PINS_Init(void)
   GPIO_DIR_OUT(3, 3);
   SFSP(6, 4) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 0;
   LED_L      = 0u;
+}
+
+static inline void PINS_CriticalPinsInit(void)
+{
+  // LRA_nENABLE
+#define LRA_nENABLE GPIO_Word(0, 12)
+  GPIO_DIR_OUT(0, 12);
+  SFSP(1, 17) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 0;
+  LRA_nENABLE = 0u;
+
+  // LRA_0
+#define LRA_0 GPIO_Word(0, 15)
+  GPIO_DIR_OUT(0, 15);
+  SFSP(1, 20) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 0;
+  LRA_0       = 0u;
+
+  // LRA_1
+#define LRA_1 GPIO_Word(4, 11)
+  GPIO_DIR_OUT(4, 11);
+  SFSP(9, 6) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 0;
+  LRA_1      = 0u;
+
+  // LRA_2
+#define LRA_2 GPIO_Word(5, 18)
+  GPIO_DIR_OUT(5, 18);
+  SFSP(9, 5) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 4;
+  LRA_2      = 0u;
+
+  // LRA_3
+#define LRA_3 GPIO_Word(0, 13)
+  GPIO_DIR_OUT(0, 13);
+  SFSP(1, 18) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 0;
+  LRA_3       = 0u;
+
+  // LRA_4
+#define LRA_4 GPIO_Word(2, 15)
+  GPIO_DIR_OUT(2, 15);
+  SFSP(5, 6) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 0;
+  LRA_4      = 0u;
+
+  // LRA_5
+#define LRA_5 GPIO_Word(1, 7)
+  GPIO_DIR_OUT(1, 7);
+  SFSP(1, 14) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 0;
+  LRA_5       = 0u;
+
+  // LRA_6
+#define LRA_6 GPIO_Word(2, 14)
+  GPIO_DIR_OUT(2, 14);
+  SFSP(5, 5) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 0;
+  LRA_6      = 0u;
+
+  // LRA_7
+#define LRA_7 GPIO_Word(1, 6)
+  GPIO_DIR_OUT(1, 6);
+  SFSP(1, 13) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 0;
+  LRA_7       = 0u;
 }
 
 static inline void PINS_AllLedsOn(void)

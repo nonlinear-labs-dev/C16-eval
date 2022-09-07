@@ -456,7 +456,7 @@ void ResetISR(void)
   //
   // main() shouldn't return, but if it does, we'll just enter an infinite loop
   //
-  PINS_Init();
+  PINS_CriticalPinsInit();
   while (1)
     M4Error();
 }
@@ -467,55 +467,55 @@ void ResetISR(void)
 //*****************************************************************************
 __attribute__((section(".after_vectors"))) void NMI_Handler(void)
 {
-  PINS_Init();
+  PINS_CriticalPinsInit();
   while (1)
     M4Error();
 }
 __attribute__((section(".after_vectors"))) void HardFault_Handler(void)
 {
-  PINS_Init();
+  PINS_CriticalPinsInit();
   while (1)
     M4Error();
 }
 __attribute__((section(".after_vectors"))) void MemManage_Handler(void)
 {
-  PINS_Init();
+  PINS_CriticalPinsInit();
   while (1)
     M4Error();
 }
 __attribute__((section(".after_vectors"))) void BusFault_Handler(void)
 {
-  PINS_Init();
+  PINS_CriticalPinsInit();
   while (1)
     M4Error();
 }
 __attribute__((section(".after_vectors"))) void UsageFault_Handler(void)
 {
-  PINS_Init();
+  PINS_CriticalPinsInit();
   while (1)
     M4Error();
 }
 __attribute__((section(".after_vectors"))) void SVC_Handler(void)
 {
-  PINS_Init();
+  PINS_CriticalPinsInit();
   while (1)
     M4Error();
 }
 __attribute__((section(".after_vectors"))) void DebugMon_Handler(void)
 {
-  PINS_Init();
+  PINS_CriticalPinsInit();
   while (1)
     M4Error();
 }
 __attribute__((section(".after_vectors"))) void PendSV_Handler(void)
 {
-  PINS_Init();
+  PINS_CriticalPinsInit();
   while (1)
     M4Error();
 }
 __attribute__((section(".after_vectors"))) void SysTick_Handler(void)
 {
-  PINS_Init();
+  PINS_CriticalPinsInit();
   while (1)
     M4Error();
 }
@@ -528,7 +528,7 @@ __attribute__((section(".after_vectors"))) void SysTick_Handler(void)
 //*****************************************************************************
 __attribute__((section(".after_vectors"))) void IntDefaultHandler(void)
 {
-  PINS_Init();
+  PINS_CriticalPinsInit();
   while (1)
     M4Error();
 }
