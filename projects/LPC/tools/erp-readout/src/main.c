@@ -428,7 +428,10 @@ static inline BOOL examineContent(void const *const data, unsigned const len)
     }
   packetNr = (getPacketNr(pErpData) + 1u) & 0b11111111111111;
 
-  int angle = (int) pErpData[2] * 128u * 128u + pErpData[3] * 128u + pErpData[4];
+  int angleErp0 = (int) pErpData[2] * 128u * 128u + pErpData[3] * 128u + pErpData[4];
+  int angleErp1 = (int) pErpData[5] * 128u * 128u + pErpData[6] * 128u + pErpData[7];
+  int angleErp2 = (int) pErpData[8] * 128u * 128u + pErpData[9] * 128u + pErpData[10];
+  int angle     = angleErp0;
   if (angle == 0b111111111111111111111)
   {
     ++angleErrors;
