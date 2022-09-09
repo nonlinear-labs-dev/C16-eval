@@ -67,70 +67,71 @@ static __attribute__((always_inline)) inline void startADC(unsigned const adc, u
     LPC_ADC0->CR = ((1u << channel) << ADC0_CR_SEL_Pos) | ADC_START;
 }
 
-static __attribute__((always_inline)) inline unsigned waitAndFetchADC(unsigned const adc)
+//
+// ---- Get 6 samples total per ADC, but use only the last one.
+//      This allows longer settling time for external muxer and better stability/crosstalk
+//
+static __attribute__((always_inline)) inline void waitAndFetchADCs(unsigned* const pAdc0, unsigned* const pAdc1)
 {
-  if (adc)
+  for (unsigned i = 0; i < 5; i++)
   {
-    while ((LPC_ADC1->GDR & ADC0_GDR_DONE_Msk) == 0)
-      ;
-    return (LPC_ADC1->GDR & ADC0_GDR_V_VREF_Msk) >> ADC0_GDR_V_VREF_Pos;
-  }
-  else
-  {
+    __enable_irq();
     while ((LPC_ADC0->GDR & ADC0_GDR_DONE_Msk) == 0)
       ;
-    return (LPC_ADC0->GDR & ADC0_GDR_V_VREF_Msk) >> ADC0_GDR_V_VREF_Pos;
+    while ((LPC_ADC1->GDR & ADC0_GDR_DONE_Msk) == 0)
+      ;
+    __disable_irq();
+    // restart ADCs
+    LPC_ADC0->CR |= (1 << ADC0_CR_START_Pos);
+    LPC_ADC1->CR |= (1 << ADC0_CR_START_Pos);
   }
+
+  __enable_irq();
+  while ((LPC_ADC0->GDR & ADC0_GDR_DONE_Msk) == 0)
+    ;
+  while ((LPC_ADC1->GDR & ADC0_GDR_DONE_Msk) == 0)
+    ;
+  __disable_irq();
+  // fetch values
+  (*pAdc0) = (LPC_ADC0->GDR & ADC0_GDR_V_VREF_Msk) >> ADC0_GDR_V_VREF_Pos;
+  (*pAdc1) = (LPC_ADC1->GDR & ADC0_GDR_V_VREF_Msk) >> ADC0_GDR_V_VREF_Pos;
 }
 
 static __attribute__((always_inline)) inline void adcCycle(unsigned const outChannel, unsigned const nextMuxChannel)
 {
+  unsigned adc0;
+  unsigned adc1;
   // cycle 0, using muxer group 0
   startADC(ADC0, ACH0);
   startADC(ADC1, ACH1);
-  muxSelect(GROUP1, nextMuxChannel);  // prepare muxer group 1 for cycle 1
-  __enable_irq();
 
-  unsigned adc0 = waitAndFetchADC(0);
-  unsigned adc1 = waitAndFetchADC(1);
+  waitAndFetchADCs(&adc0, &adc1);
 
-  __disable_irq();
   IPC_WriteAdcBuffer(outChannel + ACH0, adc0);
   IPC_WriteAdcBuffer(outChannel + ACH1, adc1);
   startADC(ADC0, ACH2);
   startADC(ADC1, ACH3);
-  __enable_irq();
-  // have some spare time here
 
-  adc0 = waitAndFetchADC(0);
-  adc1 = waitAndFetchADC(1);
+  waitAndFetchADCs(&adc0, &adc1);
 
-  __disable_irq();
+  muxSelect(GROUP0, (nextMuxChannel + 1) & 0b11);  // prepare muxer group 0 for cycle 0
   IPC_WriteAdcBuffer(outChannel + ACH2, adc0);
   IPC_WriteAdcBuffer(outChannel + ACH3, adc1);
 
   // cycle 1, using muxer group 1
   startADC(ADC0, ACH4);
   startADC(ADC1, ACH5);
-  muxSelect(GROUP0, (nextMuxChannel + 1) & 0b11);  // prepare muxer group 0 for cycle 0
-  __enable_irq();
-  // have some spare time here
 
-  adc0 = waitAndFetchADC(0);
-  adc1 = waitAndFetchADC(1);
+  waitAndFetchADCs(&adc0, &adc1);
 
-  __disable_irq();
   IPC_WriteAdcBuffer(outChannel + ACH4, adc0);
   IPC_WriteAdcBuffer(outChannel + ACH5, adc1);
   startADC(ADC0, ACH6);
   startADC(ADC1, ACH7);
-  __enable_irq();
-  // have some spare time here
 
-  adc0 = waitAndFetchADC(0);
-  adc1 = waitAndFetchADC(1);
+  waitAndFetchADCs(&adc0, &adc1);
 
-  __disable_irq();
+  muxSelect(GROUP1, (nextMuxChannel + 2) & 0b11);  // prepare muxer group 1 for cycle 1
   IPC_WriteAdcBuffer(outChannel + ACH6, adc0);
   IPC_WriteAdcBuffer(outChannel + ACH7, adc1);
 }

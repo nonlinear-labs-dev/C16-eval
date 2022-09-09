@@ -1,8 +1,9 @@
 #pragma once
 
 #include <stdint.h>
+#include "ipc/ipc.h"
 
-#define ERP_ADC_RANGE (8192)  // 13 bits
+#define ERP_ADC_RANGE (ADC_VIRTUAL_RESOLUTION)
 
 // Extrapolated percent value where the slope hits 90 degree, at point 'S'.
 // See ERP_Decoder.c for details.

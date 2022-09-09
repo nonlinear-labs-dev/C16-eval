@@ -14,13 +14,16 @@ static uint16_t adc_val;
 //  -------- ADC --------
 //
 #define IPC_ADC_NUMBER_OF_CHANNELS (32u)
+#define ADC_RESOLUTION             (1024u)
 
 // ADC ring buffers
-// Must be 2^N in size and <= 16. This also determines the averaging.
+// Must be 2^N in size and >= 2. This also determines the averaging.
 // Size should NOT be very much larger than the number of aquisitions between M4 read-out operations
-#define IPC_ADC_BUFFER_SIZE (8u)
+#define IPC_ADC_BUFFER_SIZE (2u)
 #define IPC_ADC_BUFFER_MASK (IPC_ADC_BUFFER_SIZE - 1)
-#define IPC_ADC_DEFAULT     (512u)
+#define IPC_ADC_DEFAULT     (ADC_RESOLUTION / 2)
+
+#define ADC_VIRTUAL_RESOLUTION (ADC_RESOLUTION * IPC_ADC_BUFFER_SIZE)
 
 typedef struct
 {

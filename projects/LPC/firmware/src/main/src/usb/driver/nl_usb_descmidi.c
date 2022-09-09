@@ -13,8 +13,10 @@
 #include "usb/driver/nl_usb_descmidi.h"
 #include "sys/flash.h"
 
+#define __MEMSPEC__ __attribute__((section(".data.$RamAHB32")))
+
 /* USB Standard Device Descriptor */
-const uint8_t USB0_MIDI_DeviceDescriptor[] = {
+__MEMSPEC__ uint8_t USB0_MIDI_DeviceDescriptor[] = {
   USB_DEVICE_DESC_SIZE,       /* bLength */
   USB_DEVICE_DESCRIPTOR_TYPE, /* bDescriptorType */
   WBVAL(BCDUSB_2_0),          /* bcdUSB */
@@ -30,7 +32,7 @@ const uint8_t USB0_MIDI_DeviceDescriptor[] = {
   0x00,                       /* iSerialNumber */
   0x01,                       /* bNumConfigurations */
 };
-const uint8_t USB1_MIDI_DeviceDescriptor[] = {
+__MEMSPEC__ uint8_t USB1_MIDI_DeviceDescriptor[] = {
   USB_DEVICE_DESC_SIZE,       /* bLength */
   USB_DEVICE_DESCRIPTOR_TYPE, /* bDescriptorType */
   WBVAL(BCDUSB_1_1),          /* bcdUSB */
@@ -49,7 +51,7 @@ const uint8_t USB1_MIDI_DeviceDescriptor[] = {
 
 /** USB FSConfiguration Descriptor */
 /*   All Descriptors (Configuration, Interface, Endpoint, Class */
-const uint8_t USB_MIDI_FSConfigDescriptor[] = {
+__MEMSPEC__ uint8_t USB_MIDI_FSConfigDescriptor[] = {
   /** Configuration 1 */
   USB_CONFIGURATION_DESC_SIZE,       /* bLength */
   USB_CONFIGURATION_DESCRIPTOR_TYPE, /* bDescriptorType */
@@ -171,7 +173,7 @@ const uint8_t USB_MIDI_FSConfigDescriptor[] = {
                             + (9 + 5)     /* Bulk OUT End point descriptors */ \
                             + (9 + 7))    /* Bulk IN End point descriptors  */
 
-const uint8_t USB_MIDI_HSConfigDescriptor[] = {
+__MEMSPEC__ uint8_t USB_MIDI_HSConfigDescriptor[] = {
   /** Configuration 1 */
   USB_CONFIGURATION_DESC_SIZE,       /* bLength */
   USB_CONFIGURATION_DESCRIPTOR_TYPE, /* bDescriptorType */
@@ -356,7 +358,7 @@ const uint8_t USB_MIDI_HSConfigDescriptor[] = {
 
 // clang format off
 /* USB String Descriptor (optional) */
-uint8_t USB0_MIDI_StringDescriptor[] = {
+__MEMSPEC__ uint8_t USB0_MIDI_StringDescriptor[] = {
   /* Index 0x00: LANGID Codes */
   0x04,                           /* bLength */
   USB_STRING_DESCRIPTOR_TYPE,     /* bDescriptorType */
@@ -376,7 +378,7 @@ uint8_t USB0_MIDI_StringDescriptor[] = {
   0, 0
 };
 
-uint8_t USB1_MIDI_StringDescriptor[] = {
+__MEMSPEC__ uint8_t USB1_MIDI_StringDescriptor[] = {
   /* Index 0x00: LANGID Codes */
   0x04,                           /* bLength */
   USB_STRING_DESCRIPTOR_TYPE,     /* bDescriptorType */
@@ -398,7 +400,7 @@ uint8_t USB1_MIDI_StringDescriptor[] = {
 // clang format on
 
 /* USB Device Qualifier */
-const uint8_t USB_MIDI_DeviceQualifier[] = {
+__MEMSPEC__ uint8_t USB_MIDI_DeviceQualifier[] = {
   USB_DEVICE_QUALI_SIZE,                /* bLength */
   USB_DEVICE_QUALIFIER_DESCRIPTOR_TYPE, /* bDescriptorType */
   WBVAL(0x0200), /* 2.00 */             /* bcdUSB */
@@ -419,8 +421,12 @@ void USB_MIDI_SetupDescriptors(void)
     uint32_t idVal = id.data[0] ^ id.data[1] ^ id.data[2] ^ id.data[3];
     for (int i = 0; i < 8; i++, idVal >>= 4)
     {
-      USB0_MIDI_StringDescriptor[sizeof(USB0_MIDI_StringDescriptor) - 20 + (unsigned) (2 * i)] = hexToCharTable[idVal & 0xF];
-      USB1_MIDI_StringDescriptor[sizeof(USB1_MIDI_StringDescriptor) - 20 + (unsigned) (2 * i)] = hexToCharTable[idVal & 0xF];
+      unsigned index;
+      index                             = sizeof(USB0_MIDI_StringDescriptor) - 20 + (unsigned) (2 * i);
+      USB0_MIDI_StringDescriptor[index] = hexToCharTable[idVal & 0xF];
+
+      index                             = sizeof(USB1_MIDI_StringDescriptor) - 20 + (unsigned) (2 * i);
+      USB1_MIDI_StringDescriptor[index] = hexToCharTable[idVal & 0xF];
     }
   }
 }

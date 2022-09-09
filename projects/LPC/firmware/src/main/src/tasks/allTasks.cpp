@@ -15,7 +15,7 @@ static inline uint32_t msToTicks(uint32_t const ms)
 // clang-format off
 //                                     delay,         period
 Task::KeybedScanner    keybedScanner   (   0,              0 );
-Task::AllTimedIoPins      allTimedIoPins     (   1, msToTicks( 100));
+Task::AllTimedIoPins   allTimedIoPins  (   1, msToTicks( 100));
 Task::LedHeartBeatM4   ledHeartBeatM4  (   2, msToTicks( 500));
 Task::SensorDataWriter sensorDataWriter(   3, usToTicks( 500));
 // clang-format on
