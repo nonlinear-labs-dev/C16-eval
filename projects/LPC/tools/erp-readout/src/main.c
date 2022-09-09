@@ -21,8 +21,8 @@
 #undef NULL
 #define NULL ((void *) 0)
 
-#include "ERP_Decoder.h"
-#include "ERP_Quantizer.h"
+#include "erp/ERP_Decoder.h"
+#include "erp/ERP_Quantizer.h"
 
 static struct ERP_Quantizer_t *quantizer;
 
@@ -516,21 +516,25 @@ static inline BOOL examineContent(void const *const data, unsigned const len)
     }
     oldAngle360 = angle360;
 
+    printf("%s", normal);
     double smoothingCoeff;
     double smDelta = fabs(smoothedAngle360 - angle360);
-    if (smDelta > 100.0)
-      smoothingCoeff = 0.03;
-    else if (smDelta > 10.0)
+    if (smDelta > 10.0)
+      smoothingCoeff = 0.01;
+    else if (smDelta > 3.16)
       smoothingCoeff = 0.01;
     else if (smDelta > 1.0)
-      smoothingCoeff = 0.003;
+      smoothingCoeff = 0.00316;
+    else if (smDelta > 0.316)
+      smoothingCoeff = 0.001, printf("%s", green);
     else
-      smoothingCoeff = 0.001;
+      smoothingCoeff = 0.000316, printf("%s", green);
 
     smoothedAngle360 = smoothedAngle360 - (smoothingCoeff * (smoothedAngle360 - angle360));
 
     cursorUp(4);
     printf("%+8.1lf  %+9.2lf\n\n\n\n", angle360, smoothedAngle360);
+    printf("%s", normal);
 
     static const char subs[10] = "0123456789";
     if (update)
