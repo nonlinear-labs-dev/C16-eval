@@ -37,6 +37,14 @@ enum
   ACH7 = 7,
 };
 
+enum
+{  // ADC data block
+  BLOCK0 = 0x00,
+  BLOCK1 = 0x08,
+  BLOCK2 = 0x10,
+  BLOCK3 = 0x18,
+};
+
 static __attribute__((always_inline)) inline void muxSelect(unsigned const group, unsigned const channel)
 {
   if (group == GROUP0)
@@ -60,7 +68,7 @@ static __attribute__((always_inline)) inline void muxSelect(unsigned const group
 static __attribute__((always_inline)) inline void startADC(unsigned const channel0, unsigned const channel1)
 {
   LPC_ADC0->CR = ((1u << channel0) << ADC0_CR_SEL_Pos) | ADC_START;
-  LPC_ADC1->CR = ((1u << channel1) << ADC0_CR_SEL_Pos) | ADC_START;
+  LPC_ADC1->CR = ((1u << channel1) << ADC1_CR_SEL_Pos) | ADC_START;
 }
 
 //
@@ -73,7 +81,7 @@ static __attribute__((always_inline)) inline void waitAndFetchADCs(unsigned* con
   {
     while ((LPC_ADC0->GDR & ADC0_GDR_DONE_Msk) == 0)
       ;
-    while ((LPC_ADC1->GDR & ADC0_GDR_DONE_Msk) == 0)
+    while ((LPC_ADC1->GDR & ADC1_GDR_DONE_Msk) == 0)
       ;
     // restart ADCs
     LPC_ADC0->CR |= (1 << ADC0_CR_START_Pos);
@@ -82,15 +90,15 @@ static __attribute__((always_inline)) inline void waitAndFetchADCs(unsigned* con
 
   while ((LPC_ADC0->GDR & ADC0_GDR_DONE_Msk) == 0)
     ;
-  while ((LPC_ADC1->GDR & ADC0_GDR_DONE_Msk) == 0)
+  while ((LPC_ADC1->GDR & ADC1_GDR_DONE_Msk) == 0)
     ;
 
   // fetch values
   (*pAdc0) = (LPC_ADC0->GDR & ADC0_GDR_V_VREF_Msk) >> ADC0_GDR_V_VREF_Pos;
-  (*pAdc1) = (LPC_ADC1->GDR & ADC0_GDR_V_VREF_Msk) >> ADC0_GDR_V_VREF_Pos;
+  (*pAdc1) = (LPC_ADC1->GDR & ADC1_GDR_V_VREF_Msk) >> ADC1_GDR_V_VREF_Pos;
 }
 
-static __attribute__((noinline)) void adcCycle(unsigned const outChannel, unsigned const nextMuxChannel)
+static __attribute__((noinline)) void adcCycle(unsigned const outChannel)
 {
   unsigned adc0;
   unsigned adc1;
@@ -105,7 +113,7 @@ static __attribute__((noinline)) void adcCycle(unsigned const outChannel, unsign
 
   waitAndFetchADCs(&adc0, &adc1);
 
-  muxSelect(GROUP0, (nextMuxChannel + 1) & 0b11);  // prepare muxer group 0 for cycle 0
+  muxSelect(GROUP0, (outChannel >> 3) + 1);  // prepare muxer group 0 for cycle 0
   IPC_WriteAdcBuffer(outChannel + ACH2, adc0);
   IPC_WriteAdcBuffer(outChannel + ACH3, adc1);
 
@@ -120,7 +128,7 @@ static __attribute__((noinline)) void adcCycle(unsigned const outChannel, unsign
 
   waitAndFetchADCs(&adc0, &adc1);
 
-  muxSelect(GROUP1, (nextMuxChannel + 2) & 0b11);  // prepare muxer group 1 for cycle 1
+  muxSelect(GROUP1, (outChannel >> 3) + 1);  // prepare muxer group 1 for cycle 1
   IPC_WriteAdcBuffer(outChannel + ACH6, adc0);
   IPC_WriteAdcBuffer(outChannel + ACH7, adc1);
 }
@@ -132,10 +140,10 @@ static __attribute__((noinline)) void processADCs(void)
   // so we have about 15%, or 80us, of safety margin
   if (!s.adcIsConverting)
     return;
-  adcCycle(0x00, MCH0);  // CH00..CH07 : ERP0_W0..ERP3_W1
-  adcCycle(0x08, MCH1);  // CH08..CH15 : ERP4_W0..ERP7_W1
-  adcCycle(0x10, MCH2);  // CH16..CH23 : EHC0_C0..EHC3_C1
-  adcCycle(0x18, MCH3);  // CH24..CH31 : Aftertouch, Bender, Ribbon0+1, AmbLight0+1, Voltage0+1
+  adcCycle(BLOCK0);  // CH00..CH07 : ERP0_W0..ERP3_W1
+  adcCycle(BLOCK1);  // CH08..CH15 : ERP4_W0..ERP7_W1
+  adcCycle(BLOCK2);  // CH16..CH23 : EHC0_C0..EHC3_C1
+  adcCycle(BLOCK3);  // CH24..CH31 : Aftertouch, Bender, Ribbon0+1, AmbLight0+1, Voltage0+1
 
   // now, all adc channels have been read ==> sync read index to last write index
   IPC_AdcUpdateReadIndex();
