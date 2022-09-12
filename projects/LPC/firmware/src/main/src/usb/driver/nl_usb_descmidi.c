@@ -168,7 +168,7 @@ __MEMSPEC__ uint8_t USB_MIDI_FSConfigDescriptor[] = {
 /* USB HSConfiguration Descriptor */
 /*   All Descriptors (Configuration, Interface, Endpoint, Class, Vendor */
 #define CS_MS_IFC_DESC_LEN (7             /* this descriptor                */ \
-                            + (9 + 6) * 3 /* Ext OUT - Emb IN               */ \
+                            + (9 + 6) * 1 /* Ext OUT - Emb IN               */ \
                             + (9 + 6) * 3 /* Ext IN - Emb OUT               */ \
                             + (9 + 5)     /* Bulk OUT End point descriptors */ \
                             + (9 + 7))    /* Bulk IN End point descriptors  */
