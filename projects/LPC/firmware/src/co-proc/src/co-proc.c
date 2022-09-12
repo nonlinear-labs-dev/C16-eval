@@ -9,7 +9,6 @@ int main(void)
   KBS_Init();
   RIT_Init_IntervalInHz(M0_IRQ_FREQ_HZ);
 
-  __disable_irq();
   while (1)
   {
     LED_M0HB = ~LED_M4HB;
@@ -54,5 +53,5 @@ void M0_RIT_OR_WWDT_IRQHandler(void)
   RIT_ClearInt();
   jitterIRQ();
   (*KBS_Process)();
-  s.M0_KbsIrqOvers += (1 & RIT_GetCtrlReg());  // note that this profiling increases IRQ time itself (Heisenberg ;-)
+  // s.M0_KbsIrqOvers += (1 & RIT_GetCtrlReg());  // note that this profiling increases IRQ time itself (Heisenberg ;-)
 }

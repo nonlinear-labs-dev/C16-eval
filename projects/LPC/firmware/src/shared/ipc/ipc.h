@@ -60,6 +60,7 @@ typedef struct
   ADC_BUFFER_ARRAY_T adcBufferData;
   uint32_t           adcBufferWriteIndex;
   uint32_t           adcBufferReadIndex;
+  uint32_t           adcIsConverting;
 } SharedData_T;
 
 extern SharedData_T s;
@@ -83,6 +84,7 @@ inline static void IPC_Init(void)
   }
   s.adcBufferReadIndex  = 0;
   s.adcBufferWriteIndex = 0;
+  s.adcIsConverting     = 0;
 }
 
 /******************************************************************************

@@ -2,8 +2,6 @@
 
 #include <stdint.h>
 #include "cmsis/LPC43xx.h"
-#include "cmsis/core_cmFunc.h"
-#include "cmsis/core_cmInstr.h"
 #include "ipc/ipc.h"
 #include "io/pins.h"
 
@@ -59,58 +57,51 @@ static __attribute__((always_inline)) inline void muxSelect(unsigned const group
                    | (1 << ADC0_CR_PDN_Pos)        /* enable ADC */                                             \
                    | (1 << ADC0_CR_START_Pos))     /* start = 1 required for manual mode */
 
-static __attribute__((always_inline)) inline void startADC(unsigned const adc, unsigned const channel)
+static __attribute__((always_inline)) inline void startADC(unsigned const channel0, unsigned const channel1)
 {
-  if (adc)
-    LPC_ADC1->CR = ((1u << channel) << ADC0_CR_SEL_Pos) | ADC_START;
-  else
-    LPC_ADC0->CR = ((1u << channel) << ADC0_CR_SEL_Pos) | ADC_START;
+  LPC_ADC0->CR = ((1u << channel0) << ADC0_CR_SEL_Pos) | ADC_START;
+  LPC_ADC1->CR = ((1u << channel1) << ADC0_CR_SEL_Pos) | ADC_START;
 }
 
 //
-// ---- Get 6 samples total per ADC, but use only the last one.
+// ---- Get 4 samples total per ADC, but use only the last one.
 //      This allows longer settling time for external muxer and better stability/crosstalk
 //
 static __attribute__((always_inline)) inline void waitAndFetchADCs(unsigned* const pAdc0, unsigned* const pAdc1)
 {
-  for (unsigned i = 0; i < 5; i++)
+  for (unsigned i = 0; i < 3; i++)
   {
-    __enable_irq();
     while ((LPC_ADC0->GDR & ADC0_GDR_DONE_Msk) == 0)
       ;
     while ((LPC_ADC1->GDR & ADC0_GDR_DONE_Msk) == 0)
       ;
-    __disable_irq();
     // restart ADCs
     LPC_ADC0->CR |= (1 << ADC0_CR_START_Pos);
     LPC_ADC1->CR |= (1 << ADC0_CR_START_Pos);
   }
 
-  __enable_irq();
   while ((LPC_ADC0->GDR & ADC0_GDR_DONE_Msk) == 0)
     ;
   while ((LPC_ADC1->GDR & ADC0_GDR_DONE_Msk) == 0)
     ;
-  __disable_irq();
+
   // fetch values
   (*pAdc0) = (LPC_ADC0->GDR & ADC0_GDR_V_VREF_Msk) >> ADC0_GDR_V_VREF_Pos;
   (*pAdc1) = (LPC_ADC1->GDR & ADC0_GDR_V_VREF_Msk) >> ADC0_GDR_V_VREF_Pos;
 }
 
-static __attribute__((always_inline)) inline void adcCycle(unsigned const outChannel, unsigned const nextMuxChannel)
+static __attribute__((noinline)) void adcCycle(unsigned const outChannel, unsigned const nextMuxChannel)
 {
   unsigned adc0;
   unsigned adc1;
   // cycle 0, using muxer group 0
-  startADC(ADC0, ACH0);
-  startADC(ADC1, ACH1);
+  startADC(ACH0, ACH1);
 
   waitAndFetchADCs(&adc0, &adc1);
 
   IPC_WriteAdcBuffer(outChannel + ACH0, adc0);
   IPC_WriteAdcBuffer(outChannel + ACH1, adc1);
-  startADC(ADC0, ACH2);
-  startADC(ADC1, ACH3);
+  startADC(ACH2, ACH3);
 
   waitAndFetchADCs(&adc0, &adc1);
 
@@ -119,15 +110,13 @@ static __attribute__((always_inline)) inline void adcCycle(unsigned const outCha
   IPC_WriteAdcBuffer(outChannel + ACH3, adc1);
 
   // cycle 1, using muxer group 1
-  startADC(ADC0, ACH4);
-  startADC(ADC1, ACH5);
+  startADC(ACH4, ACH5);
 
   waitAndFetchADCs(&adc0, &adc1);
 
   IPC_WriteAdcBuffer(outChannel + ACH4, adc0);
   IPC_WriteAdcBuffer(outChannel + ACH5, adc1);
-  startADC(ADC0, ACH6);
-  startADC(ADC1, ACH7);
+  startADC(ACH6, ACH7);
 
   waitAndFetchADCs(&adc0, &adc1);
 
@@ -136,17 +125,21 @@ static __attribute__((always_inline)) inline void adcCycle(unsigned const outCha
   IPC_WriteAdcBuffer(outChannel + ACH7, adc1);
 }
 
-static __attribute__((always_inline)) inline void processADCs(void)
+static __attribute__((noinline)) void processADCs(void)
 {
+  // we rely on a faster conversion than the consumer actually requires.
+  // atm, free-wheeling conversion rate ~2.3kHz, required is > 2.0kHz
+  // so we have about 15%, or 80us, of safety margin
+  if (!s.adcIsConverting)
+    return;
   adcCycle(0x00, MCH0);  // CH00..CH07 : ERP0_W0..ERP3_W1
   adcCycle(0x08, MCH1);  // CH08..CH15 : ERP4_W0..ERP7_W1
   adcCycle(0x10, MCH2);  // CH16..CH23 : EHC0_C0..EHC3_C1
   adcCycle(0x18, MCH3);  // CH24..CH31 : Aftertouch, Bender, Ribbon0+1, AmbLight0+1, Voltage0+1
 
-  DBG_TP1_0 = ~DBG_TP1_0;
-
   // now, all adc channels have been read ==> sync read index to last write index
   IPC_AdcUpdateReadIndex();
   // Starting a new round of adc channel value read-ins, advance ipc write index first
   IPC_AdcBufferWriteNext();
+  DBG_TP1_0 = s.adcIsConverting = 0;
 }

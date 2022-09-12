@@ -50,6 +50,9 @@ namespace Task
    public:
     inline void body(void)
     {
+      if (s.adcIsConverting)
+        LED_J = 1;  // overrun
+
       sensorAndKeyEventWriter.start();
 
       // tan
@@ -116,6 +119,8 @@ namespace Task
           lsd2 = 0;  // SPARE5
           break;
       }
+
+      DBG_TP1_0 = s.adcIsConverting = 1;
 
       sensorAndKeyEventWriter.write(SENSOR_DATA_CABLE_NUMBER, 0, getSysexHiByte(lsd0), getSysexLoByte(lsd0));                     // stat1 lo, lsd0 hi/lo
       sensorAndKeyEventWriter.write(SENSOR_DATA_CABLE_NUMBER, getSysexHiByte(lsd1), getSysexLoByte(lsd1), getSysexHiByte(lsd2));  // lsd1 hi/lo, lsd2 hi

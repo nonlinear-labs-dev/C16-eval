@@ -136,49 +136,49 @@ static inline void PINS_NormalPinsInit(void)
   //
   // -------- Aux/Debug LEDs --------
   //
-  // LED_E (TP2_4)
+  // LED_E (TP2_4) Yellow
 #define LED_E GPIO_Word(5, 4)
   GPIO_DIR_OUT(5, 4);
   SFSP(2, 4) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 4;
   LED_E      = 0u;
 
-  // LED_F (TP2_3)
+  // LED_F (TP2_3) Yellow
 #define LED_F GPIO_Word(5, 3)
   GPIO_DIR_OUT(5, 3);
   SFSP(2, 3) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 4;
   LED_F      = 0u;
 
-  // LED_G (TP6_8)
+  // LED_G (TP6_8) Yellow
 #define LED_G GPIO_Word(5, 16)
   GPIO_DIR_OUT(5, 16);
   SFSP(6, 8) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 4;
   LED_G      = 0u;
 
-  // LED_H (TP6_7)
+  // LED_H (TP6_7) Yellow
 #define LED_H GPIO_Word(5, 15)
   GPIO_DIR_OUT(5, 15);
   SFSP(6, 7) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 4;
   LED_H      = 0u;
 
-  // LED_I (TP2_2)
+  // LED_I (TP2_2) Red
 #define LED_I GPIO_Word(5, 2)
   GPIO_DIR_OUT(5, 2);
   SFSP(2, 2) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 4;
   LED_I      = 0u;
 
-  // LED_J (TP6_6)
+  // LED_J (TP6_6) Red
 #define LED_J GPIO_Word(0, 5)
   GPIO_DIR_OUT(0, 5);
   SFSP(6, 6) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 0;
   LED_J      = 0u;
 
-  // LED_K (TP6_5)
+  // LED_K (TP6_5) Red
 #define LED_K GPIO_Word(3, 4)
   GPIO_DIR_OUT(3, 4);
   SFSP(6, 5) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 0;
   LED_K      = 0u;
 
-  // LED_L (TP6_4)
+  // LED_L (TP6_4) Red
 #define LED_L GPIO_Word(3, 3)
   GPIO_DIR_OUT(3, 3);
   SFSP(6, 4) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 0;
