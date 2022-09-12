@@ -6,6 +6,8 @@
 #include "usb/usb.h"
 #include "erp/ERP_Decoder.h"
 
+#define DEBUG_ERP2_WIPERS (1)  // copies ERP2 wiper values to ERO6&7 angles
+
 namespace Task
 {
 
@@ -44,6 +46,22 @@ namespace Task
     void inline writeErp(unsigned const erpNumber)
     {
       unsigned angle = erpWipersToAngle(IPC_ReadAdcBufferSum(erpNumber * 2), IPC_ReadAdcBufferSum(erpNumber * 2 + 1));
+
+#if (DEBUG_ERP2_WIPERS == 1)
+#warning debugging ERP2 wipers (written to ERP6 & ERP7 "angles")
+      static unsigned w0;
+      static unsigned w1;
+      if (erpNumber == 2)
+      {
+        w0 = IPC_ReadAdcBufferSum(erpNumber * 2);
+        w1 = IPC_ReadAdcBufferSum(erpNumber * 2 + 1);
+      }
+      else if (erpNumber == 6)
+        angle = w0;
+      else if (erpNumber == 7)
+        angle = w1;
+#endif
+
       sensorAndKeyEventWriter.write(SENSOR_DATA_CABLE_NUMBER, getSysexHi2Byte(angle), getSysexHiByte(angle), getSysexLoByte(angle));
     }
 
