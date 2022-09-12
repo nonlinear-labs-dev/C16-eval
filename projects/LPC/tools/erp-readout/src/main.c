@@ -323,6 +323,16 @@ static inline unsigned getPacketNr(uint8_t const *const data)
   return (uint32_t) data[0] * 128ul + (uint32_t) data[1];
 }
 
+static inline int getErpAngle(unsigned const erpNumber, uint8_t const *const data)
+{
+  int result = (int) data[2 + 3 * erpNumber] * 128u * 128u + data[3 + 3 * erpNumber] * 128u + data[4 + 3 * erpNumber];
+  if (result == 0b111111111111111111111)
+    return result;
+  if (result & 0b100000000000000000000)
+    result |= 0b11111111111000000000000000000000;
+  return result;
+}
+
 static inline BOOL examineContent(void const *const data, unsigned const len)
 {
   static uint64_t time     = 0;
@@ -428,10 +438,103 @@ static inline BOOL examineContent(void const *const data, unsigned const len)
     }
   packetNr = (getPacketNr(pErpData) + 1u) & 0b11111111111111;
 
-  int angleErp0 = (int) pErpData[2] * 128u * 128u + pErpData[3] * 128u + pErpData[4];
-  int angleErp1 = (int) pErpData[5] * 128u * 128u + pErpData[6] * 128u + pErpData[7];
-  int angleErp2 = (int) pErpData[8] * 128u * 128u + pErpData[9] * 128u + pErpData[10];
-  int angle     = angleErp0;
+  int angleErp0 = getErpAngle(0, pErpData);
+  int angleErp1 = getErpAngle(1, pErpData);
+  int angleErp2 = getErpAngle(2, pErpData);
+  int angleErp3 = getErpAngle(3, pErpData);
+  int angleErp4 = getErpAngle(4, pErpData);
+  int angleErp5 = getErpAngle(5, pErpData);
+  int angleErp6 = getErpAngle(6, pErpData);
+  int angleErp7 = getErpAngle(7, pErpData);
+  int stat0     = (int) pErpData[26] * 128u + pErpData[27];
+  int stat1     = (int) pErpData[28] * 128u + pErpData[29];
+  int lsd0      = (int) pErpData[30] * 128u + pErpData[31];
+  int lsd1      = (int) pErpData[32] * 128u + pErpData[33];
+  int lsd2      = (int) pErpData[34] * 128u + pErpData[35];
+
+  static int ehc0 = 0;
+  static int ehc1 = 0;
+  static int ehc2 = 0;
+  static int ehc3 = 0;
+  static int ehc4 = 0;
+  static int ehc5 = 0;
+  static int ehc6 = 0;
+  static int ehc7 = 0;
+
+  static int ihc0 = 0;
+  static int ihc1 = 0;
+  static int ihc2 = 0;
+  static int ihc3 = 0;
+
+  static int ali0 = 0;
+  static int ali1 = 0;
+
+  static int psu0 = 0;
+  static int psu1 = 0;
+
+  switch (getPacketNr(pErpData) & 0b111)
+  {
+    case 0:
+      ehc0 = lsd0;
+      ehc1 = lsd1;
+      ehc2 = lsd2;
+      break;
+    case 1:
+      ehc3 = lsd0;
+      ehc4 = lsd1;
+      ehc5 = lsd2;
+      break;
+    case 2:
+      ehc6 = lsd0;
+      ehc7 = lsd1;
+      ihc0 = lsd2;
+      break;
+    case 3:
+      ihc1 = lsd0;
+      ihc2 = lsd1;
+      ihc3 = lsd2;
+      break;
+    case 4:
+      ali0 = lsd0;
+      ali1 = lsd1;
+      psu0 = lsd2;
+      break;
+    case 5:
+      psu1 = lsd0;
+      break;
+  }
+#if 0
+  // show all data
+  cursorUp(2);
+  printf("%+6.1lf ", (double) angleErp0 * ERP_AngleMultiplier360());
+  printf("%+6.1lf ", (double) angleErp1 * ERP_AngleMultiplier360());
+  printf("%+6.1lf ", (double) angleErp2 * ERP_AngleMultiplier360());
+  printf("%+6.1lf ", (double) angleErp3 * ERP_AngleMultiplier360());
+  printf("%+6.1lf ", (double) angleErp4 * ERP_AngleMultiplier360());
+  printf("%+6.1lf | ", (double) angleErp5 * ERP_AngleMultiplier360());
+
+  printf("%5d ", ehc0);
+  printf("%5d ", ehc1);
+  printf("%5d ", ehc2);
+  printf("%5d ", ehc3);
+  printf("%5d ", ehc4);
+  printf("%5d ", ehc5);
+  printf("%5d ", ehc6);
+  printf("%5d\n", ehc7);
+
+  printf("%5d ", ihc0);
+  printf("%5d ", ihc1);
+  printf("%5d ", ihc2);
+  printf("%5d | ", ihc3);
+  printf("%5d ", ali0);
+  printf("%5d ", ali1);
+  printf("%5.2lfV ", (double) psu0 / 2048 / (1.72 / 3.3) * 19.0);
+  printf("%5.2lfV\n", (double) psu1 / 2048 / (3.113 / 3.3) * 5.0);
+
+  return TRUE;
+#endif
+
+  int angle = angleErp0;
   if (angle == 0b111111111111111111111)
   {
     ++angleErrors;
@@ -484,6 +587,8 @@ static inline BOOL examineContent(void const *const data, unsigned const len)
     if (delta)
       update = 1;
 
+#if 0
+    // determine smoothed angle
     static double oldAngle360;
     double        angle360         = angle * ERP_AngleMultiplier360();
     static double smoothedAngle360 = 0.0;
@@ -519,22 +624,20 @@ static inline BOOL examineContent(void const *const data, unsigned const len)
     printf("%s", normal);
     double smoothingCoeff;
     double smDelta = fabs(smoothedAngle360 - angle360);
-    if (smDelta > 10.0)
-      smoothingCoeff = 0.01;
-    else if (smDelta > 3.16)
-      smoothingCoeff = 0.01;
-    else if (smDelta > 1.0)
-      smoothingCoeff = 0.00316;
-    else if (smDelta > 0.316)
-      smoothingCoeff = 0.001, printf("%s", green);
+    if (smDelta > 0.8)
+      smoothingCoeff = 0.1;
+    else if (smDelta > 0.6)
+      smoothingCoeff = 0.03;
+    else if (smDelta > 0.4)
+      smoothingCoeff = 0.003;
     else
-      smoothingCoeff = 0.000316, printf("%s", green);
+      smoothingCoeff = 0.001;
 
     smoothedAngle360 = smoothedAngle360 - (smoothingCoeff * (smoothedAngle360 - angle360));
 
     cursorUp(4);
     printf("%+8.1lf  %+9.2lf\n\n\n\n", angle360, smoothedAngle360);
-    printf("%s", normal);
+#endif
 
     static const char subs[10] = "0123456789";
     if (update)
