@@ -1607,7 +1607,7 @@ void USB_ProgDTD(uint8_t const port, uint32_t Edpt, uint32_t ptrBuff, uint32_t T
     }
     case USB_CIRCULAR_16k:
     {
-      uint32_t base = ptrBuff & ~(8192 - 1);
+      uint32_t base = ptrBuff & ~(16348 - 1);
       if (pDTD->buffer0 - base < 1 * 4096)
       {
         pDTD->buffer1 = base + 1 * 4096;

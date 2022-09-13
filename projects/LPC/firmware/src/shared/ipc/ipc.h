@@ -108,9 +108,7 @@ static inline void IPC_M0_KeyBuffer_WriteKeyEvent(uint32_t const keyEvent)
 /******************************************************************************/
 /** @brief      Here the M4 reads key events from a circular buffer
                 that have been written by the M0
-    @param[in]  pKeyEvent: pointer to an array of key events
-                that will be processed by the voice allocation
-    @return     Number of new key events (0: nothing to do)
+    @return     key event (0: nothing to do)
 *******************************************************************************/
 static inline uint32_t IPC_M4_KeyBuffer_ReadBuffer(void)
 {

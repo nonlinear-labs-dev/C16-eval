@@ -1,20 +1,30 @@
 #pragma once
+#include <stdint.h>
 
-//
-// Task Objects (items further down in the list may use previous objects)
-// -- actual objects are instantiated in allTasks.cpp
-//
 #include "tasks/allTimedIOpins.h"
-extern Task::AllTimedIoPins allTimedIoPins;
-
 #include "tasks/ledHeartBeatM4.h"
-extern Task::LedHeartBeatM4 ledHeartBeatM4;
-
 #include "tasks/keybedScanner.h"
-extern Task::KeybedScanner keybedScanner;
-
 #include "tasks/sensorDataWriter.h"
-extern Task::SensorDataWriter sensorDataWriter;
+#include "tasks/usb.h"
+
+static inline uint32_t usToTicks(uint32_t const us)
+{
+  return us / 125u;
+}
+
+static inline uint32_t msToTicks(uint32_t const ms)
+{
+  return 1000u * ms / 125u;
+}
+
+// clang-format off
+//                                     delay,         period
+Task::KeybedScanner    keybedScanner   (   0,              0 );
+Task::UsbWriter        usbWriter       (   0,              0 );
+Task::AllTimedIoPins   allTimedIoPins  (   1, msToTicks( 100));
+Task::LedHeartBeatM4   ledHeartBeatM4  (   2, msToTicks( 500));
+Task::SensorDataWriter sensorDataWriter(   3, usToTicks( 500));
+// clang-format on
 
 //
 //  Dispatcher/Scheduler and Run functions
@@ -28,6 +38,7 @@ namespace Task
     allTimedIoPins.dispatch();
     keybedScanner.dispatch();
     sensorDataWriter.dispatch();
+    usbWriter.dispatch();
   };
 
   inline void run(void)
@@ -36,5 +47,6 @@ namespace Task
     allTimedIoPins.run();
     keybedScanner.run();
     sensorDataWriter.run();
+    usbWriter.run();
   }
 }
