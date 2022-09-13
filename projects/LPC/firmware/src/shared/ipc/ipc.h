@@ -45,9 +45,6 @@ typedef struct
 //
 typedef struct
 {
-  uint32_t          sensorAndKeyeventUsbBuffer[1024];  // must be 4k size and start at a 4k boundary !!!
-  uint32_t          outgoingBridgeUsbBuffer[1024];     // must be 4k size and start at a 4k boundary !!!
-  uint32_t          incomingBridgeUsbBuffer[1024];     // must be 4k size and start at a 4k boundary !!!
   volatile uint32_t ticker5us;
   volatile uint32_t timesliceTicker5us;
   uint32_t          keyBufferData[IPC_KEYBUFFER_SIZE];

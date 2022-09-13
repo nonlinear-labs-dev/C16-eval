@@ -23,7 +23,7 @@ namespace Usb
     UsbMidiSysexWriter(uint32_t *const buffer)
         : m_buffer(buffer)
     {
-      USB_Core_SetWrapping4kBuffer(0, 1);
+      USB_Core_SetCircularBuffer(0, USB_CIRCULAR_4k);
     };
 
     inline void advanceIndex(void)

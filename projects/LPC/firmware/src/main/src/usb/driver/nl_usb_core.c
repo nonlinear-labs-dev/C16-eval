@@ -94,7 +94,7 @@ typedef struct
   uint8_t               error;
   uint8_t               gotConfigDescriptorRequest;  // NOT RELIABLE, do not use !!
   uint8_t               connectionEstablished;
-  uint8_t               wrapping4kBuffer;
+  enum USB_BufferType   cicularBuffer;  // must be either 0, 4096, 8192, or 16384
 } usb_core_t;
 
 static usb_core_t usb[2] = {
@@ -1570,28 +1570,83 @@ void USB_ProgDTD(uint8_t const port, uint32_t Edpt, uint32_t ptrBuff, uint32_t T
   pDTD->total_bytes |= 0x80;
 
   pDTD->buffer0 = ptrBuff;
-  if (usb[port].wrapping4kBuffer)
+  switch (usb[port].cicularBuffer)
   {
-    pDTD->buffer1 = (ptrBuff) &0xfffff000;
-    pDTD->buffer2 = (ptrBuff) &0xfffff000;
-    pDTD->buffer3 = (ptrBuff) &0xfffff000;
-    pDTD->buffer4 = (ptrBuff) &0xfffff000;
-  }
-  else
-  {
-    pDTD->buffer1 = (ptrBuff + 0x1000) & 0xfffff000;
-    pDTD->buffer2 = (ptrBuff + 0x2000) & 0xfffff000;
-    pDTD->buffer3 = (ptrBuff + 0x3000) & 0xfffff000;
-    pDTD->buffer4 = (ptrBuff + 0x4000) & 0xfffff000;
+    case USB_NON_CIRCULAR:
+    {
+      pDTD->buffer1 = (ptrBuff + 0x1000) & 0xfffff000;
+      pDTD->buffer2 = (ptrBuff + 0x2000) & 0xfffff000;
+      pDTD->buffer3 = (ptrBuff + 0x3000) & 0xfffff000;
+      pDTD->buffer4 = (ptrBuff + 0x4000) & 0xfffff000;
+      break;
+    }
+    case USB_CIRCULAR_4k:
+    {
+      pDTD->buffer1 = (ptrBuff) &0xfffff000;
+      pDTD->buffer2 = pDTD->buffer1;
+      pDTD->buffer3 = pDTD->buffer1;
+      pDTD->buffer4 = pDTD->buffer1;
+      break;
+    }
+    case USB_CIRCULAR_8k:
+    {
+      uint32_t base = ptrBuff & ~(8192 - 1);
+      if (pDTD->buffer0 - base < 4096)
+      {
+        pDTD->buffer1 = base + 4096;
+        pDTD->buffer2 = base;
+      }
+      else
+      {
+        pDTD->buffer1 = base;
+        pDTD->buffer2 = base + 4096;
+      }
+      pDTD->buffer3 = pDTD->buffer1;
+      pDTD->buffer4 = pDTD->buffer2;
+      break;
+    }
+    case USB_CIRCULAR_16k:
+    {
+      uint32_t base = ptrBuff & ~(8192 - 1);
+      if (pDTD->buffer0 - base < 1 * 4096)
+      {
+        pDTD->buffer1 = base + 1 * 4096;
+        pDTD->buffer2 = base + 2 * 4096;
+        pDTD->buffer3 = base + 3 * 4096;
+        pDTD->buffer4 = base + 0 * 4096;
+      }
+      else if (pDTD->buffer0 - base < 2 * 4096)
+      {
+        pDTD->buffer1 = base + 2 * 4096;
+        pDTD->buffer2 = base + 3 * 4096;
+        pDTD->buffer3 = base + 0 * 4096;
+        pDTD->buffer4 = base + 1 * 4096;
+      }
+      else if (pDTD->buffer0 - base < 3 * 4096)
+      {
+        pDTD->buffer1 = base + 3 * 4096;
+        pDTD->buffer2 = base + 0 * 4096;
+        pDTD->buffer3 = base + 1 * 4096;
+        pDTD->buffer4 = base + 2 * 4096;
+      }
+      else
+      {
+        pDTD->buffer1 = base + 0 * 4096;
+        pDTD->buffer2 = base + 1 * 4096;
+        pDTD->buffer3 = base + 2 * 4096;
+        pDTD->buffer4 = base + 3 * 4096;
+      }
+      break;
+    }
   }
 
   usb[port].ep_QH[Edpt].next_dTD = (uint32_t)(&usb[port].ep_TD[Edpt]);
   usb[port].ep_QH[Edpt].total_bytes &= (~0xC0);
 }
 
-void USB_Core_SetWrapping4kBuffer(uint8_t const port, int const flag)
+void USB_Core_SetCircularBuffer(uint8_t const port, enum USB_BufferType const bufferType)
 {
-  usb[port].wrapping4kBuffer = flag != 0;
+  usb[port].cicularBuffer = bufferType;
 }
 
 static void ClearDTD(uint8_t const port, uint32_t Edpt)
