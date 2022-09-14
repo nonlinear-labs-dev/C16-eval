@@ -18,15 +18,16 @@ namespace Task
     return (unsigned) angleCandidate;
   }
 
+  template <typename tUsbMidiWriter>
   class SensorDataWriter : public Task::Task
   {
     using Task::Task;
 
    private:
-    unsigned                      tan;
-    IOpins::IOpin&                m_adcOverrunLED;
-    IOpins::IOpin&                m_dataLossLED;
-    Usb::UsbMidiWriter_16kBuffer& m_sensorEventWriter;
+    unsigned        tan;
+    IOpins::IOpin&  m_adcOverrunLED;
+    IOpins::IOpin&  m_dataLossLED;
+    tUsbMidiWriter& m_sensorEventWriter;
 
     void inline writeErp(unsigned const erpNumber)
     {
@@ -35,7 +36,7 @@ namespace Task
     }
 
    public:
-    SensorDataWriter(uint32_t const delay, uint32_t const period, IOpins::IOpin& adcOverrunLED, IOpins::IOpin& dataLossLED, Usb::UsbMidiWriter_16kBuffer& sensorEventWriter)
+    SensorDataWriter(uint32_t const delay, uint32_t const period, IOpins::IOpin& adcOverrunLED, IOpins::IOpin& dataLossLED, tUsbMidiWriter& sensorEventWriter)
         : Task(delay, period)
         , m_adcOverrunLED(dataLossLED)
         , m_dataLossLED(dataLossLED)

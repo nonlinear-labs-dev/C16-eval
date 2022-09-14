@@ -33,17 +33,19 @@ namespace Usb
     return (value & 0b1111111);
   }
 
-  class UsbMidiWriter_16kBuffer
+  template <enum USB_BufferType tBufferType>
+  class UsbMidiWriter
   {
-   protected:
-    uint32_t *const m_buffer;
-    unsigned        m_bufIndex;
-    unsigned        m_sendBufferIndex;
-    IOpins::IOpin & m_LED_usbStalling;
+   private:
+    static constexpr unsigned BUFFER_COUNT = unsigned(tBufferType) / sizeof(uint32_t);
+    uint32_t *                m_buffer;
+    unsigned                  m_bufIndex;
+    unsigned                  m_sendBufferIndex;
+    IOpins::IOpin &           m_LED_usbStalling;
 
     inline unsigned modBufferSize(unsigned const x)
     {
-      return x & (16384 / 4 - 1);
+      return x & (BUFFER_COUNT - 1);
     };
 
     inline void advanceIndex(void)
@@ -53,20 +55,20 @@ namespace Usb
 
     inline unsigned usedBuffer(void)
     {
-      return modBufferSize(16384 / 4 + m_bufIndex - m_sendBufferIndex);
+      return modBufferSize(BUFFER_COUNT + m_bufIndex - m_sendBufferIndex);
     };
 
    public:
-    UsbMidiWriter_16kBuffer(uint32_t *const buffer, IOpins::IOpin &LED_usbStalling)
+    UsbMidiWriter(uint32_t *const buffer, IOpins::IOpin &LED_usbStalling)
         : m_buffer(buffer)
         , m_LED_usbStalling(LED_usbStalling)
     {
-      USB_Core_SetCircularBuffer(0, USB_CIRCULAR_16k);
+      USB_Core_SetCircularBuffer(0, tBufferType);
     };
 
     inline int claimBuffer(unsigned const requestedWordCount)
     {
-      unsigned freeCount = 16384 / 4 - usedBuffer();
+      unsigned freeCount = BUFFER_COUNT - usedBuffer();
       return freeCount > requestedWordCount;
     };
 
@@ -104,9 +106,6 @@ namespace Usb
         return;
       uint8_t *sendBuffer    = (uint8_t *) (&m_buffer[m_sendBufferIndex]);
       unsigned sendBufferLen = usedBuffer() * sizeof m_buffer[0];
-
-      if (sendBufferLen % 13 * 4 != 0)
-        asm volatile("nop");
 
       if (USB_MIDI_Send(0, sendBuffer, sendBufferLen) == -1)
       {  // failed
