@@ -62,6 +62,7 @@ namespace IOpins
       {
         case 0:
           return;
+
         case 1:
           if (m_cntr)
           {
@@ -78,6 +79,7 @@ namespace IOpins
           set(0);
           m_step++;
           return;
+
         case 3:
           set(m_step = (m_cntr != 0));
           return;
@@ -86,9 +88,3 @@ namespace IOpins
   };
 
 }  // namespace
-
-extern IOpins::IOpin LED_M4HeartBeat;
-extern IOpins::IOpin LED_Warning;
-extern IOpins::IOpin LED_Error;
-extern IOpins::IOpin LED_KeybedEvent;
-extern IOpins::IOpin LED_USBstalling;

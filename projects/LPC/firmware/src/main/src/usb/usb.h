@@ -1,51 +1,49 @@
 #pragma once
 
+#include <drv/IoPin.h>
 #include <stdint.h>
 #include "usb/driver/nl_usb_midi.h"
 #include "usb/driver/nl_usb_core.h"
-#include "drv/allIoPins.h"
 #include "tasks/mtask.h"
-
-static inline uint8_t getSysexHi4Byte(unsigned const value)
-{
-  return (uint8_t)((value & 0b11110000000000000000000000000000) >> 28);
-}
-
-static inline uint8_t getSysexHi3Byte(unsigned const value)
-{
-  return (value & 0b1111111000000000000000000000) >> 21;
-}
-
-static inline uint8_t getSysexHi2Byte(unsigned const value)
-{
-  return (value & 0b111111100000000000000) >> 14;
-}
-
-static inline uint8_t getSysexHiByte(unsigned const value)
-{
-  return (value & 0b11111110000000) >> 7;
-}
-
-static inline uint8_t getSysexLoByte(unsigned const value)
-{
-  return (value & 0b1111111);
-}
 
 namespace Usb
 {
-
-  class UsbMidiWriter
+  static inline uint8_t getSysexHi4Byte(unsigned const value)
   {
-   private:
+    return (uint8_t)((value & 0b11110000000000000000000000000000) >> 28);
+  }
+
+  static inline uint8_t getSysexHi3Byte(unsigned const value)
+  {
+    return (value & 0b1111111000000000000000000000) >> 21;
+  }
+
+  static inline uint8_t getSysexHi2Byte(unsigned const value)
+  {
+    return (value & 0b111111100000000000000) >> 14;
+  }
+
+  static inline uint8_t getSysexHiByte(unsigned const value)
+  {
+    return (value & 0b11111110000000) >> 7;
+  }
+
+  static inline uint8_t getSysexLoByte(unsigned const value)
+  {
+    return (value & 0b1111111);
+  }
+
+  class UsbMidiWriter_16kBuffer
+  {
+   protected:
     uint32_t *const m_buffer;
-    unsigned const  m_bufferSize;
-    unsigned const  m_bufferCount;
     unsigned        m_bufIndex;
     unsigned        m_sendBufferIndex;
+    IOpins::IOpin & m_LED_usbStalling;
 
     inline unsigned modBufferSize(unsigned const x)
     {
-      return x & (m_bufferCount - 1);
+      return x & (16384 / 4 - 1);
     };
 
     inline void advanceIndex(void)
@@ -55,21 +53,20 @@ namespace Usb
 
     inline unsigned usedBuffer(void)
     {
-      return modBufferSize(m_bufferCount + m_bufIndex - m_sendBufferIndex);
-    }
+      return modBufferSize(16384 / 4 + m_bufIndex - m_sendBufferIndex);
+    };
 
    public:
-    UsbMidiWriter(uint32_t *const buffer, unsigned const bufferSize)
+    UsbMidiWriter_16kBuffer(uint32_t *const buffer, IOpins::IOpin &LED_usbStalling)
         : m_buffer(buffer)
-        , m_bufferSize(bufferSize)
-        , m_bufferCount(bufferSize / sizeof m_buffer[0])
+        , m_LED_usbStalling(LED_usbStalling)
     {
-      USB_Core_SetCircularBuffer(0, (enum USB_BufferType) m_bufferSize);
+      USB_Core_SetCircularBuffer(0, USB_CIRCULAR_16k);
     };
 
     inline int claimBuffer(unsigned const requestedWordCount)
     {
-      unsigned freeCount = m_bufferCount - usedBuffer();
+      unsigned freeCount = 16384 / 4 - usedBuffer();
       return freeCount > requestedWordCount;
     };
 
@@ -78,28 +75,28 @@ namespace Usb
       uint32_t packet      = (byte3 << 24) | (byte2 << 16) | (byte1 << 8) | ((cableNumber << 4) | 0x04);
       m_buffer[m_bufIndex] = packet;
       advanceIndex();
-    }
+    };
 
     inline void writeLast(uint8_t const cableNumber, uint8_t const byte1, uint8_t const byte2, uint8_t const byte3)
     {
       uint32_t packet      = (byte3 << 24) | (byte2 << 16) | (byte1 << 8) | ((cableNumber << 4) | 0x07);
       m_buffer[m_bufIndex] = packet;
       advanceIndex();
-    }
+    };
 
     inline void writeLast(uint8_t const cableNumber, uint8_t const byte1, uint8_t const byte2)
     {
       uint32_t packet      = (byte2 << 16) | (byte1 << 8) | ((cableNumber << 4) | 0x06);
       m_buffer[m_bufIndex] = packet;
       advanceIndex();
-    }
+    };
 
     inline void writeLast(uint8_t const cableNumber, uint8_t const byte1)
     {
       uint32_t packet      = (byte1 << 8) | ((cableNumber << 4) | 0x05);
       m_buffer[m_bufIndex] = packet;
       advanceIndex();
-    }
+    };
 
     inline void startTransaction(void)
     {
@@ -107,15 +104,17 @@ namespace Usb
         return;
       uint8_t *sendBuffer    = (uint8_t *) (&m_buffer[m_sendBufferIndex]);
       unsigned sendBufferLen = usedBuffer() * sizeof m_buffer[0];
+
+      if (sendBufferLen % 13 * 4 != 0)
+        asm volatile("nop");
+
       if (USB_MIDI_Send(0, sendBuffer, sendBufferLen) == -1)
       {  // failed
-        LED_USBstalling.timedOn(1);
+        m_LED_usbStalling.timedOn(1);
         return;
       }
       m_sendBufferIndex = m_bufIndex;
-    }
+    };
   };
 
 }  // namespace
-
-extern Usb::UsbMidiWriter sensorAndKeyEventWriter;

@@ -1,52 +1,71 @@
 #pragma once
 #include <stdint.h>
+#include <tasks/allIOpinsTask.h>
+#include "tasks/keybedScannerTask.h"
+#include "tasks/ledHeartBeatM4Task.h"
+#include "tasks/sensorDataWriterTask.h"
+#include "tasks/usbTask.h"
 
-#include "tasks/allTimedIOpins.h"
-#include "tasks/ledHeartBeatM4.h"
-#include "tasks/keybedScanner.h"
-#include "tasks/sensorDataWriter.h"
-#include "tasks/usb.h"
+#include "usb/driver/nl_usb_core.h"
 
-static inline uint32_t usToTicks(uint32_t const us)
-{
-  return us / 125u;
-}
-
-static inline uint32_t msToTicks(uint32_t const ms)
-{
-  return 1000u * ms / 125u;
-}
-
-// clang-format off
-//                                     delay,         period
-Task::KeybedScanner    keybedScanner   (   0,              0 );
-Task::UsbWriter        usbWriter       (   0,              0 );
-Task::AllTimedIoPins   allTimedIoPins  (   1, msToTicks( 100));
-Task::LedHeartBeatM4   ledHeartBeatM4  (   2, msToTicks( 500));
-Task::SensorDataWriter sensorDataWriter(   3, usToTicks( 500));
-// clang-format on
+static constexpr unsigned SENSOR_AND_KEY_EVENT_BUFFER_SIZE = USB_CIRCULAR_16k;
+// 16k sensor buffer is good for ~15 packets, equivalent to ~0.15seconds (for a 2kHz send rate)
+__attribute__((section(".data.$RamAHB32"))) __attribute__((aligned(SENSOR_AND_KEY_EVENT_BUFFER_SIZE))) static uint32_t sensorAndKeyEventBuffer[SENSOR_AND_KEY_EVENT_BUFFER_SIZE / sizeof(uint32_t)];
 
 //
-//  Dispatcher/Scheduler and Run functions
+//  Scheduler with Dispatch and Run functions
 //
 namespace Task
 {
-
-  inline void dispatch(void)
+  class Scheduler
   {
-    ledHeartBeatM4.dispatch();
-    allTimedIoPins.dispatch();
-    keybedScanner.dispatch();
-    sensorDataWriter.dispatch();
-    usbWriter.dispatch();
+   private:
+    AllIoPins                    m_allTimedIoPinsTask;
+    LedHeartBeatM4               m_ledHeartBeatM4Task;
+    Usb::UsbMidiWriter_16kBuffer m_usbSensorAndKeyEventMidiWriter;
+    UsbProcess                   m_usbProcessTask;
+    KeybedScanner                m_keybedScannerTask;
+    SensorDataWriter             m_sensorDataWriterTask;
+
+    inline uint32_t usToTicks(uint32_t const us)
+    {
+      return us / 125u;
+    };
+
+    inline uint32_t msToTicks(uint32_t const ms)
+    {
+      return 1000u * ms / 125u;
+    };
+
+   public:
+    Scheduler(void)
+        : m_allTimedIoPinsTask(1, msToTicks(100))
+        , m_ledHeartBeatM4Task(2, msToTicks(500), m_allTimedIoPinsTask.getLED_m4HeartBeat())
+        , m_usbSensorAndKeyEventMidiWriter(sensorAndKeyEventBuffer, m_allTimedIoPinsTask.getLED_usbStalling())
+        , m_usbProcessTask(m_usbSensorAndKeyEventMidiWriter)
+        , m_keybedScannerTask(m_allTimedIoPinsTask.getLED_keybedEvent(), m_allTimedIoPinsTask.getLED_error(),
+                              m_usbSensorAndKeyEventMidiWriter)
+        , m_sensorDataWriterTask(3, usToTicks(500),
+                                 m_allTimedIoPinsTask.getLED_adcOverrun(), m_allTimedIoPinsTask.getLED_error(),
+                                 m_usbSensorAndKeyEventMidiWriter) {};
+
+    inline void dispatch(void)
+    {
+      m_ledHeartBeatM4Task.dispatch();
+      m_allTimedIoPinsTask.dispatch();
+      m_keybedScannerTask.dispatch();
+      m_sensorDataWriterTask.dispatch();
+      m_usbProcessTask.dispatch();
+    };
+
+    inline void run(void)
+    {
+      m_ledHeartBeatM4Task.run();
+      m_allTimedIoPinsTask.run();
+      m_keybedScannerTask.run();
+      m_sensorDataWriterTask.run();
+      m_usbProcessTask.run();
+    };
   };
 
-  inline void run(void)
-  {
-    ledHeartBeatM4.run();
-    allTimedIoPins.run();
-    keybedScanner.run();
-    sensorDataWriter.run();
-    usbWriter.run();
-  }
-}
+}  // namespace

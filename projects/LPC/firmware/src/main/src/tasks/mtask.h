@@ -16,10 +16,13 @@ namespace Task
     unsigned m_taskMaxTime;
 
    public:
+    Task(void)
+        : m_period(0)
+        , m_cntr(0) {};
+
     Task(uint32_t const delay, uint32_t const period)
-        : m_period(period)  // period is the repeat time in ticks, must be > 0
-        , m_cntr(delay)     // delay is the amount of ticks until first start
-        {};
+        : m_period(period)   // period is the repeat time in ticks, must be > 0
+        , m_cntr(delay) {};  // delay is the amount of ticks until first start
 
     inline virtual void body(void) {};
 

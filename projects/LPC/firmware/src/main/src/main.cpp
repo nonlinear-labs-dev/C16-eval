@@ -1,15 +1,16 @@
-#include "drv/allIoPins.h"
-#include "tasks/allTasks.h"
-#include "cr_start_m0.h"
 #include "CPU_clock.h"
 #include "drv/nl_cgu.h"
 #include "ipc/ipc.h"
-#include "cmsis/core_cm4.h"
+#include "cr_start_m0.h"
+
+#include "tasks/allTasks.h"
 
 #include "usb/driver/nl_usb_midi.h"
 #include "usb/driver/nl_usb_descmidi.h"
 
 static inline void Init(void);
+
+static Task::Scheduler scheduler;
 
 // ---------------
 int main(void)
@@ -18,7 +19,7 @@ int main(void)
 
   while (1)
   {
-    Task::run();
+    scheduler.run();
   }
   return 0;
 }
@@ -26,7 +27,7 @@ int main(void)
 // ----------------
 static inline void M4SysTick_Init(void);
 
-static void Receive_IRQ_Callback(uint8_t const port, uint8_t *buff, uint32_t len)
+static void Receive_IRQ_DummyCallback(uint8_t const port, uint8_t *buff, uint32_t len)
 {
 }
 
@@ -38,8 +39,8 @@ static inline void Init(void)
   M4SysTick_Init();
   cr_start_m0(&__core_m0app_START__);
 
-  USB_MIDI_Config(0, Receive_IRQ_Callback);
-  USB_MIDI_Config(1, Receive_IRQ_Callback);
+  USB_MIDI_Config(0, Receive_IRQ_DummyCallback);
+  USB_MIDI_Config(1, Receive_IRQ_DummyCallback);
   USB_MIDI_SetupDescriptors();
   USB_MIDI_Init(0);
   USB_MIDI_Init(1);
@@ -69,6 +70,6 @@ extern "C" void SysTick_Handler(void)
   if (++s.timesliceTicker5us == 25u)  // 25 * 5us   = 125us time slice)
   {
     s.timesliceTicker5us = 0u;
-    Task::dispatch();
+    scheduler.dispatch();
   }
 }
