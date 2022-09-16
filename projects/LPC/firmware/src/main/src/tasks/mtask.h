@@ -16,6 +16,9 @@ namespace Task
     unsigned m_taskMaxTime;
 
    public:
+    // High priority task with no start delay and no time-slicing
+    // Usually, these should overload dispatch() and body() with a dummy and run()
+    // with the actual body that does the work. This avoids superfluous code
     Task(void)
         : m_period(0)
         , m_cntr(0) {};
@@ -35,7 +38,7 @@ namespace Task
           return;
       }
 
-      if (m_start)  // overrun
+      if (m_start && m_period)  // overrun
       {
         PINS_CriticalPinsInit();
         __asm volatile("cpsid i");
