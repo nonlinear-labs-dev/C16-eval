@@ -16,13 +16,12 @@ namespace Task
 
     // no dispatcher and body needed
     inline void dispatch(void) {};
-
     inline void body(void) {};
 
     // run unconditionally
     inline void run(void)
     {
-      m_sensorAndKeyEventWriter.startTransaction();
+      m_sensorAndKeyEventWriter.processTransaction();
     };
   };
 

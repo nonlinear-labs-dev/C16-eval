@@ -1,26 +1,22 @@
+#include "tasks/createDataObjects.h"
 #include "CPU_clock.h"
 #include "drv/nl_cgu.h"
 #include "ipc/ipc.h"
 #include "cr_start_m0.h"
-
-#include "tasks/allTasks.h"
 
 #include "usb/driver/nl_usb_midi.h"
 #include "usb/driver/nl_usb_descmidi.h"
 
 static inline void Init(void);
 
-static Task::Scheduler scheduler;
+static Task::TaskScheduler scheduler;
 
 // ---------------
 int main(void)
 {
   Init();
-
   while (1)
-  {
     scheduler.run();
-  }
   return 0;
 }
 

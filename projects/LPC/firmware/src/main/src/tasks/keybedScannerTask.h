@@ -29,21 +29,18 @@ namespace Task
 
     // no dispatcher and body needed
     inline void dispatch(void) {};
-
     inline void body(void) {};
 
     // scanner is run unconditionally
     inline void run(void)
     {
-      uint32_t event;
-      if ((event = IPC_M4_KeyBuffer_ReadBuffer()))  // reads the latest key up/down events from M0 ring buffer
+      uint32_t event = 0;
+      while ((event = IPC_M4_KeyBuffer_ReadBuffer()))  // reads the latest key up/down events from M0 ring buffer
       {
-        m_keybedEventLED.timedOn(2);
-
         // tan
         tan = (tan + 1u) & 0b11111111111111;
 
-        if (m_keyEventWriter.claimBuffer(3))  // 3 4-byte frames available ?
+        if (m_keyEventWriter.claimBufferElements(3))  // 3 4-byte frames available ?
         {
           m_keyEventWriter.write(KEYBED_DATA_CABLE_NUMBER, 0xF0, Usb::getSysexHiByte(tan), Usb::getSysexLoByte(tan));                              // start, tanH/tanL
           m_keyEventWriter.write(KEYBED_DATA_CABLE_NUMBER, Usb::getSysexLoByte(event), Usb::getSysexHi4Byte(event), Usb::getSysexHi3Byte(event));  // keynum+make, timeHH/HL
@@ -52,6 +49,8 @@ namespace Task
         else  // Data Loss !!!
           m_dataLossLED.timedOn(1);
       }
+      if (event)
+        m_keybedEventLED.timedOn(2);
     };
   };
 

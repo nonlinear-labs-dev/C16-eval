@@ -50,7 +50,7 @@ namespace Task
       // tan
       tan = (tan + 1u) & 0b11111111111111;
 
-      if (m_sensorEventWriter.claimBuffer(13))  // 13 4-byte frames available ?
+      if (m_sensorEventWriter.claimBufferElements(13))  // 13 4-byte frames available ?
       {
         m_sensorEventWriter.write(SENSOR_DATA_CABLE_NUMBER, 0xF0, Usb::getSysexHiByte(tan), Usb::getSysexLoByte(tan));
 

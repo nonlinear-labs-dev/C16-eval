@@ -3,7 +3,7 @@
 #include <drv/IoPin.h>
 #include <stdint.h>
 #include "usb/driver/nl_usb_midi.h"
-#include "usb/driver/nl_usb_core.h"
+#include "usb/driver/nl_usb_core_circular_buffers.h"
 #include "tasks/mtask.h"
 
 namespace Usb
@@ -33,19 +33,23 @@ namespace Usb
     return (value & 0b1111111);
   }
 
+  // class with templated parameter is used for code efficiency.
+  // a class with real parameter, or subclasses using overloading, resulted in much slower code
   template <enum USB_BufferType tBufferType>
-  class UsbMidiWriter
+  class UsbMidiSysexWriter
   {
    private:
-    static constexpr unsigned BUFFER_COUNT = unsigned(tBufferType) / sizeof(uint32_t);
+    static constexpr unsigned BUFFER_ELEM_COUNT = unsigned(tBufferType) / sizeof(uint32_t);
     uint32_t *                m_buffer;
     unsigned                  m_bufIndex;
     unsigned                  m_sendBufferIndex;
+    unsigned                  m_currentTransactionElemCount;
     IOpins::IOpin &           m_LED_usbStalling;
 
+    // relies on buffer sizes being 2^N
     inline unsigned modBufferSize(unsigned const x)
     {
-      return x & (BUFFER_COUNT - 1);
+      return x % BUFFER_ELEM_COUNT;
     };
 
     inline void advanceIndex(void)
@@ -55,21 +59,21 @@ namespace Usb
 
     inline unsigned usedBuffer(void)
     {
-      return modBufferSize(BUFFER_COUNT + m_bufIndex - m_sendBufferIndex);
+      return modBufferSize(BUFFER_ELEM_COUNT + m_bufIndex - m_sendBufferIndex);
     };
 
    public:
-    UsbMidiWriter(uint32_t *const buffer, IOpins::IOpin &LED_usbStalling)
+    UsbMidiSysexWriter(uint32_t *const buffer, IOpins::IOpin &LED_usbStalling)
         : m_buffer(buffer)
-        , m_LED_usbStalling(LED_usbStalling)
-    {
-      USB_Core_SetCircularBuffer(0, tBufferType);
-    };
+        , m_bufIndex(0)
+        , m_sendBufferIndex(0)
+        , m_currentTransactionElemCount(0)
+        , m_LED_usbStalling(LED_usbStalling) {};
 
-    inline int claimBuffer(unsigned const requestedWordCount)
+    inline int claimBufferElements(unsigned const requestedElemCount)
     {
-      unsigned freeCount = BUFFER_COUNT - usedBuffer();
-      return freeCount > requestedWordCount;
+      unsigned freeCount = BUFFER_ELEM_COUNT - usedBuffer() - m_currentTransactionElemCount;
+      return freeCount > requestedElemCount;
     };
 
     inline void write(uint8_t const cableNumber, uint8_t const byte1, uint8_t const byte2, uint8_t const byte3)
@@ -100,19 +104,23 @@ namespace Usb
       advanceIndex();
     };
 
-    inline void startTransaction(void)
+    inline void processTransaction(void)
     {
+      if (USB_MIDI_BytesToSend(0) == 0)
+        m_currentTransactionElemCount = 0;
+
       if (m_sendBufferIndex == m_bufIndex)
         return;
+
       uint8_t *sendBuffer    = (uint8_t *) (&m_buffer[m_sendBufferIndex]);
       unsigned sendBufferLen = usedBuffer() * sizeof m_buffer[0];
-
       if (USB_MIDI_Send(0, sendBuffer, sendBufferLen) == -1)
       {  // failed
         m_LED_usbStalling.timedOn(1);
         return;
       }
-      m_sendBufferIndex = m_bufIndex;
+      m_sendBufferIndex             = m_bufIndex;
+      m_currentTransactionElemCount = sendBufferLen / sizeof m_buffer[0];
     };
   };
 
