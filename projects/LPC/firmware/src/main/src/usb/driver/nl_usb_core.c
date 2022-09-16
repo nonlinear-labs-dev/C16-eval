@@ -11,6 +11,11 @@
 #include "cmsis/lpc_types.h"
 #include "usb/driver/nl_usbd.h"
 #include "usb/driver/nl_usb_core.h"
+
+#define INCLUDED_FROM_USB_CORE
+#include "usb/driver/nl_usb_core_circular_buffers.h"
+#undef INCLUDED_FROM_USB_CORE
+
 #include "sys/stdlib.h"
 #include "io/pins.h"
 
@@ -51,15 +56,11 @@ static void     EndPoint0(uint8_t const port, uint32_t const event);
 static void     Handler(uint8_t const port);
 static void     ClearDTD(uint8_t const port, uint32_t Edpt);
 
-static DQH_T ep_QH_0[EP_NUM_MAX] __attribute__((aligned(2048)));
-static DTD_T ep_TD_0[EP_NUM_MAX] __attribute__((aligned(64)));
-
-static DQH_T ep_QH_1[EP_NUM_MAX] __attribute__((aligned(2048)));
-static DTD_T ep_TD_1[EP_NUM_MAX] __attribute__((aligned(64)));
-
-static void USB_DummyEPHandler(uint8_t const port, uint32_t const event)
-{
-}
+// placing the data in this order into the main RAM .noinit section mimizes RAM slack
+__attribute__((section(".noinit.RamLoc32"))) __attribute__((aligned(2048))) static DQH_T ep_QH_1[EP_NUM_MAX];
+__attribute__((section(".noinit.RamLoc32"))) __attribute__((aligned(64))) static DTD_T   ep_TD_1[EP_NUM_MAX];
+__attribute__((section(".noinit.RamLoc32"))) __attribute__((aligned(64))) static DTD_T   ep_TD_0[EP_NUM_MAX];
+__attribute__((section(".noinit.RamLoc32"))) __attribute__((aligned(2048))) static DQH_T ep_QH_0[EP_NUM_MAX];
 
 typedef struct
 {
@@ -94,8 +95,11 @@ typedef struct
   uint8_t               error;
   uint8_t               gotConfigDescriptorRequest;  // NOT RELIABLE, do not use !!
   uint8_t               connectionEstablished;
-  enum USB_BufferType   cicularBuffer;  // must be either 0, 4096, 8192, or 16384
 } usb_core_t;
+
+static void USB_DummyEPHandler(uint8_t const port, uint32_t const event)
+{
+}
 
 static usb_core_t usb[2] = {
   {
@@ -1570,9 +1574,9 @@ void USB_ProgDTD(uint8_t const port, uint32_t Edpt, uint32_t ptrBuff, uint32_t T
   pDTD->total_bytes |= 0x80;
 
   pDTD->buffer0 = ptrBuff;
-  switch (usb[port].cicularBuffer)
+  switch (NL_USB_getBbufferStategy(ptrBuff))
   {
-    case USB_NON_CIRCULAR:
+    case USB_NON_CIRCULAR:  // setup the 4k-page addresses for a linear address range starting at ptrBuff
     {
       pDTD->buffer1 = (ptrBuff + 0x1000) & 0xfffff000;
       pDTD->buffer2 = (ptrBuff + 0x2000) & 0xfffff000;
@@ -1580,58 +1584,58 @@ void USB_ProgDTD(uint8_t const port, uint32_t Edpt, uint32_t ptrBuff, uint32_t T
       pDTD->buffer4 = (ptrBuff + 0x4000) & 0xfffff000;
       break;
     }
-    case USB_CIRCULAR_4k:
+    case USB_CIRCULAR_4k:  // setup the 4k page addresses for a 4k circular address range on a 4k boundary
     {
-      pDTD->buffer1 = (ptrBuff) &0xfffff000;
-      pDTD->buffer2 = pDTD->buffer1;
-      pDTD->buffer3 = pDTD->buffer1;
-      pDTD->buffer4 = pDTD->buffer1;
+      pDTD->buffer1 = (ptrBuff) &0xfffff000;  // 2nd block starts at the 4k boundary
+      pDTD->buffer2 = pDTD->buffer1;          // not needed but initialized for safety
+      pDTD->buffer3 = pDTD->buffer1;          // not needed but initialized for safety
+      pDTD->buffer4 = pDTD->buffer1;          // not needed but initialized for safety
       break;
     }
-    case USB_CIRCULAR_8k:
+    case USB_CIRCULAR_8k:  // setup the 4k page addresses for a 8k circular address range on a 8k boundary
     {
       uint32_t base = ptrBuff & ~(8192 - 1);
-      if (pDTD->buffer0 - base < 4096)
+      if (ptrBuff - base < 4096)  // prtBuff points into 1st 4k page
       {
         pDTD->buffer1 = base + 4096;
-        pDTD->buffer2 = base;
+        pDTD->buffer2 = base;  // wrap-around occurs here
       }
-      else
+      else  // prtBuff points into 2nd 4k page
       {
-        pDTD->buffer1 = base;
+        pDTD->buffer1 = base;  // wrap-around occurs here
         pDTD->buffer2 = base + 4096;
       }
-      pDTD->buffer3 = pDTD->buffer1;
-      pDTD->buffer4 = pDTD->buffer2;
+      pDTD->buffer3 = pDTD->buffer1;  // not needed but initialized for safety
+      pDTD->buffer4 = pDTD->buffer2;  // not needed but initialized for safety
       break;
     }
-    case USB_CIRCULAR_16k:
+    case USB_CIRCULAR_16k:  // setup the 4k page addresses for a 16k circular address range on a 16k boundary
     {
       uint32_t base = ptrBuff & ~(16348 - 1);
-      if (pDTD->buffer0 - base < 1 * 4096)
+      if (ptrBuff - base < 1 * 4096)  // prtBuff points into 1st 4k page
       {
         pDTD->buffer1 = base + 1 * 4096;
         pDTD->buffer2 = base + 2 * 4096;
         pDTD->buffer3 = base + 3 * 4096;
-        pDTD->buffer4 = base + 0 * 4096;
+        pDTD->buffer4 = base + 0 * 4096;  // wrap-around occurs here
       }
-      else if (pDTD->buffer0 - base < 2 * 4096)
+      else if (ptrBuff - base < 2 * 4096)  // prtBuff points into 2nd 4k page
       {
         pDTD->buffer1 = base + 2 * 4096;
         pDTD->buffer2 = base + 3 * 4096;
-        pDTD->buffer3 = base + 0 * 4096;
+        pDTD->buffer3 = base + 0 * 4096;  // wrap-around occurs here
         pDTD->buffer4 = base + 1 * 4096;
       }
-      else if (pDTD->buffer0 - base < 3 * 4096)
+      else if (ptrBuff - base < 3 * 4096)  // prtBuff points into 3rd 4k page
       {
         pDTD->buffer1 = base + 3 * 4096;
-        pDTD->buffer2 = base + 0 * 4096;
+        pDTD->buffer2 = base + 0 * 4096;  // wrap-around occurs here
         pDTD->buffer3 = base + 1 * 4096;
         pDTD->buffer4 = base + 2 * 4096;
       }
-      else
+      else  // prtBuff points into 4th 4k page
       {
-        pDTD->buffer1 = base + 0 * 4096;
+        pDTD->buffer1 = base + 0 * 4096;  // wrap-around occurs here
         pDTD->buffer2 = base + 1 * 4096;
         pDTD->buffer3 = base + 2 * 4096;
         pDTD->buffer4 = base + 3 * 4096;
@@ -1642,11 +1646,6 @@ void USB_ProgDTD(uint8_t const port, uint32_t Edpt, uint32_t ptrBuff, uint32_t T
 
   usb[port].ep_QH[Edpt].next_dTD = (uint32_t)(&usb[port].ep_TD[Edpt]);
   usb[port].ep_QH[Edpt].total_bytes &= (~0xC0);
-}
-
-void USB_Core_SetCircularBuffer(uint8_t const port, enum USB_BufferType const bufferType)
-{
-  usb[port].cicularBuffer = bufferType;
 }
 
 static void ClearDTD(uint8_t const port, uint32_t Edpt)

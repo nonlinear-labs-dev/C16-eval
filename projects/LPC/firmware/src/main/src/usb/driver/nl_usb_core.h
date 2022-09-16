@@ -227,16 +227,8 @@ typedef volatile struct
 #define TD_IOC (1 << 15)
 /** @} */
 
-enum USB_BufferType
-{
-  USB_NON_CIRCULAR = 0,
-  USB_CIRCULAR_4k  = 4096,
-  USB_CIRCULAR_8k  = 8192,
-  USB_CIRCULAR_16k = 16384,
-};
-
+void     USB_Core_DataInit(void);
 void     USB_Core_Init(uint8_t const port);
-void     USB_Core_SetCircularBuffer(uint8_t const port, enum USB_BufferType const bufferType);
 uint8_t  USB_GetActivity(uint8_t const port);
 uint8_t  USB_GetError(uint8_t const port);
 uint8_t  USB_SetupComplete(uint8_t const port);
