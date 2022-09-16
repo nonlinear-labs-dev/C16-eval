@@ -140,10 +140,10 @@ void USB_MIDI_SetupDescriptors(void);
 #define MIDI_EP_IN 0x02
 /** @} */
 
-extern uint8_t USB0_MIDI_DeviceDescriptor[];
-extern uint8_t USB1_MIDI_DeviceDescriptor[];
-extern uint8_t USB_MIDI_FSConfigDescriptor[];
-extern uint8_t USB_MIDI_HSConfigDescriptor[];
-extern uint8_t USB0_MIDI_StringDescriptor[];
-extern uint8_t USB1_MIDI_StringDescriptor[];
-extern uint8_t USB_MIDI_DeviceQualifier[];
+extern const uint8_t USB0_MIDI_DeviceDescriptor[];
+extern const uint8_t USB1_MIDI_DeviceDescriptor[];
+extern const uint8_t USB_MIDI_FSConfigDescriptor[];
+extern const uint8_t USB_MIDI_HSConfigDescriptor[];
+extern const uint8_t USB_MIDI_DeviceQualifier[];
+extern uint8_t       USB0_MIDI_StringDescriptor[];
+extern uint8_t       USB1_MIDI_StringDescriptor[];
