@@ -26,8 +26,8 @@ namespace Task
         , m_LED_warning(&LED_WARNING)
         , m_LED_error(&LED_ERROR)
         , m_LED_keybedEvent(&LED_E)
-        , m_LED_usbStalling(&LED_I)
-        , m_LED_adcOverrun(&LED_J) {};
+        , m_LED_usbStalling(&LED_H)
+        , m_LED_adcOverrun(&LED_I) {};
 
     inline void body(void)
     {
