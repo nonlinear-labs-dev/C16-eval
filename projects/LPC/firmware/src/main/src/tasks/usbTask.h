@@ -15,8 +15,8 @@ namespace Task
         : m_sensorAndKeyEventWriter(usbMidiWriter) {};
 
     // no dispatcher and body needed
-    inline void dispatch(void) const {};
-    inline void body(void) const {};
+    inline void dispatch(void) {};
+    inline void body(void) {};
 
     // run unconditionally
     inline void run(void) const

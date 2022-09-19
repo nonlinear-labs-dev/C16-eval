@@ -28,8 +28,8 @@ namespace Task
         , m_keyEventWriter(keyEventWriter) {};
 
     // no dispatcher and body needed
-    inline void dispatch(void) const {};
-    inline void body(void) const {};
+    inline void dispatch(void) {};
+    inline void body(void) {};
 
     // scanner is run unconditionally
     inline void run(void)

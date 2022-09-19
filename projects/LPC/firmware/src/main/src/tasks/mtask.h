@@ -25,7 +25,7 @@ namespace Task
         : m_period(period)   // period is the repeat time in ticks, must be > 0
         , m_cntr(delay) {};  // delay is the amount of ticks until first start
 
-    inline virtual void body(void) const {};
+    inline virtual void body(void) {};
 
     // mark task for execution when due (non-cumulative)
     inline virtual void dispatch(void)
