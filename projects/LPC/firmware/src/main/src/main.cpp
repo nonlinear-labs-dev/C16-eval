@@ -7,14 +7,14 @@
 #include "usb/driver/nl_usb_midi.h"
 #include "usb/driver/nl_usb_descmidi.h"
 
-static inline void Init(void);
+static inline void HardwareAndLowLevelInit(void);
 
 static Task::TaskScheduler scheduler;
 
 // ---------------
 int main(void)
 {
-  Init();
+  HardwareAndLowLevelInit();
   while (1)
     scheduler.run();
   return 0;
@@ -27,7 +27,7 @@ static void Receive_IRQ_DummyCallback(uint8_t const port, uint8_t *buff, uint32_
 {
 }
 
-static inline void Init(void)
+static inline void HardwareAndLowLevelInit(void)
 {
   CPU_ConfigureClocks();
   IPC_Init();

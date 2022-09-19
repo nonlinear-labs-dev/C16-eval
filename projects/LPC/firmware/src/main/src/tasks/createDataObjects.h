@@ -1,5 +1,5 @@
 //
-//  all data objects are instantiated here
+//  all data objects and their relationships are instantiated here
 //
 
 #pragma once
@@ -18,18 +18,18 @@ namespace Task
   //
   //  Helpers to setup the USB send/receive buffers
   //
-  typedef Usb::UsbMidiSysexWriter<USB_CIRCULAR_4k>  UsbMidiSysexWriter_4k;
-  typedef Usb::UsbMidiSysexWriter<USB_CIRCULAR_8k>  UsbMidiSysexWriter_8k;
-  typedef Usb::UsbMidiSysexWriter<USB_CIRCULAR_16k> UsbMidiSysexWriter_16k;
+  typedef Usb::UsbMidiSysexWriter<USB_CIRCULAR_4k>  tUsbMidiSysexWriter_4k;
+  typedef Usb::UsbMidiSysexWriter<USB_CIRCULAR_8k>  tUsbMidiSysexWriter_8k;
+  typedef Usb::UsbMidiSysexWriter<USB_CIRCULAR_16k> tUsbMidiSysexWriter_16k;
 
-#define mSetupSensorAndKeyEventBuffer(bufferSize, bufferNumber)           \
-  /* bufferSize   can be 4k, 8k or 16k */                                 \
-  /* bufferNumber can be 0 or 1 (only 0 for 16k) */                       \
-  typedef UsbMidiSysexWriter_##bufferSize UsbMidiSysexWriter_BufferSized; \
-  constexpr uint32_t *const               sensorAndKeyEventBuffer = USB_circular.buffer_##bufferSize##_##bufferNumber
+#define mSensorAndKeyEventBufferDeclaration(bufferSize, bufferNumber)       \
+  /* bufferSize   can be "4k", "8k" or "16k" */                             \
+  /* bufferNumber can be "0" or "1" (only "0" for 16k) */                   \
+  typedef tUsbMidiSysexWriter_##bufferSize tUsbMidiSysexWriter_BufferSized; \
+  static constexpr uint32_t *const         sensorAndKeyEventBuffer = USB_circular.buffer_##bufferSize##_##bufferNumber
 
   // 16k sensor buffer is good for ~300 packets, equivalent to ~0.15seconds (for a 2kHz send rate)
-  mSetupSensorAndKeyEventBuffer(16k, 0);
+  mSensorAndKeyEventBufferDeclaration(16k, 0);
 
   //
   //  Scheduler with Dispatch and Run functions
@@ -37,12 +37,12 @@ namespace Task
   class TaskScheduler
   {
    private:
-    AllIoPins                                        m_allTimedIoPinsTask;
-    LedHeartBeatM4                                   m_ledHeartBeatM4Task;
-    UsbMidiSysexWriter_BufferSized                   m_usbSensorAndKeyEventMidiSysexWriter;
-    UsbProcess<UsbMidiSysexWriter_BufferSized>       m_usbProcessTask;
-    KeybedScanner<UsbMidiSysexWriter_BufferSized>    m_keybedScannerTask;
-    SensorDataWriter<UsbMidiSysexWriter_BufferSized> m_sensorDataWriterTask;
+    AllIoPins                                         m_allTimedIoPinsTask;
+    LedHeartBeatM4                                    m_ledHeartBeatM4Task;
+    tUsbMidiSysexWriter_BufferSized                   m_usbSensorAndKeyEventMidiSysexWriter;
+    UsbProcess<tUsbMidiSysexWriter_BufferSized>       m_usbProcessTask;
+    KeybedScanner<tUsbMidiSysexWriter_BufferSized>    m_keybedScannerTask;
+    SensorDataWriter<tUsbMidiSysexWriter_BufferSized> m_sensorDataWriterTask;
 
     inline uint32_t usToTicks(uint32_t const us)
     {

@@ -29,12 +29,6 @@ namespace Task
     IOpins::IOpin&  m_dataLossLED;
     tUsbMidiWriter& m_sensorEventWriter;
 
-    void inline writeErp(unsigned const erpNumber)
-    {
-      unsigned angle = erpWipersToAngle(IPC_ReadAdcBufferSum(erpNumber * 2), IPC_ReadAdcBufferSum(erpNumber * 2 + 1));
-      m_sensorEventWriter.write(SENSOR_DATA_CABLE_NUMBER, Usb::getSysexHi2Byte(angle), Usb::getSysexHiByte(angle), Usb::getSysexLoByte(angle));
-    }
-
    public:
     SensorDataWriter(uint32_t const delay, uint32_t const period, IOpins::IOpin& adcOverrunLED, IOpins::IOpin& dataLossLED, tUsbMidiWriter& sensorEventWriter)
         : Task(delay, period)
@@ -42,6 +36,14 @@ namespace Task
         , m_dataLossLED(dataLossLED)
         , m_sensorEventWriter(sensorEventWriter) {};
 
+   private:
+    void inline writeErp(unsigned const erpNumber)
+    {
+      unsigned angle = erpWipersToAngle(IPC_ReadAdcBufferSum(erpNumber * 2), IPC_ReadAdcBufferSum(erpNumber * 2 + 1));
+      m_sensorEventWriter.write(SENSOR_DATA_CABLE_NUMBER, Usb::getSysexHi2Byte(angle), Usb::getSysexHiByte(angle), Usb::getSysexLoByte(angle));
+    }
+
+   public:
     inline void body(void)
     {
       if (s.adcIsConverting)

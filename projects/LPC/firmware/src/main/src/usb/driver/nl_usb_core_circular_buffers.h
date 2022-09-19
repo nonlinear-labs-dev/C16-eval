@@ -1,3 +1,7 @@
+//
+// LPC43xx USB has the nice feature of arbitrary 4k "page register" for transfers,
+// allowing for automatic circular buffer behavior.
+//
 #pragma once
 
 #include <stdint.h>
@@ -29,7 +33,7 @@ static inline int within(uint32_t const p, uint32_t const* const start, unsigned
   return (p >= (uint32_t) start) && (p < (uint32_t) start + length);
 }
 
-// detect buffer type by comparing addresses of our circular buffers above
+// detect buffer type by comparing to addresses of our circular buffers above
 static inline enum USB_BufferType NL_USB_getBbufferStategy(uint32_t const ptrBuff)
 {
   if (within(ptrBuff, USB_circular.buffer_16k_0, 16384))

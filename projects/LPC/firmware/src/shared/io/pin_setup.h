@@ -25,9 +25,9 @@
 #define __CL__ asm volatile ("" ::: "memory");
 
 // volatile casts keep the compiler from optimizing away "unnecessary" accesses
-#define __pIO32__ (volatile uint32_t *)
-#define __pIO16__ (volatile uint16_t *)
-#define __pIO8__  (volatile uint8_t  *)
+#define __pIO32__ (volatile uint32_t * const)
+#define __pIO16__ (volatile uint16_t * const)
+#define __pIO8__  (volatile uint8_t  * const)
 
 
 // ----- access the pin control register -----

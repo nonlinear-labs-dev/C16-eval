@@ -4,30 +4,31 @@
 
 namespace IOpins
 {
-  typedef volatile uint32_t* IOpinMemoryMapped;
+  typedef uint32_t volatile* const tIOpinMemoryMapped;
 
   class IOpin
   {
    private:
-    IOpinMemoryMapped const m_ioPinAddress;
-    unsigned                m_step;
-    unsigned                m_cntr;
+    tIOpinMemoryMapped m_ioPinAddress;
+    unsigned           m_step = 0;
+    unsigned           m_cntr = 0;
 
    public:
-    IOpin(IOpinMemoryMapped const ioPinAddress)
+    constexpr IOpin(tIOpinMemoryMapped ioPinAddress)
         : m_ioPinAddress(ioPinAddress) {};
 
-    inline void set(uint32_t const flag)
+    inline void set(uint32_t const flag) const
     {
       *m_ioPinAddress = flag;
     }
 
-    inline void toggle(void)
+    inline void toggle(void) const
     {
+      asm volatile("mov r7, r7");
       (*m_ioPinAddress) = ~(*m_ioPinAddress);
     }
 
-    inline uint32_t get(void)
+    inline uint32_t get(void) const
     {
       return *m_ioPinAddress;
     }
