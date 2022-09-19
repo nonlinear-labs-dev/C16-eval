@@ -10,24 +10,22 @@ namespace Task
   class Task
   {
    private:
-    unsigned m_period;
-    unsigned m_cntr;
-    int      m_start;
-    unsigned m_taskMaxTime;
+    unsigned m_period      = 0;
+    unsigned m_cntr        = 0;
+    int      m_start       = 0;
+    unsigned m_taskMaxTime = 0;
 
    public:
     // High priority task with no start delay and no time-slicing
     // Usually, these should overload dispatch() and body() with a dummy and run()
     // with the actual body that does the work. This avoids superfluous code
-    Task(void)
-        : m_period(0)
-        , m_cntr(0) {};
+    constexpr Task(void) {};
 
-    Task(uint32_t const delay, uint32_t const period)
+    constexpr Task(uint32_t const delay, uint32_t const period)
         : m_period(period)   // period is the repeat time in ticks, must be > 0
         , m_cntr(delay) {};  // delay is the amount of ticks until first start
 
-    inline virtual void body(void) {};
+    inline virtual void body(void) const {};
 
     // mark task for execution when due (non-cumulative)
     inline virtual void dispatch(void)

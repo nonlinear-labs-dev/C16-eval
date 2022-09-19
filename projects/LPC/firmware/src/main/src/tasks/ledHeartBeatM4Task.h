@@ -12,7 +12,7 @@ namespace Task
     IOpins::IOpin& m_M4HeartBeatLED;
 
    public:
-    LedHeartBeatM4(uint32_t const delay, uint32_t const period, IOpins::IOpin& M4HeartBeatLED)
+    constexpr LedHeartBeatM4(uint32_t const delay, uint32_t const period, IOpins::IOpin& M4HeartBeatLED)
         : Task(delay, period)
         , m_M4HeartBeatLED(M4HeartBeatLED) {};
 

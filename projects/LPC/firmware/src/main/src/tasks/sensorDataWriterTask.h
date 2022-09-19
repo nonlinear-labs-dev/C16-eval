@@ -30,7 +30,7 @@ namespace Task
     tUsbMidiWriter& m_sensorEventWriter;
 
    public:
-    SensorDataWriter(uint32_t const delay, uint32_t const period, IOpins::IOpin& adcOverrunLED, IOpins::IOpin& dataLossLED, tUsbMidiWriter& sensorEventWriter)
+    constexpr SensorDataWriter(uint32_t const delay, uint32_t const period, IOpins::IOpin& adcOverrunLED, IOpins::IOpin& dataLossLED, tUsbMidiWriter& sensorEventWriter)
         : Task(delay, period)
         , m_adcOverrunLED(dataLossLED)
         , m_dataLossLED(dataLossLED)

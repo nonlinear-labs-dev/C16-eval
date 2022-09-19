@@ -41,13 +41,13 @@ namespace Usb
    private:
     static constexpr unsigned BUFFER_ELEM_COUNT = unsigned(tBufferType) / sizeof(uint32_t);
     uint32_t *                m_buffer;
-    unsigned                  m_bufIndex;
-    unsigned                  m_sendBufferIndex;
-    unsigned                  m_currentTransactionElemCount;
+    unsigned                  m_bufIndex                    = 0;
+    unsigned                  m_sendBufferIndex             = 0;
+    unsigned                  m_currentTransactionElemCount = 0;
     IOpins::IOpin &           m_LED_usbStalling;
 
-    // relies on buffer sizes being 2^N
-    inline unsigned modBufferSize(unsigned const x)
+    // relies on buffer sizes being 2^N for efficiency (modulo operator optimized out)
+    inline unsigned modBufferSize(unsigned const x) const
     {
       return x % BUFFER_ELEM_COUNT;
     };
@@ -57,20 +57,17 @@ namespace Usb
       m_bufIndex = modBufferSize(m_bufIndex + 1u);
     }
 
-    inline unsigned usedBuffer(void)
+    inline unsigned usedBuffer(void) const
     {
       return modBufferSize(BUFFER_ELEM_COUNT + m_bufIndex - m_sendBufferIndex);
     };
 
    public:
-    UsbMidiSysexWriter(uint32_t *const buffer, IOpins::IOpin &LED_usbStalling)
+    constexpr UsbMidiSysexWriter(uint32_t *const buffer, IOpins::IOpin &LED_usbStalling)
         : m_buffer(buffer)
-        , m_bufIndex(0)
-        , m_sendBufferIndex(0)
-        , m_currentTransactionElemCount(0)
         , m_LED_usbStalling(LED_usbStalling) {};
 
-    inline int claimBufferElements(unsigned const requestedElemCount)
+    inline int claimBufferElements(unsigned const requestedElemCount) const
     {
       unsigned freeCount = BUFFER_ELEM_COUNT - usedBuffer() - m_currentTransactionElemCount;
       return freeCount > requestedElemCount;

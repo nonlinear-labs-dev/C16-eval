@@ -11,15 +11,15 @@ namespace Task
     tUsbMidiWriter& m_sensorAndKeyEventWriter;
 
    public:
-    UsbProcess(tUsbMidiWriter& usbMidiWriter)
+    constexpr UsbProcess(tUsbMidiWriter& usbMidiWriter)
         : m_sensorAndKeyEventWriter(usbMidiWriter) {};
 
     // no dispatcher and body needed
-    inline void dispatch(void) {};
-    inline void body(void) {};
+    inline void dispatch(void) const {};
+    inline void body(void) const {};
 
     // run unconditionally
-    inline void run(void)
+    inline void run(void) const
     {
       m_sensorAndKeyEventWriter.processTransaction();
     };

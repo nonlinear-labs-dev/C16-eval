@@ -44,38 +44,38 @@ namespace Task
     KeybedScanner<tUsbMidiSysexWriter_BufferSized>    m_keybedScannerTask;
     SensorDataWriter<tUsbMidiSysexWriter_BufferSized> m_sensorDataWriterTask;
 
-    inline uint32_t usToTicks(uint32_t const us)
+    static inline constexpr uint32_t usToTicks(uint32_t const us)
     {
       return us / 125u;
     };
 
-    inline uint32_t msToTicks(uint32_t const ms)
+    static inline constexpr uint32_t msToTicks(uint32_t const ms)
     {
       return 1000u * ms / 125u;
     };
 
    public:
-    TaskScheduler(void)
+    constexpr TaskScheduler(void)
         // task processes pins that have timed functions
         : m_allTimedIoPinsTask(1, msToTicks(100))
 
         // task for heartbeat LED of M4 core
         , m_ledHeartBeatM4Task(2, msToTicks(500),
-                               m_allTimedIoPinsTask.getLED_m4HeartBeat())
+                               m_allTimedIoPinsTask.m_LED_m4HeartBeat)
 
         // shared MidiSysexWriter for Keybed Scanner and Sensor Scanner
-        , m_usbSensorAndKeyEventMidiSysexWriter(sensorAndKeyEventBuffer, m_allTimedIoPinsTask.getLED_usbStalling())
+        , m_usbSensorAndKeyEventMidiSysexWriter(sensorAndKeyEventBuffer, m_allTimedIoPinsTask.m_LED_usbStalling)
 
         // high prio task that handles the high level USB I/O
         , m_usbProcessTask(m_usbSensorAndKeyEventMidiSysexWriter)
 
         // high prio task for Keybed Scanner, shares a common MidiSysexWriter with Sensor Scanner
-        , m_keybedScannerTask(m_allTimedIoPinsTask.getLED_keybedEvent(), m_allTimedIoPinsTask.getLED_error(),
+        , m_keybedScannerTask(m_allTimedIoPinsTask.m_LED_keybedEvent, m_allTimedIoPinsTask.m_LED_error,
                               m_usbSensorAndKeyEventMidiSysexWriter)
 
         // task for Sensor Scanner, shares a common MidiSysexWriter with Keybed Scanner
         , m_sensorDataWriterTask(3, usToTicks(500),
-                                 m_allTimedIoPinsTask.getLED_adcOverrun(), m_allTimedIoPinsTask.getLED_error(),
+                                 m_allTimedIoPinsTask.m_LED_adcOverrun, m_allTimedIoPinsTask.m_LED_error,
                                  m_usbSensorAndKeyEventMidiSysexWriter) {};
 
     inline void dispatch(void)

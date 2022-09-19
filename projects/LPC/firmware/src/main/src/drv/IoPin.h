@@ -1,36 +1,35 @@
 #pragma once
 
 #include <stdint.h>
+#include "io/pins.h"
 
 namespace IOpins
 {
-  typedef uint32_t volatile* const tIOpinMemoryMapped;
-
   class IOpin
   {
    private:
-    tIOpinMemoryMapped m_ioPinAddress;
-    unsigned           m_step = 0;
-    unsigned           m_cntr = 0;
+    typedef uint32_t volatile t_ioPin;
+    t_ioPin &m_ioPin;
+    unsigned m_step = 0;
+    unsigned m_cntr = 0;
 
    public:
-    constexpr IOpin(tIOpinMemoryMapped ioPinAddress)
-        : m_ioPinAddress(ioPinAddress) {};
+    constexpr IOpin(t_ioPin &ioPin)
+        : m_ioPin(ioPin) {};
 
     inline void set(uint32_t const flag) const
     {
-      *m_ioPinAddress = flag;
+      m_ioPin = flag;
     }
 
     inline void toggle(void) const
     {
-      asm volatile("mov r7, r7");
-      (*m_ioPinAddress) = ~(*m_ioPinAddress);
+      m_ioPin = ~m_ioPin;
     }
 
     inline uint32_t get(void) const
     {
-      return *m_ioPinAddress;
+      return m_ioPin;
     }
 
     inline void timedOn(int ticks)

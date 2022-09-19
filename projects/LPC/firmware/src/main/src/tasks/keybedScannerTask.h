@@ -21,15 +21,15 @@ namespace Task
     tUsbMidiWriter& m_keyEventWriter;
 
    public:
-    KeybedScanner(IOpins::IOpin& keybedEventLED, IOpins::IOpin& dataLossLED, tUsbMidiWriter& keyEventWriter)
+    constexpr KeybedScanner(IOpins::IOpin& keybedEventLED, IOpins::IOpin& dataLossLED, tUsbMidiWriter& keyEventWriter)
         : Task()
         , m_keybedEventLED(keybedEventLED)
         , m_dataLossLED(dataLossLED)
         , m_keyEventWriter(keyEventWriter) {};
 
     // no dispatcher and body needed
-    inline void dispatch(void) {};
-    inline void body(void) {};
+    inline void dispatch(void) const {};
+    inline void body(void) const {};
 
     // scanner is run unconditionally
     inline void run(void)

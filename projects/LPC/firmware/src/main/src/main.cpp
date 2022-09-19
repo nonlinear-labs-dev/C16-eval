@@ -7,14 +7,106 @@
 #include "usb/driver/nl_usb_midi.h"
 #include "usb/driver/nl_usb_descmidi.h"
 
+#if 0
+
+// optimization test code
+class xIOPin
+{
+ private:
+  typedef uint32_t volatile t_PinMemoryMapped;
+  t_PinMemoryMapped &m_ioPinRef;
+
+ public:
+  constexpr xIOPin(t_PinMemoryMapped &ioPin)
+      : m_ioPinRef(ioPin) {};
+
+  inline void set(uint32_t const flag) const
+  {
+    m_ioPinRef = flag;
+  }
+
+  inline void toggle(void) const
+  {
+    m_ioPinRef = ~m_ioPinRef;
+  }
+
+  inline uint32_t get(void) const
+  {
+    return m_ioPinRef;
+  }
+};
+
+class myIOPins
+{
+ private:
+  xIOPin m_pin;
+
+ public:
+  constexpr myIOPins(void)
+      : m_pin(LED_M4HB) {};
+  void doWork(void)
+  {
+    m_pin.toggle();
+  }
+  xIOPin &get(void)
+  {
+    return m_pin;
+  }
+};
+
+class Scheduler
+{
+ private:
+  myIOPins m_myIoPins;
+
+ public:
+  constexpr Scheduler(void)
+      : m_myIoPins() {};
+
+  void doStuff(void)
+  {
+    m_myIoPins.doWork();
+  }
+};
+
+
+// this version (data on stack) optimizes correctly
+static void test1(void)
+{
+  Scheduler sched;
+  asm volatile("mov r3, r3");
+  sched.doStuff();
+}
+
+
+// but this version (static data) does not (memory still addressed indirectly)
+static Scheduler sched;
+static void test2(void)
+{
+  asm volatile("mov r4, r4");
+  sched.doStuff();
+}
+
+#endif
+
 static inline void HardwareAndLowLevelInit(void);
 
-static Task::TaskScheduler scheduler;
+static Task::TaskScheduler *pScheduler;
 
 // ---------------
 int main(void)
 {
   HardwareAndLowLevelInit();
+
+  //  test1();
+  //  test2();
+
+  Task::TaskScheduler scheduler;  // alas, data on stack doesn't solve the problem as expected from the above
+  pScheduler = &scheduler;
+
+  //  asm volatile("mov r5, r5");
+  //  scheduler.m_ledHeartBeatM4Task.m_M4HeartBeatLED.toggle();
+
   while (1)
     scheduler.run();
   return 0;
@@ -66,6 +158,6 @@ extern "C" void SysTick_Handler(void)
   if (++s.timesliceTicker5us == 25u)  // 25 * 5us   = 125us time slice)
   {
     s.timesliceTicker5us = 0u;
-    scheduler.dispatch();
+    pScheduler->dispatch();
   }
 }
