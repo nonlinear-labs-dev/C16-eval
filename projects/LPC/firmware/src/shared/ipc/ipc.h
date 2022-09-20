@@ -69,9 +69,13 @@ inline static void IPC_Init(void)
 {
   s.ticker5us          = 0;
   s.timesliceTicker5us = 0;
-  s.keyBufferWritePos  = 0;
-  s.keyBufferReadPos   = 0;
-  s.M0_KbsIrqOvers     = 0;
+
+  for (unsigned i = 0; i < IPC_KEYBUFFER_SIZE; i++)
+    s.keyBufferData[i] = 0;
+
+  s.keyBufferWritePos = 0;
+  s.keyBufferReadPos  = 0;
+  s.M0_KbsIrqOvers    = 0;
 
   for (unsigned i = 0; i < IPC_ADC_NUMBER_OF_CHANNELS; i++)
   {
