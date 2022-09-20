@@ -37,12 +37,30 @@ namespace Task
   class TaskScheduler
   {
    private:
-    AllIoPins                                         m_allTimedIoPinsTask;
-    LedHeartBeatM4                                    m_ledHeartBeatM4Task;
-    tUsbMidiSysexWriter_BufferSized                   m_usbSensorAndKeyEventMidiSysexWriter;
-    UsbProcess<tUsbMidiSysexWriter_BufferSized>       m_usbProcessTask;
-    KeybedScanner<tUsbMidiSysexWriter_BufferSized>    m_keybedScannerTask;
-    SensorDataWriter<tUsbMidiSysexWriter_BufferSized> m_sensorDataWriterTask;
+    // task processes pins that have timed functions
+    AllIoPins m_allTimedIoPinsTask { 1, msToTicks(100) };
+
+    // task for heartbeat LED of M4 core
+    LedHeartBeatM4 m_ledHeartBeatM4Task { 2, msToTicks(500),
+                                          m_allTimedIoPinsTask.m_LED_m4HeartBeat };
+
+    // shared MidiSysexWriter for Keybed Scanner and Sensor Scanner
+    tUsbMidiSysexWriter_BufferSized m_usbSensorAndKeyEventMidiSysexWriter { sensorAndKeyEventBuffer,
+                                                                            m_allTimedIoPinsTask.m_LED_usbStalling };
+
+    // high prio task that handles the high level USB I/O
+    UsbProcess<tUsbMidiSysexWriter_BufferSized> m_usbProcessTask { m_usbSensorAndKeyEventMidiSysexWriter };
+
+    // high prio task for Keybed Scanner, shares a common MidiSysexWriter with Sensor Scanner
+    KeybedScanner<tUsbMidiSysexWriter_BufferSized> m_keybedScannerTask { m_allTimedIoPinsTask.m_LED_keybedEvent,
+                                                                         m_allTimedIoPinsTask.m_LED_error,
+                                                                         m_usbSensorAndKeyEventMidiSysexWriter };
+
+    // task for Sensor Scanner, shares a common MidiSysexWriter with Keybed Scanner
+    SensorDataWriter<tUsbMidiSysexWriter_BufferSized> m_sensorDataWriterTask { 3, usToTicks(500),
+                                                                               m_allTimedIoPinsTask.m_LED_adcOverrun,
+                                                                               m_allTimedIoPinsTask.m_LED_error,
+                                                                               m_usbSensorAndKeyEventMidiSysexWriter };
 
     static inline constexpr uint32_t usToTicks(uint32_t const us)
     {
@@ -55,29 +73,6 @@ namespace Task
     };
 
    public:
-    constexpr TaskScheduler(void)
-        // task processes pins that have timed functions
-        : m_allTimedIoPinsTask(1, msToTicks(100))
-
-        // task for heartbeat LED of M4 core
-        , m_ledHeartBeatM4Task(2, msToTicks(500),
-                               m_allTimedIoPinsTask.m_LED_m4HeartBeat)
-
-        // shared MidiSysexWriter for Keybed Scanner and Sensor Scanner
-        , m_usbSensorAndKeyEventMidiSysexWriter(sensorAndKeyEventBuffer, m_allTimedIoPinsTask.m_LED_usbStalling)
-
-        // high prio task that handles the high level USB I/O
-        , m_usbProcessTask(m_usbSensorAndKeyEventMidiSysexWriter)
-
-        // high prio task for Keybed Scanner, shares a common MidiSysexWriter with Sensor Scanner
-        , m_keybedScannerTask(m_allTimedIoPinsTask.m_LED_keybedEvent, m_allTimedIoPinsTask.m_LED_error,
-                              m_usbSensorAndKeyEventMidiSysexWriter)
-
-        // task for Sensor Scanner, shares a common MidiSysexWriter with Keybed Scanner
-        , m_sensorDataWriterTask(3, usToTicks(500),
-                                 m_allTimedIoPinsTask.m_LED_adcOverrun, m_allTimedIoPinsTask.m_LED_error,
-                                 m_usbSensorAndKeyEventMidiSysexWriter) {};
-
     inline void dispatch(void)
     {
       m_keybedScannerTask.dispatch();
