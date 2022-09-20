@@ -1,8 +1,9 @@
 #pragma once
 
+#include <stdint.h>
 #include "pin_setup.h"
 
-static uint32_t __DUMMY__;
+static uint32_t DUMMY_PIN;
 
 //
 // define pins and set default safe states
@@ -18,10 +19,12 @@ static inline void PINS_Init(void)
 
 static inline void PINS_NormalPinsInit(void)
 {
-  __DUMMY__ = 0;
+  DUMMY_PIN = 0;
+
   //
   // -------- System LEDs --------
   //
+
   // (LED.A, green)
 #define LED_M0HB GPIO_Word(2, 10)
   GPIO_DIR_OUT(2, 10);
@@ -183,10 +186,133 @@ static inline void PINS_NormalPinsInit(void)
   GPIO_DIR_OUT(3, 3);
   SFSP(6, 4) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 0;
   LED_L      = 0u;
+
+  //
+  // ---- EHC range control
+  //
+  // EHC_PU_0
+#define EHC_PU_0 GPIO_Word(1, 3)
+  GPIO_DIR_OUT(1, 3);
+  SFSP(1, 10) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 0;
+  EHC_PU_0    = 1u;
+
+  // EHC_PU_1
+#define EHC_PU_1 GPIO_Word(1, 2)
+  GPIO_DIR_OUT(1, 2);
+  SFSP(1, 9) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 0;
+  EHC_PU_1   = 1u;
+
+  // EHC_PU_2
+#define EHC_PU_2 GPIO_Word(5, 10)
+  GPIO_DIR_OUT(5, 10);
+  SFSP(3, 7) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 4;
+  EHC_PU_2   = 1u;
+
+  // EHC_PU_3
+#define EHC_PU_3 GPIO_Word(3, 12)
+  GPIO_DIR_OUT(3, 12);
+  SFSP(7, 4) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 0;
+  EHC_PU_3   = 1u;
+
+  // EHC_PU_4
+#define EHC_PU_4 GPIO_Word(3, 8)
+  GPIO_DIR_OUT(3, 8);
+  SFSP(7, 0) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 0;
+  EHC_PU_4   = 1u;
+
+  // EHC_PU_5
+#define EHC_PU_5 GPIO_Word(3, 10)
+  GPIO_DIR_OUT(3, 10);
+  SFSP(6, 2) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 0;
+  EHC_PU_5   = 1u;
+
+  // EHC_PU_6
+#define EHC_PU_6 GPIO_Word(3, 5)
+  GPIO_DIR_OUT(3, 5);
+  SFSP(6, 9) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 0;
+  EHC_PU_6   = 1u;
+
+  // EHC_PU_7
+#define EHC_PU_7 GPIO_Word(2, 8)
+  GPIO_DIR_OUT(2, 8);
+  SFSP(6, 12) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 0;
+  EHC_PU_7    = 1u;
+
+  // EHC_PD_0
+#define EHC_PD_0 GPIO_Word(1, 4)
+  GPIO_DIR_OUT(1, 4);
+  SFSP(1, 11) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 0;
+  EHC_PD_0    = 1u;
+
+  // EHC_PD_1
+#define EHC_PD_1 GPIO_Word(1, 0)
+  GPIO_DIR_OUT(1, 0);
+  SFSP(1, 7) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 0;
+  EHC_PD_1   = 1u;
+
+  // EHC_PD_2
+#define EHC_PD_2 GPIO_Word(3, 13)
+  GPIO_DIR_OUT(3, 13);
+  SFSP(7, 5) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 0;
+  EHC_PD_2   = 1u;
+
+  // EHC_PD_3
+#define EHC_PD_3 GPIO_Word(3, 12)
+  GPIO_DIR_OUT(3, 12);
+  SFSP(7, 4) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 0;
+  EHC_PD_3   = 1u;
+
+  // EHC_PD_4
+#define EHC_PD_4 GPIO_Word(3, 8)
+  GPIO_DIR_OUT(3, 8);
+  SFSP(7, 0) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 0;
+  EHC_PD_4   = 1u;
+
+  // EHC_PD_5
+#define EHC_PD_5 GPIO_Word(3, 9)
+  GPIO_DIR_OUT(3, 9);
+  SFSP(7, 1) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 0;
+  EHC_PD_5   = 1u;
+
+  // EHC_PD_6
+#define EHC_PD_6 GPIO_Word(3, 7)
+  GPIO_DIR_OUT(3, 7);
+  SFSP(6, 11) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 0;
+  EHC_PD_6    = 1u;
+
+  // EHC_PD_7
+#define EHC_PD_7 GPIO_Word(3, 6)
+  GPIO_DIR_OUT(3, 6);
+  SFSP(6, 10) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 0;
+  EHC_PD_7    = 1u;
+
+  // EHC_DET_0
+#define EHC_DET_0 GPIO_Word(1, 5)
+  GPIO_DIR_IN(1, 5);
+  SFSP(1, 12) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 0;
+
+  // EHC_DET_1
+#define EHC_DET_1 GPIO_Word(1, 14)
+  GPIO_DIR_IN(1, 14);
+  SFSP(3, 4) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 0;
+
+  // EHC_DET_2
+#define EHC_DET_2 GPIO_Word(1, 11)
+  GPIO_DIR_IN(1, 11);
+  SFSP(2, 11) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 0;
+
+  // EHC_DET_3
+#define EHC_DET_3 GPIO_Word(5, 5)
+  GPIO_DIR_IN(5, 5);
+  SFSP(2, 5) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 4;
 }
 
 static inline void PINS_CriticalPinsInit(void)
 {
+  //
+  // ---- LRA actuators (shakers)
+  //
+
   // LRA_nENABLE
 #define LRA_nENABLE GPIO_Word(0, 12)
   GPIO_DIR_OUT(0, 12);
@@ -240,9 +366,64 @@ static inline void PINS_CriticalPinsInit(void)
   GPIO_DIR_OUT(1, 6);
   SFSP(1, 13) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 0;
   LRA_7       = 0u;
+
+  //
+  // ---- EHC range control
+  //
+  // EHC_nSER_0
+#define EHC_nSER_0 GPIO_Word(2, 12)
+  GPIO_DIR_OUT(2, 12);
+  SFSP(5, 3) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 0;
+  EHC_nSER_0 = 0u;
+
+  // EHC_nSER_1
+#define EHC_nSER_1 GPIO_Word(2, 13)
+  GPIO_DIR_OUT(2, 13);
+  SFSP(5, 4) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 0;
+  EHC_nSER_1 = 0u;
+
+  // EHC_nSER_2
+#define EHC_nSER_2 GPIO_Word(1, 15)
+  GPIO_DIR_OUT(1, 15);
+  SFSP(3, 5) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 0;
+  EHC_nSER_2 = 0u;
+
+  // EHC_nSER_3
+#define EHC_nSER_3 GPIO_Word(0, 6)
+  GPIO_DIR_OUT(0, 6);
+  SFSP(3, 6) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 0;
+  EHC_nSER_3 = 0u;
+
+  // EHC_nSER_4
+#define EHC_nSER_4 GPIO_Word(1, 12)
+  GPIO_DIR_OUT(1, 12);
+  SFSP(2, 12) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 0;
+  EHC_nSER_4  = 0u;
+
+  // EHC_nSER_5
+#define EHC_nSER_5 GPIO_Word(1, 13)
+  GPIO_DIR_OUT(1, 13);
+  SFSP(2, 13) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 0;
+  EHC_nSER_5  = 0u;
+
+  // EHC_nSER_6
+#define EHC_nSER_6 GPIO_Word(5, 6)
+  GPIO_DIR_OUT(5, 6);
+  SFSP(2, 6) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 4;
+  EHC_nSER_6 = 0u;
+
+  // EHC_nSER_7
+#define EHC_nSER_7 GPIO_Word(0, 14)
+  GPIO_DIR_OUT(0, 14);
+  SFSP(2, 10) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 0;
+  EHC_nSER_7  = 0u;
 }
 
 static inline void PINS_AllLedsOn(void)
 {
   LED_M0HB = LED_M4HB = LED_WARNING = LED_ERROR = 1u;
 }
+
+#ifdef __cplusplus
+ static constexpr
+#endif
