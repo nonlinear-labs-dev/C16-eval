@@ -423,7 +423,3 @@ static inline void PINS_AllLedsOn(void)
 {
   LED_M0HB = LED_M4HB = LED_WARNING = LED_ERROR = 1u;
 }
-
-#ifdef __cplusplus
- static constexpr
-#endif
