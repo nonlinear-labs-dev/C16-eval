@@ -10,14 +10,14 @@
 #if 0
 
 // optimization test code
-class xIOPin
+class IOPin
 {
  private:
   typedef uint32_t volatile t_PinMemoryMapped;
   t_PinMemoryMapped &m_ioPinRef;
 
  public:
-  constexpr xIOPin(t_PinMemoryMapped &ioPin)
+  constexpr IOPin(t_PinMemoryMapped &ioPin)
       : m_ioPinRef(ioPin) {};
 
   inline void set(uint32_t const flag) const
@@ -39,18 +39,20 @@ class xIOPin
 class myIOPins
 {
  private:
-  xIOPin m_pin;
+  IOPin m_pin;
 
  public:
+  typedef struct
+  {
+    volatile uint32_t W;
+  } GPIO_PORT_Type;
+
   constexpr myIOPins(void)
-      : m_pin(LED_M4HB) {};
+      : m_pin(((GPIO_PORT_Type *) 0x400f502c)->W) {};
+
   void doWork(void)
   {
     m_pin.toggle();
-  }
-  xIOPin &get(void)
-  {
-    return m_pin;
   }
 };
 
@@ -69,18 +71,16 @@ class Scheduler
   }
 };
 
-
 // this version (data on stack) optimizes correctly
 static void test1(void)
 {
   Scheduler sched;
-  asm volatile("mov r3, r3");
+  asm volatile("mov r5, r5");
   sched.doStuff();
 }
 
-
 // but this version (static data) does not (memory still addressed indirectly)
-static Scheduler sched;
+Scheduler sched;
 static void test2(void)
 {
   asm volatile("mov r4, r4");
@@ -98,14 +98,11 @@ int main(void)
 {
   HardwareAndLowLevelInit();
 
-  //  test1();
-  //  test2();
+  //test1();
+  //test2();
 
-  Task::TaskScheduler scheduler;  // alas, data on stack doesn't solve the problem as expected from the above
+  static Task::TaskScheduler scheduler;  // alas, data on stack doesn't solve the problem as expected from the above
   pScheduler = &scheduler;
-
-  //  asm volatile("mov r5, r5");
-  //  scheduler.m_ledHeartBeatM4Task.m_M4HeartBeatLED.toggle();
 
   while (1)
     scheduler.run();
