@@ -531,8 +531,8 @@ static inline BOOL examineContent(void const *const data, unsigned const len)
   printf("%5d | ", ihc3);
   printf("%5d ", ali0);
   printf("%5d ", ali1);
-  printf("%5.2lfV ", (double) psu0 / 2048 / (1.72 / 3.3) * 19.0);
-  printf("%5.2lfV\n", (double) psu1 / 2048 / (3.113 / 3.3) * 5.0);
+  printf("%5d(%5.1lfV) ", psu0, (double) (psu0 - 1) / 2046 / (1.72 / 3.3) * 19.0);
+  printf("%5d(%5.2lfV)\n", psu1, (double) (psu1 - 1) / 2046 / (3.113 / 3.3) * 5.0);
   printf("%08X ", stat);
   printf("\n");
   cursorUp(1);
