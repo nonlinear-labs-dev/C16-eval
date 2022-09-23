@@ -15,6 +15,8 @@
 #include <alsa/asoundlib.h>
 #include <math.h>
 
+#define SHOW_RAW (1)
+
 // qtcreator bugs
 //#include </usr/include/stdarg.h>
 #include <stdarg.h>
@@ -179,7 +181,7 @@ static inline void doSend(void)
   snd_rawmidi_status_t *pStatus;
   snd_rawmidi_status_alloca(&pStatus);
 
-#if 01
+#if SHOW_RAW
   snd_rawmidi_params_t *pParams;
   snd_rawmidi_params_alloca(&pParams);
 
@@ -415,10 +417,12 @@ static inline BOOL examineContent(void const *const data, unsigned const len)
   }
   else
   {
+#if !SHOW_RAW
     printf("%5.0lfus %5.0lfus %7.2lfus -- ", maxTime, minTime, average);
     for (int i = 0; i < 9; i++)
       printf("%8.4lf%c", 100.0 * (double) bins[i] / (double) total, bins[i] ? ' ' : 'z');
     printf("\n\033[1A");
+#endif
   }
   time = now;
 
@@ -438,19 +442,18 @@ static inline BOOL examineContent(void const *const data, unsigned const len)
     }
   packetNr = (getPacketNr(pErpData) + 1u) & 0b11111111111111;
 
-  int angleErp0 = getErpAngle(0, pErpData);
-  int angleErp1 = getErpAngle(1, pErpData);
-  int angleErp2 = getErpAngle(2, pErpData);
-  int angleErp3 = getErpAngle(3, pErpData);
-  int angleErp4 = getErpAngle(4, pErpData);
-  int angleErp5 = getErpAngle(5, pErpData);
-  int angleErp6 = getErpAngle(6, pErpData);
-  int angleErp7 = getErpAngle(7, pErpData);
-  int stat0     = (int) pErpData[26] * 128u + pErpData[27];
-  int stat1     = (int) pErpData[28] * 128u + pErpData[29];
-  int lsd0      = (int) pErpData[30] * 128u + pErpData[31];
-  int lsd1      = (int) pErpData[32] * 128u + pErpData[33];
-  int lsd2      = (int) pErpData[34] * 128u + pErpData[35];
+  int      angleErp0 = getErpAngle(0, pErpData);
+  int      angleErp1 = getErpAngle(1, pErpData);
+  int      angleErp2 = getErpAngle(2, pErpData);
+  int      angleErp3 = getErpAngle(3, pErpData);
+  int      angleErp4 = getErpAngle(4, pErpData);
+  int      angleErp5 = getErpAngle(5, pErpData);
+  int      angleErp6 = getErpAngle(6, pErpData);
+  int      angleErp7 = getErpAngle(7, pErpData);
+  unsigned stat      = (unsigned) pErpData[26] * 128u * 128u * 128u + pErpData[27] * 128u * 128u + pErpData[28] * 128u + pErpData[29];
+  int      lsd0      = (int) pErpData[30] * 128u + pErpData[31];
+  int      lsd1      = (int) pErpData[32] * 128u + pErpData[33];
+  int      lsd2      = (int) pErpData[34] * 128u + pErpData[35];
 
   static int ehc0 = 0;
   static int ehc1 = 0;
@@ -503,7 +506,7 @@ static inline BOOL examineContent(void const *const data, unsigned const len)
       psu1 = lsd0;
       break;
   }
-#if 0
+#if SHOW_RAW
   // show all data
   cursorUp(2);
   printf("%+6.1lf ", (double) angleErp0 * ERP_AngleMultiplier360());
@@ -530,6 +533,9 @@ static inline BOOL examineContent(void const *const data, unsigned const len)
   printf("%5d ", ali1);
   printf("%5.2lfV ", (double) psu0 / 2048 / (1.72 / 3.3) * 19.0);
   printf("%5.2lfV\n", (double) psu1 / 2048 / (3.113 / 3.3) * 5.0);
+  printf("%08X ", stat);
+  printf("\n");
+  cursorUp(1);
 
   return TRUE;
 #endif
