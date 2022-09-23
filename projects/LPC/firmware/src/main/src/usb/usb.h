@@ -5,6 +5,7 @@
 #include "usb/driver/nl_usb_midi.h"
 #include "usb/driver/nl_usb_core_circular_buffers.h"
 #include "tasks/mtask.h"
+#include "tasks/statemonitor.h"
 
 namespace Usb
 {
@@ -39,12 +40,12 @@ namespace Usb
   class UsbMidiSysexWriter
   {
    private:
-    static constexpr unsigned BUFFER_ELEM_COUNT = unsigned(tBufferType) / sizeof(uint32_t);
-    uint32_t *                m_buffer;
-    unsigned                  m_bufIndex                    = 0;
-    unsigned                  m_sendBufferIndex             = 0;
-    unsigned                  m_currentTransactionElemCount = 0;
-    IOpins::IOpin &           m_LED_usbStalling;
+    static constexpr unsigned   BUFFER_ELEM_COUNT = unsigned(tBufferType) / sizeof(uint32_t);
+    uint32_t *                  m_buffer;
+    unsigned                    m_bufIndex                    = 0;
+    unsigned                    m_sendBufferIndex             = 0;
+    unsigned                    m_currentTransactionElemCount = 0;
+    StateMonitor::StateMonitor &m_stateMonitor;
 
     // relies on buffer sizes being 2^N for efficiency (modulo operator optimized out)
     inline unsigned modBufferSize(unsigned const x) const
@@ -63,9 +64,10 @@ namespace Usb
     };
 
    public:
-    constexpr UsbMidiSysexWriter(uint32_t *const buffer, IOpins::IOpin &LED_usbStalling)
+    constexpr UsbMidiSysexWriter(uint32_t *const             buffer,
+                                 StateMonitor::StateMonitor &stateMonitor)
         : m_buffer(buffer)
-        , m_LED_usbStalling(LED_usbStalling) {};
+        , m_stateMonitor(stateMonitor) {};
 
     inline int claimBufferElements(unsigned const requestedElemCount) const
     {
@@ -113,7 +115,7 @@ namespace Usb
       unsigned sendBufferLen = usedBuffer() * sizeof m_buffer[0];
       if (USB_MIDI_Send(0, sendBuffer, sendBufferLen) == -1)
       {  // failed
-        m_LED_usbStalling.timedOn(1);
+        m_stateMonitor.event(StateMonitor::WARNING_USB_DELAYED_PACKET);
         return;
       }
       m_sendBufferIndex             = m_bufIndex;

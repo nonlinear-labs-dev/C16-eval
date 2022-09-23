@@ -3,6 +3,7 @@
 #include "drv/IoPin.h"
 #include "ipc/ipc.h"
 #include "tasks/mtask.h"
+#include "tasks/statemonitor.h"
 #include "usb/usb.h"
 
 namespace Task
@@ -15,17 +16,15 @@ namespace Task
     using Task::Task;
 
    private:
-    unsigned        m_tan;
-    IOpins::IOpin&  m_keybedEventLED;
-    IOpins::IOpin&  m_dataLossLED;
-    tUsbMidiWriter& m_keyEventWriter;
+    unsigned                    m_tan;
+    tUsbMidiWriter&             m_keyEventWriter;
+    StateMonitor::StateMonitor& m_stateMonitor;
 
    public:
-    constexpr KeybedScanner(IOpins::IOpin& keybedEventLED, IOpins::IOpin& dataLossLED, tUsbMidiWriter& keyEventWriter)
+    constexpr KeybedScanner(tUsbMidiWriter& keyEventWriter, StateMonitor::StateMonitor& stateMonitor)
         : Task()
-        , m_keybedEventLED(keybedEventLED)
-        , m_dataLossLED(dataLossLED)
-        , m_keyEventWriter(keyEventWriter) {};
+        , m_keyEventWriter(keyEventWriter)
+        , m_stateMonitor(stateMonitor) {};
 
     // no dispatcher and body needed
     inline void dispatch(void) {};
@@ -49,10 +48,10 @@ namespace Task
           m_keyEventWriter.writeLast(KEYBED_DATA_CABLE_NUMBER, Usb::getSysexHi2Byte(event), Usb::getSysexHiByte(event), 0xF7);                     // timeLH/LL, end
         }
         else  // Data Loss !!!
-          m_dataLossLED.timedOn(1);
+          m_stateMonitor.event(StateMonitor::ERROR_KEYBED_DATA_LOSS);
       }
       if (hadEvent)
-        m_keybedEventLED.timedOn(2);
+        m_stateMonitor.event(StateMonitor::INFO_KEYBED_EVENT);
     };
   };
 

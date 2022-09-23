@@ -41,7 +41,7 @@ namespace Task
         PINS_CriticalPinsInit();
         __asm volatile("cpsid i");
         while (1)
-          LED_ERROR = 1;
+          pinLED_ERROR = 1;
       }
 
       m_cntr  = m_period;

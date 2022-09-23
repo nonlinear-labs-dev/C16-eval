@@ -5,7 +5,8 @@
 #pragma once
 
 #include <stdint.h>
-#include <tasks/allIOpinsTask.h>
+#include "tasks/allIOpinsTask.h"
+#include "tasks/statemonitor.h"
 #include "tasks/keybedScannerTask.h"
 #include "tasks/ledHeartBeatM4Task.h"
 #include "tasks/sensorDataWriterTask.h"
@@ -40,27 +41,28 @@ namespace Task
     // task processes pins that have timed functions
     AllIoPins m_allTimedIoPinsTask { 1, msToTicks(100) };
 
+    // state monitor
+    StateMonitor::StateMonitor m_stateMonitor { m_allTimedIoPinsTask };
+
     // task for heartbeat LED of M4 core
     LedHeartBeatM4 m_ledHeartBeatM4Task { 2, msToTicks(500),
                                           m_allTimedIoPinsTask.m_LED_m4HeartBeat };
 
     // shared MidiSysexWriter for Keybed Scanner and Sensor Scanner
     tUsbMidiSysexWriter_BufferSized m_usbSensorAndKeyEventMidiSysexWriter { sensorAndKeyEventBuffer,
-                                                                            m_allTimedIoPinsTask.m_LED_usbStalling };
+                                                                            m_stateMonitor };
 
     // high prio task that handles the high level USB I/O
     UsbProcess<tUsbMidiSysexWriter_BufferSized> m_usbProcessTask { m_usbSensorAndKeyEventMidiSysexWriter };
 
     // high prio task for Keybed Scanner, shares a common MidiSysexWriter with Sensor Scanner
-    KeybedScanner<tUsbMidiSysexWriter_BufferSized> m_keybedScannerTask { m_allTimedIoPinsTask.m_LED_keybedEvent,
-                                                                         m_allTimedIoPinsTask.m_LED_error,
-                                                                         m_usbSensorAndKeyEventMidiSysexWriter };
+    KeybedScanner<tUsbMidiSysexWriter_BufferSized> m_keybedScannerTask { m_usbSensorAndKeyEventMidiSysexWriter,
+                                                                         m_stateMonitor };
 
     // task for Sensor Scanner, shares a common MidiSysexWriter with Keybed Scanner
     SensorDataWriter<tUsbMidiSysexWriter_BufferSized> m_sensorDataWriterTask { 3, usToTicks(500),
-                                                                               m_allTimedIoPinsTask.m_LED_adcOverrun,
-                                                                               m_allTimedIoPinsTask.m_LED_error,
-                                                                               m_usbSensorAndKeyEventMidiSysexWriter };
+                                                                               m_usbSensorAndKeyEventMidiSysexWriter,
+                                                                               m_stateMonitor };
 
     static inline constexpr uint32_t usToTicks(uint32_t const us)
     {

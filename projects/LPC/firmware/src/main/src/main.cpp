@@ -105,7 +105,9 @@ int main(void)
   pScheduler = &scheduler;
 
   while (1)
+  {
     scheduler.run();
+  }
   return 0;
 }
 
@@ -130,8 +132,8 @@ static inline void HardwareAndLowLevelInit(void)
   USB_MIDI_Init(0);
   USB_MIDI_Init(1);
 
-  LED_ERROR   = 0;
-  LED_WARNING = 0;
+  pinLED_ERROR   = 0;
+  pinLED_WARNING = 0;
 }
 
 /*************************************************************************

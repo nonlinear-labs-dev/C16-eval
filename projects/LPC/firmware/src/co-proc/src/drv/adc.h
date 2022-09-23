@@ -49,13 +49,13 @@ static __attribute__((always_inline)) inline void muxSelect(unsigned const group
 {
   if (group == GROUP0)
   {
-    ADC_MG0_A0 = channel & 0b01;
-    ADC_MG0_A1 = channel & 0b10;
+    pinADC_MG0_A0 = channel & 0b01;
+    pinADC_MG0_A1 = channel & 0b10;
   }
   else
   {
-    ADC_MG1_A0 = channel & 0b01;
-    ADC_MG1_A1 = channel & 0b10;
+    pinADC_MG1_A0 = channel & 0b01;
+    pinADC_MG1_A1 = channel & 0b10;
   }
 }
 
@@ -149,5 +149,5 @@ static __attribute__((noinline)) void processADCs(void)
   IPC_AdcUpdateReadIndex();
   // Starting a new round of adc channel value read-ins, advance ipc write index first
   IPC_AdcBufferWriteNext();
-  DBG_TP1_0 = s.adcIsConverting = 0;
+  pinADC_IS_CONVERTING = s.adcIsConverting = 0;
 }

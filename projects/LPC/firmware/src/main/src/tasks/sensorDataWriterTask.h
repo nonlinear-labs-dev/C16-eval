@@ -4,6 +4,7 @@
 #include "ipc/ipc.h"
 #include "tasks/mtask.h"
 #include "usb/usb.h"
+#include "tasks/statemonitor.h"
 #include "erp/ERP_Decoder.h"
 
 namespace Task
@@ -24,37 +25,51 @@ namespace Task
     using Task::Task;
 
    private:
-    unsigned        tan;
-    IOpins::IOpin&  m_adcOverrunLED;
-    IOpins::IOpin&  m_dataLossLED;
-    tUsbMidiWriter& m_sensorEventWriter;
+    unsigned                    m_tan;
+    tUsbMidiWriter&             m_sensorEventWriter;
+    StateMonitor::StateMonitor& m_stateMonitor;
+    uint32_t                    m_adcBuffer[IPC_ADC_NUMBER_OF_CHANNELS];
 
    public:
-    constexpr SensorDataWriter(uint32_t const delay, uint32_t const period, IOpins::IOpin& adcOverrunLED, IOpins::IOpin& dataLossLED, tUsbMidiWriter& sensorEventWriter)
+    constexpr SensorDataWriter(uint32_t const delay, uint32_t const period,
+                               tUsbMidiWriter&             sensorEventWriter,
+                               StateMonitor::StateMonitor& stateMonitor)
         : Task(delay, period)
-        , m_adcOverrunLED(dataLossLED)
-        , m_dataLossLED(dataLossLED)
-        , m_sensorEventWriter(sensorEventWriter) {};
+        , m_sensorEventWriter(sensorEventWriter)
+        , m_stateMonitor(stateMonitor) {};
 
    private:
     void inline writeErp(unsigned const erpNumber)
     {
       unsigned angle = erpWipersToAngle(IPC_ReadAdcBufferSum(erpNumber * 2), IPC_ReadAdcBufferSum(erpNumber * 2 + 1));
-      m_sensorEventWriter.write(SENSOR_DATA_CABLE_NUMBER, Usb::getSysexHi2Byte(angle), Usb::getSysexHiByte(angle), Usb::getSysexLoByte(angle));
-    }
+      m_sensorEventWriter.write(SENSOR_DATA_CABLE_NUMBER,
+                                Usb::getSysexHi2Byte(angle),
+                                Usb::getSysexHiByte(angle),
+                                Usb::getSysexLoByte(angle));
+    };
+
+    void inline readAndSetEhcDets(void) {
+
+    };
 
    public:
     inline void body(void)
     {
       if (s.adcIsConverting)
-        m_adcOverrunLED.set(1);
+        m_stateMonitor.event(StateMonitor::ERROR_ADC_OVERRUN);
+
+      IPC_CopyAdcBuffer(&m_adcBuffer[0]);
+      pinADC_IS_CONVERTING = s.adcIsConverting = 1;
 
       // tan
-      tan = (tan + 1u) & 0b11111111111111;
+      m_tan = (m_tan + 1u) & 0b11111111111111;
 
       if (m_sensorEventWriter.claimBufferElements(13))  // 13 4-byte frames available ?
       {
-        m_sensorEventWriter.write(SENSOR_DATA_CABLE_NUMBER, 0xF0, Usb::getSysexHiByte(tan), Usb::getSysexLoByte(tan));
+        m_sensorEventWriter.write(SENSOR_DATA_CABLE_NUMBER,
+                                  0xF0,
+                                  Usb::getSysexHiByte(m_tan),
+                                  Usb::getSysexLoByte(m_tan));
 
         // 8x erp
         writeErp(0);
@@ -67,13 +82,19 @@ namespace Task
         writeErp(7);
 
         // status
-        m_sensorEventWriter.write(SENSOR_DATA_CABLE_NUMBER, 0, 0, 0);  // stat0 hi/lo, stat1 hi
+        m_stateMonitor.setEhcDet();
+        uint32_t status = m_stateMonitor.getStatus();
+
+        m_sensorEventWriter.write(SENSOR_DATA_CABLE_NUMBER,
+                                  Usb::getSysexHi3Byte(status),  // stat0 hi/lo, stat1 hi
+                                  Usb::getSysexHi2Byte(status),
+                                  Usb::getSysexHiByte(status));
 
         uint32_t lsd0 = 0;
         uint32_t lsd1 = 0;
         uint32_t lsd2 = 0;
 
-        switch (tan & 0b111)
+        switch (m_tan & 0b111)
         {
           case 0:
             lsd0 = IPC_ReadAdcBufferSum(16);  // EHC0
@@ -117,15 +138,21 @@ namespace Task
             break;
         }
 
-        DBG_TP1_0 = s.adcIsConverting = 1;
-
-        m_sensorEventWriter.write(SENSOR_DATA_CABLE_NUMBER, 0, Usb::getSysexHiByte(lsd0), Usb::getSysexLoByte(lsd0));                          // stat1 lo, lsd0 hi/lo
-        m_sensorEventWriter.write(SENSOR_DATA_CABLE_NUMBER, Usb::getSysexHiByte(lsd1), Usb::getSysexLoByte(lsd1), Usb::getSysexHiByte(lsd2));  // lsd1 hi/lo, lsd2 hi
-        m_sensorEventWriter.writeLast(SENSOR_DATA_CABLE_NUMBER, Usb::getSysexLoByte(lsd2), 0xF7);
+        m_sensorEventWriter.write(SENSOR_DATA_CABLE_NUMBER,
+                                  Usb::getSysexLoByte(status),
+                                  Usb::getSysexHiByte(lsd0),
+                                  Usb::getSysexLoByte(lsd0));  // stat1 lo, lsd0 hi/lo
+        m_sensorEventWriter.write(SENSOR_DATA_CABLE_NUMBER,
+                                  Usb::getSysexHiByte(lsd1),
+                                  Usb::getSysexLoByte(lsd1),
+                                  Usb::getSysexHiByte(lsd2));  // lsd1 hi/lo, lsd2 hi
+        m_sensorEventWriter.writeLast(SENSOR_DATA_CABLE_NUMBER,
+                                      Usb::getSysexLoByte(lsd2),
+                                      0xF7);
       }
       else  // Data Loss !!!
-        m_dataLossLED.timedOn(1);
-    }
+        m_stateMonitor.event(StateMonitor::ERROR_SENSOR_DATA_LOSS);
+    };
   };
 
 }

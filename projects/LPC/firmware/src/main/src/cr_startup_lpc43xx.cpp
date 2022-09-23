@@ -318,7 +318,7 @@ extern unsigned int __bss_section_table_end;
 
 inline void M4Error(void)
 {
-  LED_ERROR = LED_M4HB = 1;
+  pinLED_ERROR = pinLED_M4HB = 1;
 }
 
 //*****************************************************************************
