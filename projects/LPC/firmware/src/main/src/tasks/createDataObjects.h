@@ -5,6 +5,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <tasks/uartEchoTestTask.h>
 #include "tasks/allIOpinsTask.h"
 #include "tasks/statemonitor.h"
 #include "tasks/keybedScannerTask.h"
@@ -64,6 +65,9 @@ namespace Task
                                                                                m_usbSensorAndKeyEventMidiSysexWriter,
                                                                                m_stateMonitor };
 
+    // task for uart processing
+    UartEchoTest m_uartEchoTestTask { m_allTimedIoPinsTask.m_LED_uartActivity, m_allTimedIoPinsTask.m_LED_uartError };
+
     static inline constexpr uint32_t usToTicks(uint32_t const us)
     {
       return us / 125u;
@@ -78,18 +82,24 @@ namespace Task
     inline void dispatch(void)
     {
       m_keybedScannerTask.dispatch();
-      m_sensorDataWriterTask.dispatch();
       m_usbProcessTask.dispatch();
+
+      m_sensorDataWriterTask.dispatch();
+      m_uartEchoTestTask.dispatch();
       m_ledHeartBeatM4Task.dispatch();
+
       m_allTimedIoPinsTask.dispatch();
     };
 
     inline void run(void)
     {
       m_keybedScannerTask.run();
-      m_sensorDataWriterTask.run();
       m_usbProcessTask.run();
+
+      m_sensorDataWriterTask.run();
+      m_uartEchoTestTask.run();
       m_ledHeartBeatM4Task.run();
+
       m_allTimedIoPinsTask.run();
     };
   };

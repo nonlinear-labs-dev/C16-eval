@@ -3,6 +3,7 @@
 #include "drv/nl_cgu.h"
 #include "ipc/ipc.h"
 #include "cr_start_m0.h"
+#include "sys/uart.h"
 
 #include "usb/driver/nl_usb_midi.h"
 #include "usb/driver/nl_usb_descmidi.h"
@@ -122,6 +123,7 @@ static inline void HardwareAndLowLevelInit(void)
 {
   CPU_ConfigureClocks();
   IPC_Init();
+  UART_Init();
 
   M4SysTick_Init();
   cr_start_m0(&__core_m0app_START__);

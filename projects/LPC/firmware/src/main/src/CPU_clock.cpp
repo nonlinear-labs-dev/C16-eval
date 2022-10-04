@@ -45,7 +45,7 @@ void CPU_ConfigureClocks(void)
   Delay300();         // delay at least 300 µs
 
   /* connect UART0 to PLL1 */
-  CGU_EntityConnect(CGU_CLKSRC_PLL1, CGU_BASE_UART2);
+  CGU_EntityConnect(CGU_CLKSRC_PLL1, CGU_BASE_UART0);
   Delay300();  // delay at least 300 µs
   CGU_UpdateClock();
   Delay300();  // delay at least 300 µs

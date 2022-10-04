@@ -309,6 +309,12 @@ static inline void PINS_NormalPinsInit(void)
 #define pinEHC_DET_3 GPIO_Bit(5, 5)
   GPIO_DIR_IN(5, 5);
   SFSP(2, 5) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPU + 4;
+
+  //
+  // USART0
+  //
+  SFSP(2, 0) = 1;                                                    // P2_0 Mode 1 = U0 TXD
+  SFSP(2, 1) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPU + SFS_EPD + 1;  // P2_1 Mode 1 = U0 RXD
 }
 
 static inline void PINS_CriticalPinsInit(void)

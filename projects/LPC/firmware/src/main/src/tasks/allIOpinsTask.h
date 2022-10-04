@@ -16,6 +16,8 @@ namespace Task
     IOpins::IOpin m_LED_warning { pinLED_WARNING };
     IOpins::IOpin m_LED_error { pinLED_ERROR };
     IOpins::IOpin m_LED_keybedEvent { pinLED_E };
+    IOpins::IOpin m_LED_uartActivity { pinLED_F };
+    IOpins::IOpin m_LED_uartError { pinLED_J };
     IOpins::IOpin m_LED_usbDelayedPacket { pinLED_H };
     IOpins::IOpin m_LED_adcOverrun { pinLED_I };
 
@@ -25,6 +27,8 @@ namespace Task
       m_LED_warning.process();
       m_LED_error.process();
       m_LED_keybedEvent.process();
+      m_LED_uartActivity.process();
+      m_LED_uartError.process();
       m_LED_usbDelayedPacket.process();
       m_LED_adcOverrun.process();
     };
