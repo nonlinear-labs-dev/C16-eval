@@ -1573,23 +1573,29 @@ void USB_ProgDTD(uint8_t const port, uint32_t Edpt, uint32_t ptrBuff, uint32_t T
   pDTD->total_bytes |= TD_IOC;
   pDTD->total_bytes |= 0x80;
 
-  pDTD->buffer0 = ptrBuff;
+  // using local variables to circumvent optimization restrictions due to pDTD->buffer? being volatile
+  uint32_t buffer1;
+  uint32_t buffer2;
+  uint32_t buffer3;
+  uint32_t buffer4;
+
   switch (NL_USB_getBbufferStategy(ptrBuff))
   {
+    default:
     case USB_NON_CIRCULAR:  // setup the 4k-page addresses for a linear address range starting at ptrBuff
     {
-      pDTD->buffer1 = (ptrBuff + 0x1000) & 0xfffff000;
-      pDTD->buffer2 = (ptrBuff + 0x2000) & 0xfffff000;
-      pDTD->buffer3 = (ptrBuff + 0x3000) & 0xfffff000;
-      pDTD->buffer4 = (ptrBuff + 0x4000) & 0xfffff000;
+      buffer1 = (ptrBuff + 0x1000) & 0xfffff000;
+      buffer2 = (ptrBuff + 0x2000) & 0xfffff000;
+      buffer3 = (ptrBuff + 0x3000) & 0xfffff000;
+      buffer4 = (ptrBuff + 0x4000) & 0xfffff000;
       break;
     }
     case USB_CIRCULAR_4k:  // setup the 4k page addresses for a 4k circular address range on a 4k boundary
     {
-      pDTD->buffer1 = (ptrBuff) &0xfffff000;  // 2nd block starts at the 4k boundary
-      pDTD->buffer2 = pDTD->buffer1;          // not needed but initialized for safety
-      pDTD->buffer3 = pDTD->buffer1;          // not needed but initialized for safety
-      pDTD->buffer4 = pDTD->buffer1;          // not needed but initialized for safety
+      buffer1 = (ptrBuff) &0xfffff000;  // 2nd block starts at the 4k boundary
+      buffer2 = buffer1;                // not needed but initialized for safety
+      buffer3 = buffer1;                // not needed but initialized for safety
+      buffer4 = buffer1;                // not needed but initialized for safety
       break;
     }
     case USB_CIRCULAR_8k:  // setup the 4k page addresses for a 8k circular address range on a 8k boundary
@@ -1597,16 +1603,16 @@ void USB_ProgDTD(uint8_t const port, uint32_t Edpt, uint32_t ptrBuff, uint32_t T
       uint32_t base = ptrBuff & ~(8192 - 1);
       if (ptrBuff - base < 4096)  // prtBuff points into 1st 4k page
       {
-        pDTD->buffer1 = base + 4096;
-        pDTD->buffer2 = base;  // wrap-around occurs here
+        buffer1 = base + 4096;
+        buffer2 = base;  // wrap-around occurs here
       }
       else  // prtBuff points into 2nd 4k page
       {
-        pDTD->buffer1 = base;  // wrap-around occurs here
-        pDTD->buffer2 = base + 4096;
+        buffer1 = base;  // wrap-around occurs here
+        buffer2 = base + 4096;
       }
-      pDTD->buffer3 = pDTD->buffer1;  // not needed but initialized for safety
-      pDTD->buffer4 = pDTD->buffer2;  // not needed but initialized for safety
+      buffer3 = buffer1;  // not needed but initialized for safety
+      buffer4 = buffer2;  // not needed but initialized for safety
       break;
     }
     case USB_CIRCULAR_16k:  // setup the 4k page addresses for a 16k circular address range on a 16k boundary
@@ -1614,35 +1620,41 @@ void USB_ProgDTD(uint8_t const port, uint32_t Edpt, uint32_t ptrBuff, uint32_t T
       uint32_t base = ptrBuff & ~(16348 - 1);
       if (ptrBuff - base < 1 * 4096)  // prtBuff points into 1st 4k page
       {
-        pDTD->buffer1 = base + 1 * 4096;
-        pDTD->buffer2 = base + 2 * 4096;
-        pDTD->buffer3 = base + 3 * 4096;
-        pDTD->buffer4 = base + 0 * 4096;  // wrap-around occurs here
+        buffer1 = base + 1 * 4096;
+        buffer2 = base + 2 * 4096;
+        buffer3 = base + 3 * 4096;
+        buffer4 = base + 0 * 4096;  // wrap-around occurs here
       }
       else if (ptrBuff - base < 2 * 4096)  // prtBuff points into 2nd 4k page
       {
-        pDTD->buffer1 = base + 2 * 4096;
-        pDTD->buffer2 = base + 3 * 4096;
-        pDTD->buffer3 = base + 0 * 4096;  // wrap-around occurs here
-        pDTD->buffer4 = base + 1 * 4096;
+        buffer1 = base + 2 * 4096;
+        buffer2 = base + 3 * 4096;
+        buffer3 = base + 0 * 4096;  // wrap-around occurs here
+        buffer4 = base + 1 * 4096;
       }
       else if (ptrBuff - base < 3 * 4096)  // prtBuff points into 3rd 4k page
       {
-        pDTD->buffer1 = base + 3 * 4096;
-        pDTD->buffer2 = base + 0 * 4096;  // wrap-around occurs here
-        pDTD->buffer3 = base + 1 * 4096;
-        pDTD->buffer4 = base + 2 * 4096;
+        buffer1 = base + 3 * 4096;
+        buffer2 = base + 0 * 4096;  // wrap-around occurs here
+        buffer3 = base + 1 * 4096;
+        buffer4 = base + 2 * 4096;
       }
       else  // prtBuff points into 4th 4k page
       {
-        pDTD->buffer1 = base + 0 * 4096;  // wrap-around occurs here
-        pDTD->buffer2 = base + 1 * 4096;
-        pDTD->buffer3 = base + 2 * 4096;
-        pDTD->buffer4 = base + 3 * 4096;
+        buffer1 = base + 0 * 4096;  // wrap-around occurs here
+        buffer2 = base + 1 * 4096;
+        buffer3 = base + 2 * 4096;
+        buffer4 = base + 3 * 4096;
       }
       break;
     }
   }
+
+  pDTD->buffer0 = ptrBuff;
+  pDTD->buffer1 = buffer1;
+  pDTD->buffer2 = buffer2;
+  pDTD->buffer3 = buffer3;
+  pDTD->buffer4 = buffer4;
 
   usb[port].ep_QH[Edpt].next_dTD = (uint32_t)(&usb[port].ep_TD[Edpt]);
   usb[port].ep_QH[Edpt].total_bytes &= (~0xC0);
