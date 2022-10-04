@@ -135,11 +135,9 @@ static __attribute__((noinline)) void adcCycle(unsigned const outChannel)
 
 static __attribute__((noinline)) void processADCs(void)
 {
-  // we rely on a faster conversion than the consumer actually requires.
-  // atm, free-wheeling conversion rate ~2.3kHz, required is > 2.0kHz
-  // so we have about 15%, or 80us, of safety margin
   if (!s.adcIsConverting)
     return;
+
   adcCycle(BLOCK0);  // CH00..CH07 : ERP0_W0..ERP3_W1
   adcCycle(BLOCK1);  // CH08..CH15 : ERP4_W0..ERP7_W1
   adcCycle(BLOCK2);  // CH16..CH23 : EHC0_C0..EHC3_C1
@@ -149,5 +147,8 @@ static __attribute__((noinline)) void processADCs(void)
   IPC_AdcUpdateReadIndex();
   // Starting a new round of adc channel value read-ins, advance ipc write index first
   IPC_AdcBufferWriteNext();
+
+  // we rely on a faster conversion than the consumer (on M4) actually requires.
+  // measured margin (time of pinADC_IS_CONVERTING being low) is > 20us
   pinADC_IS_CONVERTING = s.adcIsConverting = 0;
 }

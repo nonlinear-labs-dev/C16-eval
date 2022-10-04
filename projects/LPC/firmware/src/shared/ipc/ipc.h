@@ -143,12 +143,6 @@ static inline unsigned IPC_KeyBuffer_GetSize()
 //  -------- ADC --------
 //
 
-static inline void IPC_CopyAdcBuffer(uint32_t buffer[])
-{
-  for (unsigned i = 0; i < IPC_ADC_NUMBER_OF_CHANNELS; i++)
-    buffer[i] = (uint32_t) s.adcBufferData.sum[i];
-}
-
 /******************************************************************************/
 /**	@brief      Read ADC channel value as sum of whole ring buffer contents
 *   @param[in]	IPC id of the adc channel 0...31
