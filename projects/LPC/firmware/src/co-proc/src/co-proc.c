@@ -11,7 +11,7 @@ int main(void)
 
   while (1)
   {
-    LED_M0HB = ~LED_M4HB;
+    pinLED_M0HB = ~pinLED_M4HB;
     processADCs();
   }
   return 0;

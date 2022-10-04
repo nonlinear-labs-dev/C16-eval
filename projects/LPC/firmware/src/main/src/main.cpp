@@ -1,24 +1,112 @@
-#include "drv/allIoPins.h"
-#include "tasks/allTasks.h"
-#include "cr_start_m0.h"
+#include "tasks/createDataObjects.h"
 #include "CPU_clock.h"
 #include "drv/nl_cgu.h"
 #include "ipc/ipc.h"
-#include "cmsis/core_cm4.h"
+#include "cr_start_m0.h"
 
 #include "usb/driver/nl_usb_midi.h"
 #include "usb/driver/nl_usb_descmidi.h"
 
-static inline void Init(void);
+#if 0
+
+// optimization test code
+class IOPin
+{
+ private:
+  typedef uint32_t volatile t_PinMemoryMapped;
+  t_PinMemoryMapped &m_ioPinRef;
+
+ public:
+  constexpr IOPin(t_PinMemoryMapped &ioPin)
+      : m_ioPinRef(ioPin) {};
+
+  inline void set(uint32_t const flag) const
+  {
+    m_ioPinRef = flag;
+  }
+
+  inline void toggle(void) const
+  {
+    m_ioPinRef = ~m_ioPinRef;
+  }
+
+  inline uint32_t get(void) const
+  {
+    return m_ioPinRef;
+  }
+};
+
+class myIOPins
+{
+ private:
+  IOPin m_pin;
+
+ public:
+  typedef struct
+  {
+    volatile uint32_t W;
+  } GPIO_PORT_Type;
+
+  constexpr myIOPins(void)
+      : m_pin(((GPIO_PORT_Type *) 0x400f502c)->W) {};
+
+  void doWork(void)
+  {
+    m_pin.toggle();
+  }
+};
+
+class Scheduler
+{
+ private:
+  myIOPins m_myIoPins;
+
+ public:
+  constexpr Scheduler(void)
+      : m_myIoPins() {};
+
+  void doStuff(void)
+  {
+    m_myIoPins.doWork();
+  }
+};
+
+// this version (data on stack) optimizes correctly
+static void test1(void)
+{
+  Scheduler sched;
+  asm volatile("mov r5, r5");
+  sched.doStuff();
+}
+
+// but this version (static data) does not (memory still addressed indirectly)
+Scheduler sched;
+static void test2(void)
+{
+  asm volatile("mov r4, r4");
+  sched.doStuff();
+}
+
+#endif
+
+static inline void HardwareAndLowLevelInit(void);
+
+static Task::TaskScheduler *pScheduler;
 
 // ---------------
 int main(void)
 {
-  Init();
+  HardwareAndLowLevelInit();
+
+  //test1();
+  //test2();
+
+  static Task::TaskScheduler scheduler;  // alas, data on stack doesn't solve the problem as expected from the above
+  pScheduler = &scheduler;
 
   while (1)
   {
-    Task::run();
+    scheduler.run();
   }
   return 0;
 }
@@ -26,11 +114,11 @@ int main(void)
 // ----------------
 static inline void M4SysTick_Init(void);
 
-static void Receive_IRQ_Callback(uint8_t const port, uint8_t *buff, uint32_t len)
+static void Receive_IRQ_DummyCallback(uint8_t const port, uint8_t *buff, uint32_t len)
 {
 }
 
-static inline void Init(void)
+static inline void HardwareAndLowLevelInit(void)
 {
   CPU_ConfigureClocks();
   IPC_Init();
@@ -38,14 +126,14 @@ static inline void Init(void)
   M4SysTick_Init();
   cr_start_m0(&__core_m0app_START__);
 
-  USB_MIDI_Config(0, Receive_IRQ_Callback);
-  USB_MIDI_Config(1, Receive_IRQ_Callback);
+  USB_MIDI_Config(0, Receive_IRQ_DummyCallback);
+  USB_MIDI_Config(1, Receive_IRQ_DummyCallback);
   USB_MIDI_SetupDescriptors();
   USB_MIDI_Init(0);
   USB_MIDI_Init(1);
 
-  LED_ERROR   = 0;
-  LED_WARNING = 0;
+  pinLED_ERROR   = 0;
+  pinLED_WARNING = 0;
 }
 
 /*************************************************************************
@@ -69,6 +157,6 @@ extern "C" void SysTick_Handler(void)
   if (++s.timesliceTicker5us == 25u)  // 25 * 5us   = 125us time slice)
   {
     s.timesliceTicker5us = 0u;
-    Task::dispatch();
+    pScheduler->dispatch();
   }
 }

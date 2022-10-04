@@ -1,35 +1,35 @@
 #pragma once
 
 #include <stdint.h>
+#include "io/pins.h"
 
 namespace IOpins
 {
-  typedef volatile uint32_t* IOpinMemoryMapped;
-
   class IOpin
   {
    private:
-    IOpinMemoryMapped const m_ioPinAddress;
-    unsigned                m_step;
-    unsigned                m_cntr;
+    typedef uint32_t volatile t_ioPin;
+    t_ioPin &m_ioPin;
+    unsigned m_step = 0;
+    unsigned m_cntr = 0;
 
    public:
-    IOpin(IOpinMemoryMapped const ioPinAddress)
-        : m_ioPinAddress(ioPinAddress) {};
+    constexpr IOpin(t_ioPin &ioPin)
+        : m_ioPin(ioPin) {};
 
-    inline void set(uint32_t const flag)
+    inline void set(uint32_t const flag) const
     {
-      *m_ioPinAddress = flag;
+      m_ioPin = flag;
     }
 
-    inline void toggle(void)
+    inline void toggle(void) const
     {
-      (*m_ioPinAddress) = ~(*m_ioPinAddress);
+      m_ioPin = ~m_ioPin;
     }
 
-    inline uint32_t get(void)
+    inline uint32_t get(void) const
     {
-      return *m_ioPinAddress;
+      return m_ioPin;
     }
 
     inline void timedOn(int ticks)
@@ -62,6 +62,7 @@ namespace IOpins
       {
         case 0:
           return;
+
         case 1:
           if (m_cntr)
           {
@@ -78,6 +79,7 @@ namespace IOpins
           set(0);
           m_step++;
           return;
+
         case 3:
           set(m_step = (m_cntr != 0));
           return;
@@ -86,9 +88,3 @@ namespace IOpins
   };
 
 }  // namespace
-
-extern IOpins::IOpin LED_M4HeartBeat;
-extern IOpins::IOpin LED_Warning;
-extern IOpins::IOpin LED_Error;
-extern IOpins::IOpin LED_KeybedEvent;
-extern IOpins::IOpin LED_USBstalling;

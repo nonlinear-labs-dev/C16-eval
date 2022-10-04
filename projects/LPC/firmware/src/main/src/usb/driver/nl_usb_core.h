@@ -227,8 +227,8 @@ typedef volatile struct
 #define TD_IOC (1 << 15)
 /** @} */
 
+void     USB_Core_DataInit(void);
 void     USB_Core_Init(uint8_t const port);
-void     USB_Core_SetWrapping4kBuffer(uint8_t const port, int const flag);
 uint8_t  USB_GetActivity(uint8_t const port);
 uint8_t  USB_GetError(uint8_t const port);
 uint8_t  USB_SetupComplete(uint8_t const port);

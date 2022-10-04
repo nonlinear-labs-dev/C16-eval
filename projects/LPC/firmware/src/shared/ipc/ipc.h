@@ -45,9 +45,6 @@ typedef struct
 //
 typedef struct
 {
-  uint32_t          sensorAndKeyeventUsbBuffer[1024];  // must be 4k size and start at a 4k boundary !!!
-  uint32_t          outgoingBridgeUsbBuffer[1024];     // must be 4k size and start at a 4k boundary !!!
-  uint32_t          incomingBridgeUsbBuffer[1024];     // must be 4k size and start at a 4k boundary !!!
   volatile uint32_t ticker5us;
   volatile uint32_t timesliceTicker5us;
   uint32_t          keyBufferData[IPC_KEYBUFFER_SIZE];
@@ -72,9 +69,13 @@ inline static void IPC_Init(void)
 {
   s.ticker5us          = 0;
   s.timesliceTicker5us = 0;
-  s.keyBufferWritePos  = 0;
-  s.keyBufferReadPos   = 0;
-  s.M0_KbsIrqOvers     = 0;
+
+  for (unsigned i = 0; i < IPC_KEYBUFFER_SIZE; i++)
+    s.keyBufferData[i] = 0;
+
+  s.keyBufferWritePos = 0;
+  s.keyBufferReadPos  = 0;
+  s.M0_KbsIrqOvers    = 0;
 
   for (unsigned i = 0; i < IPC_ADC_NUMBER_OF_CHANNELS; i++)
   {
@@ -111,9 +112,7 @@ static inline void IPC_M0_KeyBuffer_WriteKeyEvent(uint32_t const keyEvent)
 /******************************************************************************/
 /** @brief      Here the M4 reads key events from a circular buffer
                 that have been written by the M0
-    @param[in]  pKeyEvent: pointer to an array of key events
-                that will be processed by the voice allocation
-    @return     Number of new key events (0: nothing to do)
+    @return     key event (0: nothing to do)
 *******************************************************************************/
 static inline uint32_t IPC_M4_KeyBuffer_ReadBuffer(void)
 {
@@ -143,6 +142,7 @@ static inline unsigned IPC_KeyBuffer_GetSize()
 //
 //  -------- ADC --------
 //
+
 /******************************************************************************/
 /**	@brief      Read ADC channel value as sum of whole ring buffer contents
 *   @param[in]	IPC id of the adc channel 0...31

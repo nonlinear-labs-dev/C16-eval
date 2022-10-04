@@ -25,9 +25,9 @@
 #define __CL__ asm volatile ("" ::: "memory");
 
 // volatile casts keep the compiler from optimizing away "unnecessary" accesses
-#define __pIO32__ (volatile uint32_t *)
-#define __pIO16__ (volatile uint16_t *)
-#define __pIO8__  (volatile uint8_t  *)
+#define __pIO32__ (volatile uint32_t * const)
+#define __pIO16__ (volatile uint16_t * const)
+#define __pIO8__  (volatile uint8_t  * const)
 
 
 // ----- access the pin control register -----
@@ -75,4 +75,17 @@
 #define GPIO_Halfword(bank, bit) *( pGPIO_Halfword(bank, bit) )
 #define GPIO_Word(bank, bit)     *( pGPIO_Word(bank, bit)     )
 
+
+//
+// specials for optimized access in known cases
+//
+
+// makes use of the address always being != 0 --> pin is set in a word access
+#define setPin(wordAddress)     asm volatile ("str  %[reg], [%[reg]]"     : : [reg] "r" (wordAddress))   // usable with any pGPIO_Word(bank, bit) address
+
+// make use of bit 0 being either 0 or 1 in a bit access
+#define clrPinEven(bitAddress)  asm volatile ("strb %[reg], [%[reg]]"     : : [reg] "r" (bitAddress))    // usable with even pGPIO_Bit(bank, bit) address (bit must be even)
+#define clrPinOdd(bitAddress)   asm volatile ("strb %[reg], [%[reg], #1]" : : [reg] "r" (bitAddress-1))  // usable with odd pGPIO_Bit(bank, bit) address (bit must be odd)
+#define setPinEven(bitAddress)  asm volatile ("strb %[reg], [%[reg], #1]" : : [reg] "r" (bitAddress-1))  // usable with even pGPIO_Bit(bank, bit) address (bit must be even)
+#define setPinOdd(bitAddress)   asm volatile ("strb %[reg], [%[reg]"      : : [reg] "r" (bitAddress))    // usable with odd pGPIO_Bit(bank, bit) address (bit must be odd)
 // clang-format on

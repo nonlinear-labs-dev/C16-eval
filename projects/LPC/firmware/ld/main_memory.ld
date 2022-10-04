@@ -1,10 +1,10 @@
 MEMORY
 {
   /* Define each memory region */
-  MFlashA512 (rx)    : ORIGIN = 0x1a000000, LENGTH = 0x80000 /* 512K bytes (alias Flash) */  
+  MFlashA512 (rx)    : ORIGIN = 0x1a000000, LENGTH = 0x80000 /* 512K bytes (alias Flash)  */  
   MFlashB512 (rx)    : ORIGIN = 0x1b000000, LENGTH = 0x80000 /* 512K bytes (alias Flash2) */  
-  RamLoc32 (rwx)     : ORIGIN = 0x10000000, LENGTH = 0x8000  /* 32K bytes (alias RAM) */  
-  RamLoc40 (rwx)     : ORIGIN = 0x10080000, LENGTH = 0xa000  /* 40K bytes (alias RAM2) */  
+  RamLoc32 (rwx)     : ORIGIN = 0x10000000, LENGTH = 0x8000  /* 32K bytes (alias RAM)  */  
+  RamLoc40 (rwx)     : ORIGIN = 0x10080000, LENGTH = 0xa000  /* 40K bytes (alias RAM2) -- USB circular buffers */  
   RamAHB32 (rwx)     : ORIGIN = 0x20000000, LENGTH = 0x8000  /* 32K bytes (alias RAM3) */  
   RamAHB16 (rwx)     : ORIGIN = 0x20008000, LENGTH = 0x4000  /* 16K bytes (alias RAM4) -- M0 private */  
   RamAHB_ETB16 (rwx) : ORIGIN = 0x2000c000, LENGTH = 0x4000  /* 16K bytes (alias RAM5) -- shared between M0 and M4 */

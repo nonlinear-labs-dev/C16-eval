@@ -158,12 +158,20 @@ void VADC_IRQHandler(void) ALIAS(IntDefaultHandler);
   extern void __main(void);
 #endif
   extern int main(void);
+
   //*****************************************************************************
   //
   // External declaration for the pointer to the stack top from the Linker Script
   //
   //*****************************************************************************
   extern void _vStackTop(void);
+
+  //*****************************************************************************
+  //
+  // External declaration for the pointer to end of data from the Linker Script
+  //
+  //*****************************************************************************
+  extern void _vEndOfData(void);
 
   //*****************************************************************************
   //
@@ -272,7 +280,7 @@ __attribute__((used, section(".isr_vector"))) void (*const g_pfnVectors[])(void)
 // ResetISR() function in order to cope with MCUs with multiple banks of
 // memory.
 //*****************************************************************************
-__attribute__((section(".after_vectors"))) void data_init(unsigned int romstart, unsigned int start, unsigned int len)
+__attribute__((section(".after_vectors"))) void static data_init(unsigned int romstart, unsigned int start, unsigned int len)
 {
   unsigned int *pulDest = (unsigned int *) start;
   unsigned int *pulSrc  = (unsigned int *) romstart;
@@ -281,12 +289,19 @@ __attribute__((section(".after_vectors"))) void data_init(unsigned int romstart,
     *pulDest++ = *pulSrc++;
 }
 
-__attribute__((section(".after_vectors"))) void bss_init(unsigned int start, unsigned int len)
+__attribute__((section(".after_vectors"))) static void bss_init(unsigned int start, unsigned int len)
 {
   unsigned int *pulDest = (unsigned int *) start;
   unsigned int  loop;
   for (loop = 0; loop < len; loop = loop + 4)
     *pulDest++ = 0;
+}
+
+__attribute__((section(".after_vectors"))) static void stackAndHeap_init(unsigned int start, unsigned int end)
+{
+  unsigned int *pulDest = (unsigned int *) start;
+  while (pulDest != (unsigned int *) end)
+    *pulDest++ = 0xACACACAC;
 }
 
 //*****************************************************************************
@@ -303,7 +318,7 @@ extern unsigned int __bss_section_table_end;
 
 inline void M4Error(void)
 {
-  LED_ERROR = LED_M4HB = 1;
+  pinLED_ERROR = pinLED_M4HB = 1;
 }
 
 //*****************************************************************************
@@ -434,6 +449,8 @@ void ResetISR(void)
     *pSCB_VTOR = (unsigned int) g_pfnVectors;
   }
 #endif
+
+  stackAndHeap_init((unsigned) _vEndOfData, (unsigned) _vStackTop);
 
 #if defined(__USE_CMSIS)
   SystemInit();

@@ -7,6 +7,10 @@
 !src/co-proc/.project
 
 # Blacklist files/folders
+AzureRTOS_TAD_logs
+FreeRTOS_TAD_logs
+ZephyrRTOS_TAD_logs
+.mcuxpressoide_packages_support
 .metadata/
 src/main/.settings
 src/main/Release
