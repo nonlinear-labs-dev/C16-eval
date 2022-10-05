@@ -475,6 +475,9 @@ static inline BOOL examineContent(void const *const data, unsigned const len)
   static int psu0 = 0;
   static int psu1 = 0;
 
+  static int rotenc  = 0;
+  static int buttons = 0;
+
   switch (getPacketNr(pErpData) & 0b111)
   {
     case 0:
@@ -503,7 +506,9 @@ static inline BOOL examineContent(void const *const data, unsigned const len)
       psu0 = lsd2;
       break;
     case 5:
-      psu1 = lsd0;
+      psu1    = lsd0;
+      rotenc  = lsd1;
+      buttons = lsd2;
       break;
   }
 #if SHOW_RAW
@@ -533,7 +538,8 @@ static inline BOOL examineContent(void const *const data, unsigned const len)
   printf("%5d ", ali1);
   printf("%5d(%5.1lfV) ", psu0, (double) (psu0 - 1) / 2046 / (1.72 / 3.3) * 19.0);
   printf("%5d(%5.2lfV)\n", psu1, (double) (psu1 - 1) / 2046 / (3.113 / 3.3) * 5.0);
-  printf("%08X ", stat);
+  printf("S:%08X ", stat);
+  printf("B:%01X ", buttons);
   printf("\n");
   cursorUp(1);
 
