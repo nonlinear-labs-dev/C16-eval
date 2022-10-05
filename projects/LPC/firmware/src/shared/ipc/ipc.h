@@ -192,10 +192,6 @@ static inline void IPC_WriteAdcBuffer(unsigned const adc_id, uint32_t const valu
 static inline void IPC_AdcBufferWriteNext(void)
 {
   s.adcBufferWriteIndex = (s.adcBufferWriteIndex + 1) & IPC_ADC_BUFFER_MASK;
-}
-
-static inline void IPC_NextAdcValue(void)
-{
 #if LPC_DGB_ADC_STRESS_TEST
   adc_val = (adc_val + 1u) & 1023u;
 #endif

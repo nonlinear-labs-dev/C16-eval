@@ -10,14 +10,9 @@
 namespace Task
 {
   static constexpr unsigned SENSOR_DATA_CABLE_NUMBER = 2u;
-
-  static inline unsigned erpWipersToAngle(unsigned const wiper0, unsigned const wiper1)
-  {
-    int angleCandidate = ERP_DecodeWipersToAngle(wiper1, wiper0);
-    if (angleCandidate == ERP_INT_MAX)
-      angleCandidate = 0b111111111111111111111;
-    return (unsigned) angleCandidate;
-  }
+  static constexpr unsigned TWENTYONE_ONES           = 0b111111111111111111111;  // 3*7 ones DO NOT CHANGE
+  static constexpr unsigned FOURTEEN_ONES            = 0b000000011111111111111;  // 2*7 ones DO NOT CHANGE
+  static constexpr unsigned FAULT_ANGLE              = TWENTYONE_ONES;
 
   template <typename tUsbMidiWriter>
   class SensorDataWriter : public Task::Task
@@ -39,6 +34,14 @@ namespace Task
         , m_stateMonitor(stateMonitor) {};
 
    private:
+    inline unsigned erpWipersToAngle(unsigned const wiper0, unsigned const wiper1)
+    {
+      int angleCandidate = ERP_DecodeWipersToAngle(wiper1, wiper0);
+      if (angleCandidate == ERP_INT_MAX)
+        angleCandidate = FAULT_ANGLE;
+      return (unsigned) angleCandidate;
+    }
+
     void inline writeErp(unsigned const erpNumber)
     {
       unsigned angle = erpWipersToAngle(IPC_ReadAdcBufferSum(erpNumber * 2), IPC_ReadAdcBufferSum(erpNumber * 2 + 1));
@@ -58,14 +61,17 @@ namespace Task
       if (s.adcIsConverting)
         m_stateMonitor.event(StateMonitor::ERROR_ADC_OVERRUN);
 
+      // We can restart the ADC immediately without risk of it overwriting values during collection
+      // because it takes ~20us before the first value in the ADC value array is updated
+      // and by that time this collecting function has finished (as takes ~10us).
+      s.adcIsConverting = 1;
+
       // tan
-      m_tan = (m_tan + 1u) & 0b11111111111111;
+      m_tan = (m_tan + 1u) & FOURTEEN_ONES;
 
       if (!m_sensorEventWriter.claimBufferElements(13))  // 13 4-byte frames not available ?
       {
-        // Data Loss !!!
         m_stateMonitor.event(StateMonitor::ERROR_SENSOR_DATA_LOSS);
-        pinADC_IS_CONVERTING = s.adcIsConverting = 1;
         return;
       }
 
@@ -83,9 +89,6 @@ namespace Task
       writeErp(5);
       writeErp(6);
       writeErp(7);
-
-      // by now we've collected enough values from the ADC array so that the restarted ADC can't overrun the subsequent collects
-      pinADC_IS_CONVERTING = s.adcIsConverting = 1;
 
       // status
       m_stateMonitor.setEhcDet();

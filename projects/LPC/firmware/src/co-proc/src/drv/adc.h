@@ -150,5 +150,5 @@ static __attribute__((noinline)) void processADCs(void)
 
   // we rely on a faster conversion than the consumer (on M4) actually requires.
   // measured margin (time of pinADC_IS_CONVERTING being low) is > 20us
-  pinADC_IS_CONVERTING = s.adcIsConverting = 0;
+  s.adcIsConverting = 0;
 }

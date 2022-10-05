@@ -130,11 +130,17 @@ static inline void PINS_NormalPinsInit(void)
   //
   // -------- Debug Pins --------
   //
-  // TP_1_0 : M0 ADC is converting
-#define pinADC_IS_CONVERTING GPIO_Word(0, 4)
+  // TP_1_0
+#define pinTP1_0 GPIO_Word(0, 4)
   GPIO_DIR_OUT(0, 4);
-  SFSP(1, 0)           = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 0;
-  pinADC_IS_CONVERTING = 0u;
+  SFSP(1, 0) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 0;
+  pinTP1_0   = 0u;
+
+  // TP_6_1
+#define pinTP6_1 GPIO_Word(3, 0)
+  GPIO_DIR_OUT(3, 0);
+  SFSP(6, 1) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 0;
+  pinTP6_1   = 0u;
 
   //
   // -------- Aux/Debug LEDs --------

@@ -4,6 +4,11 @@
 #include "io/pins.h"
 #include "ipc/ipc.h"
 
+#define TASK_CHECK_OVERRUN (01)
+#if !TASK_CHECK_OVERRUN
+#warning "No Task Overrun Check and Halt"
+#endif
+
 namespace Task
 {
 
@@ -36,6 +41,7 @@ namespace Task
           return;
       }
 
+#if TASK_CHECK_OVERRUN
       if (m_start && m_period)  // overrun
       {
         PINS_CriticalPinsInit();
@@ -43,6 +49,7 @@ namespace Task
         while (1)
           pinLED_ERROR = 1;
       }
+#endif
 
       m_cntr  = m_period;
       m_start = 1;
