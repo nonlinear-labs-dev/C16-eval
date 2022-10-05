@@ -51,8 +51,9 @@ namespace Task
                                 Usb::getSysexLoByte(angle));
     };
 
-    void inline readAndSetEhcDets(void) {
-
+    inline uint32_t readButtons(void)
+    {
+      return (pinBUTTON_D << 3 | pinBUTTON_C << 2 | pinBUTTON_B << 1 | pinBUTTON_A << 0);
     };
 
    public:
@@ -133,7 +134,7 @@ namespace Task
         case 5:
           lsd0 = IPC_ReadAdcBufferSum(31);  // PSU1
           lsd1 = 0;                         // ROTENC
-          lsd2 = 0;                         // BUTTONS
+          lsd2 = readButtons();
           break;
         case 6:
           lsd0 = 0;  // SPARE0

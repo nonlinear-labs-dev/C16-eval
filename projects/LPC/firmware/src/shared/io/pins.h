@@ -321,6 +321,30 @@ static inline void PINS_NormalPinsInit(void)
   //
   SFSP(2, 0) = 1;                                                    // P2_0 Mode 1 = U0 TXD
   SFSP(2, 1) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPU + SFS_EPD + 1;  // P2_1 Mode 1 = U0 RXD
+
+  //
+  // Buttons, all with pullups
+  // these are bit access
+  //
+  // BUTTON_A
+#define pinBUTTON_A GPIO_Bit(5, 12)
+  GPIO_DIR_IN(5, 12);
+  SFSP(4, 8) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPU + 4;
+
+  // BUTTON_B
+#define pinBUTTON_B GPIO_Bit(5, 14)
+  GPIO_DIR_IN(5, 14);
+  SFSP(4, 10) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPU + 4;
+
+  // BUTTON_C
+#define pinBUTTON_C GPIO_Bit(2, 9)
+  GPIO_DIR_IN(2, 9);
+  SFSP(5, 0) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPU + 0;
+
+  // BUTTON_C
+#define pinBUTTON_D GPIO_Bit(5, 13)
+  GPIO_DIR_IN(5, 13);
+  SFSP(4, 9) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPU + 4;
 }
 
 static inline void PINS_CriticalPinsInit(void)
