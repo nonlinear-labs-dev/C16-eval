@@ -53,7 +53,7 @@ namespace Task
 
     inline uint32_t readButtons(void)
     {
-      return (pinBUTTON_D << 3 | pinBUTTON_C << 2 | pinBUTTON_B << 1 | pinBUTTON_A << 0);
+      return 0b1111 ^ (pinBUTTON_D << 3 | pinBUTTON_C << 2 | pinBUTTON_B << 1 | pinBUTTON_A << 0);
     };
 
    public:
