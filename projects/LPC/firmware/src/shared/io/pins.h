@@ -263,15 +263,15 @@ static inline void PINS_NormalPinsInit(void)
   pinEHC_PD_2 = 1u;
 
   // EHC_PD_3
-#define pinEHC_PD_3 GPIO_Word(3, 12)
-  GPIO_DIR_OUT(3, 12);
-  SFSP(7, 4)  = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 0;
+#define pinEHC_PD_3 GPIO_Word(5, 11)
+  GPIO_DIR_OUT(5, 11);
+  SFSP(3, 8)  = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 4;
   pinEHC_PD_3 = 1u;
 
   // EHC_PD_4
-#define pinEHC_PD_4 GPIO_Word(3, 8)
-  GPIO_DIR_OUT(3, 8);
-  SFSP(7, 0)  = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 0;
+#define pinEHC_PD_4 GPIO_Word(5, 8)
+  GPIO_DIR_OUT(5, 8);
+  SFSP(3, 1)  = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 4;
   pinEHC_PD_4 = 1u;
 
   // EHC_PD_5
