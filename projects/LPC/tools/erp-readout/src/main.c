@@ -15,7 +15,7 @@
 #include <alsa/asoundlib.h>
 #include <math.h>
 
-#define SHOW_RAW (1)
+#define SHOW_RAW (01)
 
 // qtcreator bugs
 //#include </usr/include/stdarg.h>
@@ -320,6 +320,8 @@ static inline void doSend(void)
 // -------- functions for receiving --------
 //
 
+static int const TWENTYONE_ONES = 0b111111111111111111111;
+
 static inline unsigned getPacketNr(uint8_t const *const data)
 {
   return (uint32_t) data[0] * 128ul + (uint32_t) data[1];
@@ -328,7 +330,7 @@ static inline unsigned getPacketNr(uint8_t const *const data)
 static inline int getErpAngle(unsigned const erpNumber, uint8_t const *const data)
 {
   int result = (int) data[2 + 3 * erpNumber] * 128u * 128u + data[3 + 3 * erpNumber] * 128u + data[4 + 3 * erpNumber];
-  if (result == 0b111111111111111111111)
+  if (result == TWENTYONE_ONES)
     return result;
   if (result & 0b100000000000000000000)
     result |= 0b11111111111000000000000000000000;
@@ -455,25 +457,25 @@ static inline BOOL examineContent(void const *const data, unsigned const len)
   int      lsd1      = (int) pErpData[32] * 128u + pErpData[33];
   int      lsd2      = (int) pErpData[34] * 128u + pErpData[35];
 
-  static int ehc0 = 0;
-  static int ehc1 = 0;
-  static int ehc2 = 0;
-  static int ehc3 = 0;
-  static int ehc4 = 0;
-  static int ehc5 = 0;
-  static int ehc6 = 0;
-  static int ehc7 = 0;
+  static int ehc0 = 1;
+  static int ehc1 = 1;
+  static int ehc2 = 1;
+  static int ehc3 = 1;
+  static int ehc4 = 1;
+  static int ehc5 = 1;
+  static int ehc6 = 1;
+  static int ehc7 = 1;
 
-  static int ihc0 = 0;
-  static int ihc1 = 0;
-  static int ihc2 = 0;
-  static int ihc3 = 0;
+  static int ihc0 = 1;
+  static int ihc1 = 1;
+  static int ihc2 = 1;
+  static int ihc3 = 1;
 
-  static int ali0 = 0;
-  static int ali1 = 0;
+  static int ali0 = 1;
+  static int ali1 = 1;
 
-  static int psu0 = 0;
-  static int psu1 = 0;
+  static int psu0 = 1;
+  static int psu1 = 1;
 
   static int rotenc  = 0;
   static int buttons = 0;
@@ -514,21 +516,25 @@ static inline BOOL examineContent(void const *const data, unsigned const len)
 #if SHOW_RAW
   // show all data
   cursorUp(2);
-  printf("%+6.1lf ", (double) angleErp0 * ERP_AngleMultiplier360());
-  printf("%+6.1lf ", (double) angleErp1 * ERP_AngleMultiplier360());
-  printf("%+6.1lf ", (double) angleErp2 * ERP_AngleMultiplier360());
-  printf("%+6.1lf ", (double) angleErp3 * ERP_AngleMultiplier360());
-  printf("%+6.1lf ", (double) angleErp4 * ERP_AngleMultiplier360());
-  printf("%+6.1lf | ", (double) angleErp5 * ERP_AngleMultiplier360());
+  printf("%+6.1lf ", angleErp0 == TWENTYONE_ONES ? -0.0001 : (double) angleErp0 * ERP_AngleMultiplier360());
+  printf("%+6.1lf ", angleErp1 == TWENTYONE_ONES ? -0.0001 : (double) angleErp1 * ERP_AngleMultiplier360());
+  printf("%+6.1lf ", angleErp2 == TWENTYONE_ONES ? -0.0001 : (double) angleErp2 * ERP_AngleMultiplier360());
+  printf("%+6.1lf ", angleErp3 == TWENTYONE_ONES ? -0.0001 : (double) angleErp3 * ERP_AngleMultiplier360());
+  printf("%+6.1lf ", angleErp4 == TWENTYONE_ONES ? -0.0001 : (double) angleErp4 * ERP_AngleMultiplier360());
+  printf("%+6.1lf | ", angleErp5 == TWENTYONE_ONES ? -0.0001 : (double) angleErp5 * ERP_AngleMultiplier360());
+  //printf("%+6.1lf ", angleErp6 == TWENTYONE_ONES ? -0.0001 : (double) angleErp6 * ERP_AngleMultiplier360());
+  //printf("%+6.1lf | ", angleErp7 == TWENTYONE_ONES ? -0.0001 : (double) angleErp7 * ERP_AngleMultiplier360());
 
-  printf("%5d ", ehc0);
-  printf("%5d ", ehc1);
-  printf("%5d ", ehc2);
-  printf("%5d ", ehc3);
-  printf("%5d ", ehc4);
-  printf("%5d ", ehc5);
-  printf("%5d ", ehc6);
-  printf("%5d\n", ehc7);
+  double ref5VA = (psu1 - 1);
+
+  printf("%4d(%4.2lfV) ", ehc0, (double) (ehc0 - 1) / ref5VA * 5.0);
+  printf("%4d(%4.2lfV) ", ehc1, (double) (ehc1 - 1) / ref5VA * 5.0);
+  printf("%4d(%4.2lfV) ", ehc2, (double) (ehc2 - 1) / ref5VA * 5.0);
+  printf("%4d(%4.2lfV) ", ehc3, (double) (ehc3 - 1) / ref5VA * 5.0);
+  printf("%4d(%4.2lfV) ", ehc4, (double) (ehc4 - 1) / ref5VA * 5.0);
+  printf("%4d(%4.2lfV) ", ehc5, (double) (ehc5 - 1) / ref5VA * 5.0);
+  printf("%4d(%4.2lfV) ", ehc6, (double) (ehc6 - 1) / ref5VA * 5.0);
+  printf("%4d(%4.2lfV)\n", ehc7, (double) (ehc7 - 1) / ref5VA * 5.0);
 
   printf("%5d ", ihc0);
   printf("%5d ", ihc1);
@@ -569,7 +575,7 @@ static inline BOOL examineContent(void const *const data, unsigned const len)
     int delta = ERP_getDynamicIncrement(quantizer, diff = 10 * ERP_GetAngleDifference(angle, oldAngle));
     oldAngle  = angle;
 
-#if 0
+#if 01
     double        diffF         = angle * ERP_AngleMultiplier360();
     static double smoothedDiffF = 0.0;
     smoothedDiffF               = smoothedDiffF - (0.003 * (smoothedDiffF - diffF));
