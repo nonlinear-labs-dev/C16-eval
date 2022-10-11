@@ -16,7 +16,6 @@ namespace Task
 
     // pattern arrays (are read out MSB first)
     // lowest three bits are the sequence length in periods, 1..7, 0 is special and means infinite repeat
-    //                                         7654321|7654321|7654321|7654321|7654321|7654321|7654321|76543000 + len
 
     // off                              7654321|7654321|7654321|7654321|7654321|7654321|7654321|76543000 + len
     static constexpr uint64_t off = { 0b0000000000000000000000000000000000000000000000000000000000000000 + 1 };
@@ -64,6 +63,7 @@ namespace Task
       else
         m_patternReload = m_pattern;
       pinLRA_nENABLE = !0;
+      m_lraActivityLED.set(0);
     };
 
    public:
@@ -94,11 +94,15 @@ namespace Task
         if (m_slice)
         {
           pinLRA_nENABLE = !1;
-          pinLRA_0       = (m_pattern & (uint64_t(1) << 63)) != 0;
+          m_lraActivityLED.set(1);
+          pinLRA_0 = (m_pattern & (uint64_t(1) << 63)) != 0;
           m_pattern <<= 1;
         }
         else
+        {
           pinLRA_nENABLE = !0;
+          m_lraActivityLED.set(0);
+        }
       }
       else
         pinLRA_nENABLE = !0;
