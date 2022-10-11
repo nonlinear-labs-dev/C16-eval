@@ -1,7 +1,7 @@
 #pragma once
 
-#include <drv/IoPin.h>
 #include <stdint.h>
+#include "drv/IoPin.h"
 #include "usb/driver/nl_usb_midi.h"
 #include "usb/driver/nl_usb_core_circular_buffers.h"
 #include "tasks/mtask.h"
