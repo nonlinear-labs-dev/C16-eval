@@ -20,6 +20,7 @@ namespace Task
     IOpins::IOpin m_LED_uartError { pinLED_J };
     IOpins::IOpin m_LED_usbDelayedPacket { pinLED_H };
     IOpins::IOpin m_LED_adcOverrun { pinLED_I };
+    IOpins::IOpin m_LED_lraActivity { pinLED_G };
 
     inline void body(void)
     {
@@ -31,6 +32,7 @@ namespace Task
       m_LED_uartError.process();
       m_LED_usbDelayedPacket.process();
       m_LED_adcOverrun.process();
+      m_LED_lraActivity.process();
     };
   };
 }

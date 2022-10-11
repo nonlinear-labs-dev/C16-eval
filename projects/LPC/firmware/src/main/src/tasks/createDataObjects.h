@@ -5,13 +5,15 @@
 #pragma once
 
 #include <stdint.h>
-#include <tasks/uartEchoTestTask.h>
+#include "tasks/lraTask.h"
+#include "tasks/uartEchoTestTask.h"
 #include "tasks/allIOpinsTask.h"
 #include "tasks/statemonitor.h"
 #include "tasks/keybedScannerTask.h"
 #include "tasks/ledHeartBeatM4Task.h"
 #include "tasks/sensorDataWriterTask.h"
 #include "tasks/usbTask.h"
+#include "tasks/lraTask.h"
 #include "usb/driver/nl_usb_core_circular_buffers.h"
 
 namespace Task
@@ -68,6 +70,10 @@ namespace Task
     // task for uart processing
     UartEchoTest m_uartEchoTestTask { m_allTimedIoPinsTask.m_LED_uartActivity, m_allTimedIoPinsTask.m_LED_uartError };
 
+    // task for LRA handling
+    LRAHandler m_lraTask { 4, usToTicks(LRA::resonancePeriodInMicroseconds),
+                           m_allTimedIoPinsTask.m_LED_lraActivity };
+
     static inline constexpr uint32_t usToTicks(uint32_t const us)
     {
       return us / 125u;
@@ -87,6 +93,7 @@ namespace Task
       m_sensorDataWriterTask.dispatch();
       m_uartEchoTestTask.dispatch();
       m_ledHeartBeatM4Task.dispatch();
+      m_lraTask.dispatch();
 
       m_allTimedIoPinsTask.dispatch();
     };
@@ -99,6 +106,7 @@ namespace Task
       m_sensorDataWriterTask.run();
       m_uartEchoTestTask.run();
       m_ledHeartBeatM4Task.run();
+      m_lraTask.run();
 
       m_allTimedIoPinsTask.run();
     };
