@@ -16,6 +16,53 @@ static uint16_t adc_val;
 #define IPC_ADC_NUMBER_OF_CHANNELS (32u)
 #define ADC_RESOLUTION             (1024u)
 
+enum IPC_ADC_CHANNEL_IDS  // DO NOT CHANGE !
+{
+  // Endless Rotary Pots
+  ADC_ERP0_W0 = 0,
+  ADC_ERP0_W1 = 1,
+  ADC_ERP1_W0 = 2,
+  ADC_ERP1_W1 = 3,
+  ADC_ERP2_W0 = 4,
+  ADC_ERP2_W1 = 5,
+  ADC_ERP3_W0 = 6,
+  ADC_ERP3_W1 = 7,
+  ADC_ERP4_W0 = 8,
+  ADC_ERP4_W1 = 9,
+  ADC_ERP5_W0 = 10,
+  ADC_ERP5_W1 = 11,
+  ADC_ERP6_W0 = 12,
+  ADC_ERP6_W1 = 13,
+  ADC_ERP7_W0 = 14,
+  ADC_ERP7_W1 = 15,
+
+  // External Hardware Controllers (Pedals)
+  ADC_EHC0 = 16,
+  ADC_EHC1 = 17,
+  ADC_EHC2 = 18,
+  ADC_EHC3 = 19,
+  ADC_EHC4 = 20,
+  ADC_EHC5 = 21,
+  ADC_EHC6 = 22,
+  ADC_EHC7 = 23,
+
+  /* Internal Hardware Controllers */
+  ADC_IHC0 = 24,  // Aftertouch
+  ADC_AT   = ADC_IHC0,
+  ADC_IHC1 = 25,  // PitchBender
+  ADC_PB   = ADC_IHC1,
+  ADC_IHC2 = 26,  // Ribbon1
+  ADC_RIB1 = ADC_IHC2,
+  ADC_IHC3 = 27,  // Ribbon2
+  ADC_RIB2 = ADC_IHC3,
+
+  /* miscellaneous */
+  ADC_AMBLI1  = 28,  // Ambient Light Sensor 1
+  ADC_AMBLI2  = 29,  // Ambient Light Sensor 2
+  ADC_PSU_19V = 30,  // 19V Supply Monitor
+  ADC_PSU_5V  = 31,  // 5V Supply Monitor
+};
+
 // ADC ring buffers
 // Must be 2^N in size and >= 2. This also determines the averaging.
 // Size should NOT be very much larger than the number of aquisitions between M4 read-out operations

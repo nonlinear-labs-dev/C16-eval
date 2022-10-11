@@ -357,7 +357,7 @@ static inline void PINS_CriticalPinsInit(void)
 #define pinLRA_nENABLE GPIO_Word(0, 12)
   GPIO_DIR_OUT(0, 12);
   SFSP(1, 17)    = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 0;
-  pinLRA_nENABLE = 0u;
+  pinLRA_nENABLE = !0;
 
   // LRA_0
 #define pinLRA_0 GPIO_Word(0, 15)
