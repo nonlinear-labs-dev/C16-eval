@@ -37,11 +37,11 @@ namespace Usb
   class UsbMidiSysexWriter
   {
    private:
-    static constexpr unsigned   BUFFER_ELEM_COUNT             = sizeof(USB_BUFFER_FOR_SENSOR_DATA) / sizeof(USB_BUFFER_FOR_SENSOR_DATA[0]);
-    uint32_t *                  m_buffer                      = &USB_BUFFER_FOR_SENSOR_DATA[0];
-    unsigned                    m_bufIndex                    = 0;
-    unsigned                    m_sendBufferIndex             = 0;
-    unsigned                    m_currentTransactionElemCount = 0;
+    static constexpr unsigned   BUFFER_ELEM_COUNT { sizeof(USB_BUFFER_FOR_SENSOR_DATA) / sizeof(USB_BUFFER_FOR_SENSOR_DATA[0]) };
+    uint32_t *                  m_buffer { &USB_BUFFER_FOR_SENSOR_DATA[0] };
+    unsigned                    m_bufIndex { 0 };
+    unsigned                    m_sendBufferIndex { 0 };
+    unsigned                    m_currentTransactionElemCount { 0 };
     StateMonitor::StateMonitor &m_stateMonitor;
 
     // relies on buffer sizes being 2^N for efficiency (modulo operator optimized out)

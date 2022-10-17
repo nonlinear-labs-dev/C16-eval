@@ -16,10 +16,10 @@ namespace Task
   class Task
   {
    private:
-    unsigned m_period      = 0;
-    unsigned m_cntr        = 0;
-    int      m_start       = 0;
-    unsigned m_taskMaxTime = 0;
+    unsigned m_period { 0 };
+    unsigned m_cntr { 0 };
+    int      m_start { 0 };
+    unsigned m_taskMaxTime { 0 };
 
    public:
     // High priority task with no start delay and no time-slicing

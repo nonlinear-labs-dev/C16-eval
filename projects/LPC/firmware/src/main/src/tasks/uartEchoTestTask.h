@@ -12,7 +12,7 @@ namespace Task
    private:
     IOpins::IOpin& m_uartActivityLED;
     IOpins::IOpin& m_uartErrorLED;
-    uint32_t       m_lineStatus = 0;
+    uint32_t       m_lineStatus { 0 };
 
    public:
     constexpr UartEchoTest(IOpins::IOpin& uartActivityLED, IOpins::IOpin& uartErrorLED)

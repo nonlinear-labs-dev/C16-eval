@@ -24,8 +24,8 @@ namespace IOpins
    private:
     typedef uint32_t volatile t_ioPin;
     t_ioPin &m_ioPin;
-    unsigned m_step = 0;
-    unsigned m_cntr = 0;
+    unsigned m_step { 0 };
+    unsigned m_cntr { 0 };
 
    public:
     constexpr IOpin(t_ioPin &ioPin)
