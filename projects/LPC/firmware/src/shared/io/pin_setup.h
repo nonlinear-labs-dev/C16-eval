@@ -29,6 +29,10 @@
 #define __pIO16__ (volatile uint16_t * const)
 #define __pIO8__  (volatile uint8_t  * const)
 
+typedef volatile uint32_t * const pIO32;
+typedef volatile uint16_t * const pIO16;
+typedef volatile uint8_t * const pIO8;
+
 
 // ----- access the pin control register -----
 // the pin control details the physical pin, notably which of the many multiplexed functions will be used,
