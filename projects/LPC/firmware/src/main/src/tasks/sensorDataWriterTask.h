@@ -14,20 +14,18 @@ namespace Task
   static constexpr unsigned FOURTEEN_ONES            = 0b000000011111111111111;  // 2*7 ones DO NOT CHANGE
   static constexpr unsigned FAULT_ANGLE              = TWENTYONE_ONES;
 
-  template <typename tUsbMidiWriter>
   class SensorDataWriter : public Task::Task
   {
     using Task::Task;
 
    private:
-    unsigned                    m_tan;
-    tUsbMidiWriter&             m_sensorEventWriter;
+    unsigned                    m_tan { 0 };
+    Usb::UsbMidiSysexWriter&    m_sensorEventWriter;
     StateMonitor::StateMonitor& m_stateMonitor;
-    uint32_t                    m_adcBuffer[IPC_ADC_NUMBER_OF_CHANNELS];
 
    public:
     constexpr SensorDataWriter(uint32_t const delay, uint32_t const period,
-                               tUsbMidiWriter&             sensorEventWriter,
+                               Usb::UsbMidiSysexWriter&    sensorEventWriter,
                                StateMonitor::StateMonitor& stateMonitor)
         : Task(delay, period)
         , m_sensorEventWriter(sensorEventWriter)

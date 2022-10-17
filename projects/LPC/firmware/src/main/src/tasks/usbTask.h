@@ -2,16 +2,15 @@
 
 namespace Task
 {
-  template <typename tUsbMidiWriter>
   class UsbProcess : public Task::Task
   {
     using Task::Task;
 
    private:
-    tUsbMidiWriter& m_sensorAndKeyEventWriter;
+    Usb::UsbMidiSysexWriter& m_sensorAndKeyEventWriter;
 
    public:
-    constexpr UsbProcess(tUsbMidiWriter& usbMidiWriter)
+    constexpr UsbProcess(Usb::UsbMidiSysexWriter& usbMidiWriter)
         : m_sensorAndKeyEventWriter(usbMidiWriter) {};
 
     // no dispatcher and body needed

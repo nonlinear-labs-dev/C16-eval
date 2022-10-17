@@ -26,6 +26,11 @@ typedef struct
 
 extern USB_circularBuffers_t USB_circular;
 
+// link buffers to applications
+#define USB_BUFFER_FOR_SENSOR_DATA USB_circular.buffer_16k_0
+#define USB_BUFFER_BRIDGE_TO_HOST  USB_circular.buffer_8k_0
+#define USB_BUFFER_HOST_TO_BRIDGE  USB_circular.buffer_8k_1
+
 #ifdef INCLUDED_FROM_USB_CORE
 
 static inline int within(uint32_t const p, uint32_t const* const start, unsigned const length)

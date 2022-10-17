@@ -10,18 +10,17 @@ namespace Task
 {
   static constexpr unsigned KEYBED_DATA_CABLE_NUMBER = 1u;
 
-  template <typename tUsbMidiWriter>
   class KeybedScanner : public Task::Task
   {
     using Task::Task;
 
    private:
-    unsigned                    m_tan;
-    tUsbMidiWriter&             m_keyEventWriter;
+    unsigned                    m_tan { 0 };
+    Usb::UsbMidiSysexWriter&    m_keyEventWriter;
     StateMonitor::StateMonitor& m_stateMonitor;
 
    public:
-    constexpr KeybedScanner(tUsbMidiWriter& keyEventWriter, StateMonitor::StateMonitor& stateMonitor)
+    constexpr KeybedScanner(Usb::UsbMidiSysexWriter& keyEventWriter, StateMonitor::StateMonitor& stateMonitor)
         : Task()
         , m_keyEventWriter(keyEventWriter)
         , m_stateMonitor(stateMonitor) {};

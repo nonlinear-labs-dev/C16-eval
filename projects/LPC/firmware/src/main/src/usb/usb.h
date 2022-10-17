@@ -34,14 +34,11 @@ namespace Usb
     return (value & 0b1111111);
   }
 
-  // class with templated parameter is used for code efficiency.
-  // a class with real parameter, or subclasses using overloading, resulted in much slower code
-  template <enum USB_BufferType tBufferType>
   class UsbMidiSysexWriter
   {
    private:
-    static constexpr unsigned   BUFFER_ELEM_COUNT = unsigned(tBufferType) / sizeof(uint32_t);
-    uint32_t *                  m_buffer;
+    static constexpr unsigned   BUFFER_ELEM_COUNT             = sizeof(USB_BUFFER_FOR_SENSOR_DATA) / sizeof(USB_BUFFER_FOR_SENSOR_DATA[0]);
+    uint32_t *                  m_buffer                      = &USB_BUFFER_FOR_SENSOR_DATA[0];
     unsigned                    m_bufIndex                    = 0;
     unsigned                    m_sendBufferIndex             = 0;
     unsigned                    m_currentTransactionElemCount = 0;
@@ -64,10 +61,8 @@ namespace Usb
     };
 
    public:
-    constexpr UsbMidiSysexWriter(uint32_t *const             buffer,
-                                 StateMonitor::StateMonitor &stateMonitor)
-        : m_buffer(buffer)
-        , m_stateMonitor(stateMonitor) {};
+    constexpr UsbMidiSysexWriter(StateMonitor::StateMonitor &stateMonitor)
+        : m_stateMonitor(stateMonitor) {};
 
     inline int claimBufferElements(unsigned const requestedElemCount) const
     {

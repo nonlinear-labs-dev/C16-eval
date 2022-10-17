@@ -18,23 +18,6 @@
 
 namespace Task
 {
-
-  //
-  //  Helpers to setup the USB send/receive buffers
-  //
-  typedef Usb::UsbMidiSysexWriter<USB_CIRCULAR_4k>  tUsbMidiSysexWriter_4k;
-  typedef Usb::UsbMidiSysexWriter<USB_CIRCULAR_8k>  tUsbMidiSysexWriter_8k;
-  typedef Usb::UsbMidiSysexWriter<USB_CIRCULAR_16k> tUsbMidiSysexWriter_16k;
-
-#define mSensorAndKeyEventBufferDeclaration(bufferSize, bufferNumber)       \
-  /* bufferSize   can be "4k", "8k" or "16k" */                             \
-  /* bufferNumber can be "0" or "1" (only "0" for 16k) */                   \
-  typedef tUsbMidiSysexWriter_##bufferSize tUsbMidiSysexWriter_BufferSized; \
-  static constexpr uint32_t *const         sensorAndKeyEventBuffer = USB_circular.buffer_##bufferSize##_##bufferNumber
-
-  // 16k sensor buffer is good for ~300 packets, equivalent to ~0.15seconds (for a 2kHz send rate)
-  mSensorAndKeyEventBufferDeclaration(16k, 0);
-
   //
   //  Scheduler with Dispatch and Run functions
   //
@@ -52,20 +35,19 @@ namespace Task
                                           m_allTimedIoPinsTask.m_LED_m4HeartBeat };
 
     // shared MidiSysexWriter for Keybed Scanner and Sensor Scanner
-    tUsbMidiSysexWriter_BufferSized m_usbSensorAndKeyEventMidiSysexWriter { sensorAndKeyEventBuffer,
-                                                                            m_stateMonitor };
+    Usb::UsbMidiSysexWriter m_usbSensorAndKeyEventMidiSysexWriter { m_stateMonitor };
 
     // high prio task that handles the high level USB I/O
-    UsbProcess<tUsbMidiSysexWriter_BufferSized> m_usbProcessTask { m_usbSensorAndKeyEventMidiSysexWriter };
+    UsbProcess m_usbProcessTask { m_usbSensorAndKeyEventMidiSysexWriter };
 
     // high prio task for Keybed Scanner, shares a common MidiSysexWriter with Sensor Scanner
-    KeybedScanner<tUsbMidiSysexWriter_BufferSized> m_keybedScannerTask { m_usbSensorAndKeyEventMidiSysexWriter,
-                                                                         m_stateMonitor };
+    KeybedScanner m_keybedScannerTask { m_usbSensorAndKeyEventMidiSysexWriter,
+                                        m_stateMonitor };
 
     // task for Sensor Scanner, shares a common MidiSysexWriter with Keybed Scanner
-    SensorDataWriter<tUsbMidiSysexWriter_BufferSized> m_sensorDataWriterTask { 3, usToTicks(500),
-                                                                               m_usbSensorAndKeyEventMidiSysexWriter,
-                                                                               m_stateMonitor };
+    SensorDataWriter m_sensorDataWriterTask { 3, usToTicks(500),
+                                              m_usbSensorAndKeyEventMidiSysexWriter,
+                                              m_stateMonitor };
 
     // task for uart processing
     UartEchoTest m_uartEchoTestTask { m_allTimedIoPinsTask.m_LED_uartActivity, m_allTimedIoPinsTask.m_LED_uartError };
