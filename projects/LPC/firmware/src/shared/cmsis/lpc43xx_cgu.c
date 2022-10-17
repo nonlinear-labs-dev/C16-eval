@@ -39,6 +39,7 @@
 /* Includes ------------------------------------------------------------------- */
 #include "lpc_types.h"
 #include "lpc43xx_cgu.h"
+#include "M4_error.h"
 
 /** This define used to fix mistake when run with IAR compiler */
 #ifdef __ICCARM__
@@ -614,8 +615,9 @@ uint32_t CGU_EnableEntity(CGU_ENTITY_T ClockEntity, uint32_t en)
           ;
         /*post check lock status */
         if (!(LPC_CGU->PLL1_STAT & 1))
-          while (1)
-            ;
+        {
+          M4_error(M4_LED_ERROR_PATTERN_CGU_PLL_DID_NOT_LOCK);
+        }
       }
     }
   }

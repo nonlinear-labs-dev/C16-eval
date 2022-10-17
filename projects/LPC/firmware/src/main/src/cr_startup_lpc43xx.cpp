@@ -29,6 +29,7 @@
 // this code.
 //*****************************************************************************
 #include "io/pins.h"
+#include "M4_error.h"
 
 #if defined(__cplusplus)
 #ifdef __REDLIB__
@@ -316,11 +317,6 @@ extern unsigned int __data_section_table_end;
 extern unsigned int __bss_section_table;
 extern unsigned int __bss_section_table_end;
 
-inline void M4Error(void)
-{
-  pinLED_ERROR = pinLED_M4HB = 1;
-}
-
 //*****************************************************************************
 // Reset entry point for your code.
 // Sets up a simple runtime environment and initializes the C/C++
@@ -473,9 +469,7 @@ void ResetISR(void)
   //
   // main() shouldn't return, but if it does, we'll just enter an infinite loop
   //
-  PINS_CriticalPinsInit();
-  while (1)
-    M4Error();
+  M4_error(M4_LED_ERROR_PATTERN_MAIN_DID_RETURN);
 }
 
 //*****************************************************************************
@@ -484,57 +478,47 @@ void ResetISR(void)
 //*****************************************************************************
 __attribute__((section(".after_vectors"))) void NMI_Handler(void)
 {
-  PINS_CriticalPinsInit();
-  while (1)
-    M4Error();
+  M4_error(M4_LED_ERROR_HARD_FAULTS);
 }
+
 __attribute__((section(".after_vectors"))) void HardFault_Handler(void)
 {
-  PINS_CriticalPinsInit();
-  while (1)
-    M4Error();
+  M4_error(M4_LED_ERROR_HARD_FAULTS);
 }
 __attribute__((section(".after_vectors"))) void MemManage_Handler(void)
+
 {
-  PINS_CriticalPinsInit();
-  while (1)
-    M4Error();
+  M4_error(M4_LED_ERROR_HARD_FAULTS);
 }
+
 __attribute__((section(".after_vectors"))) void BusFault_Handler(void)
 {
-  PINS_CriticalPinsInit();
-  while (1)
-    M4Error();
+  M4_error(M4_LED_ERROR_HARD_FAULTS);
 }
+
 __attribute__((section(".after_vectors"))) void UsageFault_Handler(void)
 {
-  PINS_CriticalPinsInit();
-  while (1)
-    M4Error();
+  M4_error(M4_LED_ERROR_HARD_FAULTS);
 }
+
 __attribute__((section(".after_vectors"))) void SVC_Handler(void)
 {
-  PINS_CriticalPinsInit();
-  while (1)
-    M4Error();
+  M4_error(M4_LED_ERROR_HARD_FAULTS);
 }
+
 __attribute__((section(".after_vectors"))) void DebugMon_Handler(void)
 {
-  PINS_CriticalPinsInit();
-  while (1)
-    M4Error();
+  M4_error(M4_LED_ERROR_HARD_FAULTS);
 }
+
 __attribute__((section(".after_vectors"))) void PendSV_Handler(void)
 {
-  PINS_CriticalPinsInit();
-  while (1)
-    M4Error();
+  M4_error(M4_LED_ERROR_HARD_FAULTS);
 }
+
 __attribute__((section(".after_vectors"))) void SysTick_Handler(void)
 {
-  PINS_CriticalPinsInit();
-  while (1)
-    M4Error();
+  M4_error(M4_LED_ERROR_HARD_FAULTS);
 }
 
 //*****************************************************************************
@@ -545,7 +529,5 @@ __attribute__((section(".after_vectors"))) void SysTick_Handler(void)
 //*****************************************************************************
 __attribute__((section(".after_vectors"))) void IntDefaultHandler(void)
 {
-  PINS_CriticalPinsInit();
-  while (1)
-    M4Error();
+  M4_error(M4_LED_ERROR_HARD_FAULTS);
 }

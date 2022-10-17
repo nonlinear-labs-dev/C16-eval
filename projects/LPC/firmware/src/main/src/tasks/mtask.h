@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 #include "io/pins.h"
+#include "M4_error.h"
 #include "ipc/ipc.h"
 
 #define TASK_CHECK_OVERRUN (01)
@@ -44,10 +45,7 @@ namespace Task
 #if TASK_CHECK_OVERRUN
       if (m_start && m_period)  // overrun
       {
-        PINS_CriticalPinsInit();
-        __asm volatile("cpsid i");
-        while (1)
-          pinLED_ERROR = 1;
+        M4_error(M4_LED_ERROR_TASK_OVERRUN);
       }
 #endif
 
