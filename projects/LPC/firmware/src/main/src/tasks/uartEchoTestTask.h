@@ -3,6 +3,7 @@
 #include "tasks/mtask.h"
 #include "drv/IoPin.h"
 #include "sys/uart.h"
+#include "uart/driver/uartDriver.h"
 
 namespace Task
 {

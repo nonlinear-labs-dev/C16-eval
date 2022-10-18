@@ -24,7 +24,7 @@ namespace StateMonitor
     StateMonitor(Task::AllIoPins &allIoPins)
         : m_allIoPins(allIoPins) {};
 
-    inline uint32_t getStatus(void)
+    inline uint32_t getStatus(void) const
     {
       return m_statusWord;
     };
