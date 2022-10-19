@@ -3,7 +3,7 @@
 #include "drv/nl_cgu.h"
 #include "ipc/ipc.h"
 #include "cr_start_m0.h"
-#include "sys/uart.h"
+#include "drv/uart/uartHardware.h"
 
 #include "usb/driver/nl_usb_midi.h"
 #include "usb/driver/nl_usb_descmidi.h"

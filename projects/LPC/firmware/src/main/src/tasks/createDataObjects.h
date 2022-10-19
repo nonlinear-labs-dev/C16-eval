@@ -6,7 +6,7 @@
 
 #include <stdint.h>
 #include "tasks/lraTask.h"
-#include "tasks/uartEchoTestTask.h"
+#include "tasks/uartTask.h"
 #include "tasks/allIOpinsTask.h"
 #include "tasks/statemonitor.h"
 #include "tasks/keybedScannerTask.h"
@@ -50,7 +50,7 @@ namespace Task
                                               m_stateMonitor };
 
     // task for uart processing
-    UartEchoTest m_uartEchoTestTask { m_allTimedIoPinsTask.m_LED_uartActivity, m_allTimedIoPinsTask.m_LED_uartError };
+    Uart m_uartTask { m_allTimedIoPinsTask.m_LED_uartActivity, m_allTimedIoPinsTask.m_LED_uartError };
 
     // task for LRA handling
     LRAHandler m_lraTask { 4, usToTicks(LRA::resonancePeriodInMicroseconds),
@@ -73,7 +73,7 @@ namespace Task
       m_usbProcessTask.dispatch();
 
       m_sensorDataWriterTask.dispatch();
-      m_uartEchoTestTask.dispatch();
+      m_uartTask.dispatch();
       m_ledHeartBeatM4Task.dispatch();
       m_lraTask.dispatch();
 
@@ -86,7 +86,7 @@ namespace Task
       m_usbProcessTask.run();
 
       m_sensorDataWriterTask.run();
-      m_uartEchoTestTask.run();
+      m_uartTask.run();
       m_ledHeartBeatM4Task.run();
       m_lraTask.run();
 
