@@ -4,6 +4,7 @@
 #include "drv/IoPin.h"
 #include "drv/EHC.h"
 #include "tasks/lraTask.h"
+#include "uartReceiveParserIds.h"
 
 namespace UartReceiveParser
 {
@@ -11,12 +12,6 @@ namespace UartReceiveParser
   IOpins::IOpin *   pUartActivityLED;
   IOpins::IOpin *   pUartErrorLED;
   Task::LRAHandler *pLraHandler;
-
-  enum ContentIds
-  {
-    EhcSetup   = 'E',
-    LraControl = 'L',
-  };
 
   inline static void setLeds(IOpins::IOpin &UartActivityLED, IOpins::IOpin &UartErrorLED)
   {
