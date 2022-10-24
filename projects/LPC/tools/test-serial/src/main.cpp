@@ -16,7 +16,7 @@
 #include "uart/uartReceiveParserIds.h"
 #include "LRApatternIds.h"
 
-void setupPort(int const portFd)
+static void setupPort(int const portFd)
 {
   // clear RTS and DTR
   int data = TIOCM_RTS;
@@ -63,6 +63,16 @@ void setupPort(int const portFd)
     exit(3);
 }
 
+static void prompt(char const* const pString)
+{
+  if (pString)
+    printf("%s", pString);
+  char*   line     = nullptr;
+  size_t  len      = 0;
+  ssize_t lineSize = getline(&line, &len, stdin);
+  free(line);
+}
+
 int main(void)
 {
   int portFd = open("/dev/ttyUSB0", O_RDWR | O_NOCTTY);
@@ -70,6 +80,8 @@ int main(void)
     return 3;
 
   setupPort(portFd);
+
+  prompt("Start LPC Debugger (if required) and press Enter...");
 
   uint8_t sendMsg[] = {
     UartProtocol::MAGIC0,
@@ -84,7 +96,8 @@ int main(void)
   if (write(portFd, sendMsg, sizeof sendMsg) == -1)
     return 3;
 
-  sleep(3);
+  prompt("press Enter to terminate...");
+
   close(portFd);
   return 0;
 }
