@@ -1,36 +1,40 @@
 #pragma once
 
 #include "tasks/mtask.h"
+#include "tasks/lraTask.h"
 #include "drv/IoPin.h"
 #include "drv/uart/uartHardware.h"
 #include "drv/uart/uartProtocol.h"
+#include "drv/uart/uartReceiveParser.h"
 
 namespace Task
 {
-  static void uartReceiveComplete_Callback(uint8_t contentId, uint8_t len, uint8_t* pData)
-  {
-	  // TODO : Message Parser/Handler
-  }
-
   class Uart : public Task::Task
   {
    private:
     IOpins::IOpin&         m_uartActivityLED;
     IOpins::IOpin&         m_uartErrorLED;
     uint32_t               m_lineStatus { 0 };
-    UartProtocol::RxParser m_rxParser { uartReceiveComplete_Callback };
+    UartProtocol::RxParser m_rxParser { UartReceiveParser::uartReceiveComplete_Callback };
 
    public:
-    Uart(IOpins::IOpin& uartActivityLED, IOpins::IOpin& uartErrorLED)
+    Uart(IOpins::IOpin& uartActivityLED, IOpins::IOpin& uartErrorLED, LRAHandler& lraHandler)
         : Task()
         , m_uartActivityLED(uartActivityLED)
-        , m_uartErrorLED(uartErrorLED) {};
+        , m_uartErrorLED(uartErrorLED)
+    {
+      UartReceiveParser::setLeds(m_uartActivityLED, m_uartErrorLED);
+      UartReceiveParser::setLraHandler(lraHandler);
+    };
 
     Uart(uint32_t const delay, uint32_t const period,
-         IOpins::IOpin& uartActivityLED, IOpins::IOpin& uartErrorLED)
+         IOpins::IOpin& uartActivityLED, IOpins::IOpin& uartErrorLED, LRAHandler& lraHandler)
         : Task(delay, period)
         , m_uartActivityLED(uartActivityLED)
-        , m_uartErrorLED(uartErrorLED) {};
+        , m_uartErrorLED(uartErrorLED)
+    {
+      UartReceiveParser::setLeds(m_uartActivityLED, m_uartErrorLED);
+    };
 
     inline void body(void)
     {
@@ -46,10 +50,10 @@ namespace Task
         }
         if (!UART_DataAvailable(m_lineStatus))
           break;
+        m_uartActivityLED.timedOn(1);
         m_rxParser.onByteReceived(UART_ReceiveByte());
         if (m_rxParser.getAndClearError() != UartProtocol::RxParser::Errors::None)
           m_uartErrorLED.timedOn(10);
-        m_uartActivityLED.timedOn(1);
       }
     }
 

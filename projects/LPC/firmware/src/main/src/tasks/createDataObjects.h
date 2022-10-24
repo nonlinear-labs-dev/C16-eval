@@ -15,6 +15,7 @@
 #include "tasks/usbTask.h"
 #include "tasks/lraTask.h"
 #include "usb/driver/nl_usb_core_circular_buffers.h"
+#include "drv/LRA.h"
 
 namespace Task
 {
@@ -49,12 +50,12 @@ namespace Task
                                               m_usbSensorAndKeyEventMidiSysexWriter,
                                               m_stateMonitor };
 
-    // task for uart processing
-    Uart m_uartTask { m_allTimedIoPinsTask.m_LED_uartActivity, m_allTimedIoPinsTask.m_LED_uartError };
-
     // task for LRA handling
-    LRAHandler m_lraTask { 4, usToTicks(LRA::resonancePeriodInMicroseconds),
+    LRAHandler m_lraTask { 4, usToTicks(LraHardware::resonancePeriodInMicroseconds),
                            m_allTimedIoPinsTask.m_LED_lraActivity };
+
+    // task for uart processing
+    Uart m_uartTask { m_allTimedIoPinsTask.m_LED_uartActivity, m_allTimedIoPinsTask.m_LED_uartError, m_lraTask };
 
     static inline constexpr uint32_t usToTicks(uint32_t const us)
     {
