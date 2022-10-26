@@ -345,6 +345,21 @@ static inline void PINS_NormalPinsInit(void)
 #define pinBUTTON_D GPIO_Bit(5, 13)
   GPIO_DIR_IN(5, 13);
   SFSP(4, 9) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPU + 4;
+
+  //
+  // Rotary Encoder
+  //
+#define pinENC_BUTTON GPIO_Bit(0, 10)
+  GPIO_DIR_IN(0, 10);
+  SFSP(1, 3) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_DPD + SFS_DPU + 0;
+
+#define pinENC_B GPIO_Word(1, 8)
+  GPIO_DIR_IN(1, 8);
+  SFSP(1, 5) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_DPD + SFS_DPU + 0;
+
+#define pinENC_A GPIO_Word(2, 11)
+  GPIO_DIR_IN(2, 11);
+  SFSP(5, 2) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_DPD + SFS_DPU + 0;
 }
 
 static inline void PINS_CriticalPinsInit(void)

@@ -6,17 +6,9 @@
 namespace IOpins
 {
 
-// clang-format off
-#define ehcSetup_Default(channel)  pinEHC_PU_##channel = 1, pinEHC_PD_##channel = 1, pinEHC_nSER_##channel = !1
-#define ehcSetup_Unloaded(channel) pinEHC_PU_##channel = 0, pinEHC_PD_##channel = 0, pinEHC_nSER_##channel = !1
-#define ehcSetup_Pullup(channel)   pinEHC_PU_##channel = 1, pinEHC_PD_##channel = 0, pinEHC_nSER_##channel = !0
-#define ehcSetup_CVm5p5(channel)   pinEHC_PU_##channel = 1, pinEHC_PD_##channel = 0, pinEHC_nSER_##channel = !1
-#define ehcSetup_CV0p10(channel)   pinEHC_PU_##channel = 0, pinEHC_PD_##channel = 1, pinEHC_nSER_##channel = !1
-  // clang-format on
-
   inline uint32_t readButtons(void)
   {
-    return 0b1111 ^ (pinBUTTON_D << 3 | pinBUTTON_C << 2 | pinBUTTON_B << 1 | pinBUTTON_A << 0);
+    return 0b11111 ^ (pinENC_BUTTON << 4 | pinBUTTON_D << 3 | pinBUTTON_C << 2 | pinBUTTON_B << 1 | pinBUTTON_A << 0);
   }
 
   class IOpin
