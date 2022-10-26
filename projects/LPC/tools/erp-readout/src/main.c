@@ -457,6 +457,13 @@ static inline BOOL examineContent(void const *const data, unsigned const len)
   int      lsd1      = (int) pErpData[32] * 128u + pErpData[33];
   int      lsd2      = (int) pErpData[34] * 128u + pErpData[35];
 
+  if (lsd0 >= 8192)
+    lsd0 = lsd0 - 16384;
+  if (lsd1 >= 8192)
+    lsd1 = lsd1 - 16384;
+  if (lsd2 >= 8192)
+    lsd2 = lsd2 - 16384;
+
   static int ehc0 = 1;
   static int ehc1 = 1;
   static int ehc2 = 1;
@@ -508,8 +515,8 @@ static inline BOOL examineContent(void const *const data, unsigned const len)
       psu0 = lsd2;
       break;
     case 5:
-      psu1    = lsd0;
-      rotenc  = lsd1;
+      psu1 = lsd0;
+      rotenc += lsd1;
       buttons = lsd2;
       break;
   }
@@ -545,7 +552,8 @@ static inline BOOL examineContent(void const *const data, unsigned const len)
   printf("%5d(%5.1lfV) ", psu0, (double) (psu0 - 1) / 2046 / (1.72 / 3.3) * 19.0);
   printf("%5d(%5.2lfV)\n", psu1, (double) (psu1 - 1) / 2046 / (3.113 / 3.3) * 5.0);
   printf("S:%08X ", stat);
-  printf("B:%01X ", buttons);
+  printf("B:%02X ", buttons);
+  printf("R:%+5d ", rotenc);
   printf("\n");
   cursorUp(1);
 
