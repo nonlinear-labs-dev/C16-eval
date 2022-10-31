@@ -10,7 +10,6 @@ namespace StateMonitor
     ERROR_SENSOR_DATA_LOSS,
     ERROR_KEYBED_DATA_LOSS,
     ERROR_ADC_OVERRUN,
-    ERROR_ENCODER_OVERRUN,
     WARNING_USB_DELAYED_PACKET,
     INFO_KEYBED_EVENT,
   };
@@ -44,7 +43,6 @@ namespace StateMonitor
           break;
 
         case ERROR_ADC_OVERRUN:
-        case ERROR_ENCODER_OVERRUN:
           m_allIoPins.m_LED_adcOverrun.timedOn(10);
           break;
 
