@@ -142,6 +142,18 @@ static inline void PINS_NormalPinsInit(void)
   SFSP(6, 1) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 0;
   pinTP6_1   = 0u;
 
+  // TP_6_3
+#define pinTP6_3 GPIO_Word(3, 1)
+  GPIO_DIR_OUT(3, 1);
+  SFSP(6, 2) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 0;
+  pinTP6_3   = 0u;
+
+  // TP_6_5
+#define pinTP6_5 GPIO_Word(3, 2)
+  GPIO_DIR_OUT(3, 2);
+  SFSP(6, 5) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_EPD + SFS_EPU + 0;
+  pinTP6_5   = 0u;
+
   //
   // -------- Aux/Debug LEDs --------
   //
@@ -353,11 +365,11 @@ static inline void PINS_NormalPinsInit(void)
   GPIO_DIR_IN(0, 10);
   SFSP(1, 3) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_DPD + SFS_DPU + 0;
 
-#define pinENC_B GPIO_Word(1, 8)
+#define pinENC_B GPIO_Bit(1, 8)
   GPIO_DIR_IN(1, 8);
   SFSP(1, 5) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_DPD + SFS_DPU + 0;
 
-#define pinENC_A GPIO_Word(2, 11)
+#define pinENC_A GPIO_Bit(2, 11)
   GPIO_DIR_IN(2, 11);
   SFSP(5, 2) = SFS_EIF + SFS_EIB + SFS_DHS + SFS_DPD + SFS_DPU + 0;
 }
