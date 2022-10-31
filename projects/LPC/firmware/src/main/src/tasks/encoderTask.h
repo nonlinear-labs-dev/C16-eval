@@ -7,123 +7,92 @@
 namespace Task
 {
 
-  class Encoder : public Task::Task
+  class Encoder
   {
    private:
-    StateMonitor::StateMonitor& m_stateMonitor;
-    unsigned                    read_step { 0 };       // step-chain variable
-    uint8_t                     old_pattern { 0xFF };  // force initial difference
-    int                         direction { 0 };       // -1 == left(inc), +1 == right(dec), 0 == no change
-    int                         enc_delta { 0 };
+    enum class States
+    {
+      WaitForIdle_SameState,
+      WaitForFirstTransition_fromBothLow,
+      WaitForSecondTransition_fromBothLow,
+      WaitForFirstTransition_fromBothHigh,
+      WaitForSecondTransition_fromBothHigh,
+    };
+
+    enum States m_state
+    {
+      States::WaitForIdle_SameState
+    };                              // step-chain state variable
+    uint8_t m_oldPattern { 0xFF };  // force initial difference
+    int     m_direction { 0 };      // -1 == left(inc), +1 == right(dec), 0 == no change
+    int     m_stepsAccumulator { 0 };
 
    public:
-    constexpr Encoder(uint32_t const delay, uint32_t const period, StateMonitor::StateMonitor& stateMonitor)
-        : Task(delay, period)
-        , m_stateMonitor(stateMonitor) {};
-
-    inline void body(void)
+    inline void run(void)
     {
-      uint8_t pattern;  // bit 0 == A, bit 1 == B
-      int     retVal = 0;
+      uint8_t pattern = uint8_t(pinENC_B << 1) | uint8_t(pinENC_A);
 
-      pattern = 0;
-      if (pinENC_A)
-        pattern |= 0b01;
-      if (pinENC_B)
-        pattern |= 0b10;
+      if (pattern == m_oldPattern)
+        return;
 
-      if (pattern != old_pattern)  // state change ?
+      if ((pattern ^ m_oldPattern) == 0b11)  // both bits have flipped, we missed a transition --> full reset step-chain
+        m_state = States::WaitForIdle_SameState;
+
+      m_oldPattern = pattern;
+
+      switch (m_state)
       {
-        retVal = +1;
-        if ((pattern ^ old_pattern) == 0b11)
-        {  // both bits have flipped, we missed a transition --> reset step-chain
-          read_step = 0;
-          retVal    = -1;
-        }
-        old_pattern = pattern;
+        case States::WaitForIdle_SameState:
+          if (pattern == 0b00)
+            m_state = States::WaitForFirstTransition_fromBothLow;
+          else if (pattern == 0b11)
+            m_state = States::WaitForFirstTransition_fromBothHigh;
+          return;
 
-        switch (read_step)
-        {
-          case 0:  // wait for idle state (until A == B)
-            if (pattern == 0b00)
-              read_step = 10;  // start from both low
-            else if (pattern == 0b11)
-              read_step = 20;  // start from both high
-            break;
+        case States::WaitForFirstTransition_fromBothLow:
+          if (pattern == 0b01)  // A went high --> increment
+            m_direction = +1, m_state = States::WaitForSecondTransition_fromBothLow;
+          else if (pattern == 0b10)  // B went high --> decrement
+            m_direction = -1, m_state = States::WaitForSecondTransition_fromBothLow;
+          return;
 
-          case 10:                // wait for first transition, starting both low
-            if (pattern == 0b01)  // A went high --> increment
-            {
-              direction = +1;
-              read_step = 11;  // wait for next transition
-            }
-            else if (pattern == 0b10)  // B went high --> decrement
-            {
-              direction = -1;
-              read_step = 11;  // wait for next transition,
-            }
-            break;
+        case States::WaitForSecondTransition_fromBothLow:
+          if (pattern == 0b11)  // both are high now --> trigger event
+            m_stepsAccumulator += m_direction, m_state = States::WaitForFirstTransition_fromBothHigh;
+          else if (pattern == 0b00)  // both went low again --> operation incomplete (bouncing), restart
+            m_state = States::WaitForFirstTransition_fromBothLow;
+          return;
 
-          case 11:                // wait for second transition, either both going high or low
-            if (pattern == 0b11)  // both went high --> trigger
-            {
-              enc_delta += direction;
-              direction = 0;
-              read_step = 20;  // step chain starts again with both high
-            }
-            else if (pattern == 0b00)  // both went low again --> operation incomplete, reset
-            {
-              direction = 0;
-              read_step = 10;  // reset step chain
-              retVal    = -1;
-            }
-            break;
+        case States::WaitForFirstTransition_fromBothHigh:
+          if (pattern == 0b10)  // A went low --> increment
+            m_direction = +1, m_state = States::WaitForSecondTransition_fromBothHigh;
+          else if (pattern == 0b01)  // B went low --> decrement
+            m_direction = -1, m_state = States::WaitForSecondTransition_fromBothHigh;
+          return;
 
-          case 20:                // wait for first transition, starting both high
-            if (pattern == 0b10)  // A went low --> increment
-            {
-              direction = +1;
-              read_step = 21;  // wait for next transition
-            }
-            else if (pattern == 0b01)  // B went low --> decrement
-            {
-              direction = -1;
-              read_step = 21;  // wait for next transition,
-            }
-            break;
-
-          case 21:                // wait for second transition, either both going low or high
-            if (pattern == 0b00)  // both went low --> trigger
-            {
-              enc_delta += direction;
-              direction = 0;
-              read_step = 10;  // step chain starts again with both low
-            }
-            else if (pattern == 0b11)  // both went high again --> operation incomplete, reset
-            {
-              direction = 0;
-              read_step = 20;  // reset step chain
-              retVal    = -1;
-            }
-            break;
-        }
-      }
-      if (retVal == -1)
-        m_stateMonitor.event(StateMonitor::ERROR_ENCODER_OVERRUN);
+        case States::WaitForSecondTransition_fromBothHigh:
+          if (pattern == 0b00)  // both are low now --> trigger event
+            m_stepsAccumulator += m_direction, m_state = States::WaitForFirstTransition_fromBothLow;
+          else if (pattern == 0b11)  // both went high again --> operation incomplete (bouncing), restart
+            m_state = States::WaitForFirstTransition_fromBothHigh;
+          break;
+      }  // switch
     };
 
     inline int getAndClearEncoderDelta(void)
     {
-      int tmp_delta = enc_delta;
+      asm volatile("cpsid i");  // mutex
 
-      if (enc_delta > +16383)
-        tmp_delta = +16383;
-      else if (enc_delta < -16384)
-        tmp_delta = -16384;
+      int stepsAccumulator = m_stepsAccumulator;
+      if (m_stepsAccumulator > +16383)
+        stepsAccumulator = +16383;
+      else if (m_stepsAccumulator < -16384)
+        stepsAccumulator = -16384;
+      m_stepsAccumulator = 0;
 
-      enc_delta = 0;
+      asm volatile("cpsie i");
 
-      return tmp_delta;
+      return stepsAccumulator;
     };
 
   };  // class Encoder
