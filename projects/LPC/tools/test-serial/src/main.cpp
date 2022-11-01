@@ -93,26 +93,30 @@ int main(void)
     0x1B,  // tanHi
     0x1B,  // tanHi (doubled)
     0x22,  // tanLo
-    0x0C,  // lraCtrl
+    0x01,  // lraCtrl LRA0, SingleBlip_Soft
   };
 
-  if (write(portFd, sendMsg, sizeof sendMsg) == -1)
-    return 3;
-
-  unsigned cnt = 0;
-  while (cnt < 4 + 1 + 1 + 2 + 1)
+  while (1)
   {
-    ssize_t ret;
-    uint8_t byte;
-    do
-      ret = read(portFd, &byte, 1);
-    while (ret != 1);
-    printf("%02X ", byte);
+    if (write(portFd, sendMsg, sizeof sendMsg) == -1)
+      return 3;
+    printf("message sent\nReading...");
+
+    unsigned cnt = 0;
+    while (cnt < 4 + 1 + 1 + 2 + 1)
+    {
+      ssize_t ret;
+      uint8_t byte;
+      do
+        ret = read(portFd, &byte, 1);
+      while (ret != 1);
+      printf("%02X ", byte);
+      fflush(stdout);
+      cnt++;
+    }
+    printf("\n");
     fflush(stdout);
-    cnt++;
   }
-  printf("\n");
-  fflush(stdout);
 
   prompt("press Enter to terminate...");
 
