@@ -13,7 +13,7 @@
 #include <linux/tty_flags.h>  // for ASYNC_LOW_LATENCY
 
 #include "uart/uartProtocol.h"
-#include "uart/uartReceiveParserIds.h"
+#include "uart/uartProtocolDefs.h"
 #include "LRApatternIds.h"
 
 static void setupPort(int const portFd)
@@ -88,13 +88,31 @@ int main(void)
     UartProtocol::MAGIC1,
     UartProtocol::MAGIC2,
     UartProtocol::MAGIC3,
-    UartReceiveParser::LraControl,
-    1,
-    0x0C,
+    uint8_t(UartProtocol::MessageIds::LraControl),
+    3,     // msgSize
+    0x1B,  // tanHi
+    0x1B,  // tanHi (doubled)
+    0x22,  // tanLo
+    0x0C,  // lraCtrl
   };
 
   if (write(portFd, sendMsg, sizeof sendMsg) == -1)
     return 3;
+
+  unsigned cnt = 0;
+  while (cnt < 4 + 1 + 1 + 2 + 1)
+  {
+    ssize_t ret;
+    uint8_t byte;
+    do
+      ret = read(portFd, &byte, 1);
+    while (ret != 1);
+    printf("%02X ", byte);
+    fflush(stdout);
+    cnt++;
+  }
+  printf("\n");
+  fflush(stdout);
 
   prompt("press Enter to terminate...");
 
