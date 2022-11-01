@@ -36,12 +36,12 @@ namespace EhcHardware
     pinEHC_PD_7 = (pulldownRs & (1 << 7));
   }
 
-  // clang-format off
-  #define ehcSetup_Default(channel)  pinEHC_PU_##channel = 1, pinEHC_PD_##channel = 1, pinEHC_nSER_##channel = !1
-  #define ehcSetup_Unloaded(channel) pinEHC_PU_##channel = 0, pinEHC_PD_##channel = 0, pinEHC_nSER_##channel = !1
-  #define ehcSetup_Pullup(channel)   pinEHC_PU_##channel = 1, pinEHC_PD_##channel = 0, pinEHC_nSER_##channel = !0
-  #define ehcSetup_CVm5p5(channel)   pinEHC_PU_##channel = 1, pinEHC_PD_##channel = 0, pinEHC_nSER_##channel = !1
-  #define ehcSetup_CV0p10(channel)   pinEHC_PU_##channel = 0, pinEHC_PD_##channel = 1, pinEHC_nSER_##channel = !1
-  // clang-format on
+  //
+  //  #define ehcSetup_Default(channel)  pinEHC_PU_##channel = 1, pinEHC_PD_##channel = 1, pinEHC_nSER_##channel = !1
+  //  #define ehcSetup_Unloaded(channel) pinEHC_PU_##channel = 0, pinEHC_PD_##channel = 0, pinEHC_nSER_##channel = !1
+  //  #define ehcSetup_Pullup(channel)   pinEHC_PU_##channel = 1, pinEHC_PD_##channel = 0, pinEHC_nSER_##channel = !0
+  //  #define ehcSetup_CVm5p5(channel)   pinEHC_PU_##channel = 1, pinEHC_PD_##channel = 0, pinEHC_nSER_##channel = !1
+  //  #define ehcSetup_CV0p10(channel)   pinEHC_PU_##channel = 0, pinEHC_PD_##channel = 1, pinEHC_nSER_##channel = !1
+  //
 
 }  // namespace
