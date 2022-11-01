@@ -5,17 +5,20 @@
 #include "drv/IoPin.h"
 #include "drv/uart/uartHardware.h"
 #include "drv/uart/uartProtocol.h"
-#include "drv/uart/uartReceiveParser.h"
+#include "drv/uart/uartCallbacks.h"
+#include "drv/uart/uartMessageComposer.h"
 
 namespace Task
 {
   class Uart : public Task::Task
   {
    private:
-    IOpins::IOpin&         m_uartActivityLED;
-    IOpins::IOpin&         m_uartErrorLED;
-    uint32_t               m_lineStatus { 0 };
-    UartProtocol::RxParser m_rxParser { UartReceiveParser::uartReceiveComplete_Callback };
+    IOpins::IOpin&                m_uartActivityLED;
+    IOpins::IOpin&                m_uartErrorLED;
+    uint32_t                      m_lineStatus { 0 };
+    UartProtocol::TxAssembler     m_txAssembler { UartProtocol::uartTransmitCallback };
+    UartProtocol::MessageComposer m_msgComposer { m_txAssembler };
+    UartProtocol::RxParser        m_rxParser { UartProtocol::uartReceiveComplete_Callback };
 
    public:
     Uart(IOpins::IOpin& uartActivityLED, IOpins::IOpin& uartErrorLED, LRAHandler& lraHandler)
@@ -23,24 +26,23 @@ namespace Task
         , m_uartActivityLED(uartActivityLED)
         , m_uartErrorLED(uartErrorLED)
     {
-      UartReceiveParser::setLeds(m_uartActivityLED, m_uartErrorLED);
-      UartReceiveParser::setLraHandler(lraHandler);
+      UartProtocol::setLeds(m_uartActivityLED, m_uartErrorLED);
+      UartProtocol::setLraHandler(lraHandler);
+      UartProtocol::setMsgComposer(m_msgComposer);
     };
 
-    Uart(uint32_t const delay, uint32_t const period,
-         IOpins::IOpin& uartActivityLED, IOpins::IOpin& uartErrorLED, LRAHandler& lraHandler)
-        : Task(delay, period)
-        , m_uartActivityLED(uartActivityLED)
-        , m_uartErrorLED(uartErrorLED)
-    {
-      UartReceiveParser::setLeds(m_uartActivityLED, m_uartErrorLED);
-    };
+    // no dispatcher and body needed
+    inline void dispatch(void) {};
+    inline void body(void) {};
 
-    inline void body(void)
+    inline void run(void)
     {
       while (1)
       {
         m_lineStatus = UART_GetAndClearLineStatusRegister();
+
+        m_txAssembler.processPendingTransmits(m_lineStatus);
+
         if (UART_ReceiveError(m_lineStatus))
         {
           m_rxParser.onByteReceived(-1);         // force abort...

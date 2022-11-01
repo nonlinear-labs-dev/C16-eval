@@ -6,7 +6,7 @@ namespace LRA
 {
 
   enum class LraPatternsIds
-  {
+  {  // make sure these definitions fit into a 0..31 integer space !!!
     Off = 0,
 
     SingleBlip_VerySoft,

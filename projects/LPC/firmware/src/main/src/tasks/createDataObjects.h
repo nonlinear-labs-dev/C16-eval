@@ -46,7 +46,7 @@ namespace Task
     KeybedScanner m_keybedScannerTask { m_usbSensorAndKeyEventMidiSysexWriter,
                                         m_stateMonitor };
 
-    // Interrupt Task for Rotary Encoder, runs at 4x speed (31us)
+    // Interrupt task for Rotary Encoder, runs at 4x speed (31us)
     Encoder m_encoder;
 
     // task for Sensor Scanner, shares a common MidiSysexWriter with Keybed Scanner
@@ -59,7 +59,7 @@ namespace Task
     LRAHandler m_lraTask { 4, usToTicks(LraHardware::resonancePeriodInMicroseconds),
                            m_allTimedIoPinsTask.m_LED_lraActivity };
 
-    // task for uart processing
+    // high prio task for uart processing
     Uart m_uartTask { m_allTimedIoPinsTask.m_LED_uartActivity, m_allTimedIoPinsTask.m_LED_uartError, m_lraTask };
 
     static inline constexpr uint32_t usToTicks(uint32_t const us)

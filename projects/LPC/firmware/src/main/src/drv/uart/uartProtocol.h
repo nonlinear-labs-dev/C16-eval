@@ -1,49 +1,22 @@
 // ------- UART (Serial Interface) Driver, middle layer -------
 
 /*
- * This driver parses the incoming bytes from the hardware driver and calls the application layer callback
+ * The driver parses the incoming bytes from the hardware driver and calls the application layer callback
  * once a message is complete.
- *
- * Every message consists of a header, formed by 4 magic bytes, and a a body, containing the message ID,
- * the message length and the actual message payload (which can be zero length).
- *
- * The header is also used to reliably sync receiver to the transmitter when communication sets in
- * at an arbitrary point (or breaks and resumes).
- *
- * This is achieved by the special Escape pattern that is never appearing outside
- * of the header section because
- *  - outside of the header every ESC symbol is doubled,
- *  - message ID cannot be ESC, that is, there is a hole in the value space for message ID, ranging from 0..254 only,
- *  - message size cannot be ESC. Values >= ESC are encoded as Value+1, again creating a hole in the value
- *    range, now spanning 0..254 only.
- *
- *
- * Logical Message Structure:
- *   ESC | SOH | ESC | STX | message-ID | payload-size (N) | [ payload byte 1 | ... | payload byte N ]
- *
- * In the physical message, every byte in the payload section that is equal to ESC has to be doubled,
- * for example | 19 | 1A | 1B | 1C | becomes | 19 | 1A | 1B | 1B | 1C |
  *
  */
 
 #pragma once
 
 #include <stdint.h>
+#include "uartProtocolDefs.h"
 
 namespace UartProtocol
 {
-  static constexpr uint8_t ESC = 0x1B;  // the escape symbol
-  static constexpr uint8_t SOH = 0x01;  // start of header
-  static constexpr uint8_t STX = 0x02;  // start of text
-
-  static constexpr uint8_t MAGIC0 = ESC;
-  static constexpr uint8_t MAGIC1 = SOH;
-  static constexpr uint8_t MAGIC2 = ESC;
-  static constexpr uint8_t MAGIC3 = STX;
-
   static constexpr unsigned MAX_CONTENT_SIZE = 255;
 
   typedef void (*UartReceiveComplete_Callback)(uint8_t contentId, uint8_t len, uint8_t *pData);
+  typedef int (*UartTransmit_Callback)(uint8_t data, uint32_t const lineStatus);
 
   // ---------------- // ----------------
 
@@ -251,6 +224,73 @@ namespace UartProtocol
       }
     };
 
-  };  //class RxParser
+  };  // class RxParser
 
-}  // namespace UartDriver
+  // --------------------------- // --------------------------- // ---------------------------
+  class TxAssembler
+  {
+   public:
+    TxAssembler(UartTransmit_Callback transmitCallback)
+        : m_transmitCallback(transmitCallback) {};
+
+    inline void processPendingTransmits(uint32_t const lineStatus)
+    {
+      if (m_head == m_tail)
+        return;
+
+      if ((*m_transmitCallback)(m_txBuffer[m_tail], lineStatus))
+        m_tail++;
+    };
+
+    inline void putHeader(void)
+    {
+      putRawByte(MAGIC0);
+      putRawByte(MAGIC1);
+      putRawByte(MAGIC2);
+      putRawByte(MAGIC3);
+    };
+
+    inline void putMessageId(MessageIds const id)
+    {
+      putRawByte(uint8_t(id));
+    };
+
+    inline void putTan(uint16_t const tan)
+    {
+      putRawByte(uint8_t(tan >> 8));
+      putRawByte(uint8_t(tan & 0xFF));
+    };
+
+    inline void putPayloadSize(uint8_t byte)
+    {
+      if (byte >= ESC)
+        byte++;
+      putRawByte(byte);
+    };
+
+    inline void putPayloadDataByte(uint8_t const byte)
+    {
+      putRawByte(byte);
+      if (byte == ESC)
+        putRawByte(byte);
+    };
+
+    inline void putRawByte(uint8_t const byte)
+    {
+      if (uint8_t(m_head + 1) != m_tail)
+        m_txBuffer[m_head++] = byte;
+      else
+      {
+        // TODO: handle buffer overrun
+      }
+    };
+
+   private:
+    UartTransmit_Callback m_transmitCallback;
+    uint8_t               m_txBuffer[256];  // must be 256 to afford simple uint8_t modulo indexing
+    uint8_t               m_head { 0 };
+    uint8_t               m_tail { 0 };
+
+  };  // class TxAssembler
+
+}  // namespace UartProtocol
