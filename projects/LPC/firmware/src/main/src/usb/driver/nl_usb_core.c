@@ -297,6 +297,15 @@ void USB_Core_Init(uint8_t const port)
     usb[port].hardware->OTGSC = (1 << 1) | (1 << 3);
   }
 
+  Reset(port);
+  SetAddress(port, 0);
+
+  /* set IRQ threshold to "immediate" */
+  usb[port].hardware->USBCMD_D &= 0xFF00FFFF;
+
+  /* USB Connect */
+  usb[port].hardware->USBCMD_D |= USBCMD_RS;
+
 #if USB_POLLING
 
   if (port == 0)
@@ -312,15 +321,6 @@ void USB_Core_Init(uint8_t const port)
     NVIC_EnableIRQ(USB1_IRQn);
 
 #endif
-
-  Reset(port);
-  SetAddress(port, 0);
-
-  /* set IRQ threshold to "immediate" */
-  usb[port].hardware->USBCMD_D &= 0xFF00FFFF;
-
-  /* USB Connect */
-  usb[port].hardware->USBCMD_D |= USBCMD_RS;
 }
 
 uint8_t USB_GetActivity(uint8_t const port)

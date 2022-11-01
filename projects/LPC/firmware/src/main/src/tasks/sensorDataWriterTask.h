@@ -3,6 +3,7 @@
 #include "drv/IoPin.h"
 #include "ipc/ipc.h"
 #include "tasks/mtask.h"
+#include "tasks/encoderTask.h"
 #include "usb/usb.h"
 #include "tasks/statemonitor.h"
 #include "erp/ERP_Decoder.h"
@@ -22,14 +23,17 @@ namespace Task
     unsigned                    m_tan { 0 };
     Usb::UsbMidiSysexWriter&    m_sensorEventWriter;
     StateMonitor::StateMonitor& m_stateMonitor;
+    Encoder&                    m_encoder;
 
    public:
     constexpr SensorDataWriter(uint32_t const delay, uint32_t const period,
                                Usb::UsbMidiSysexWriter&    sensorEventWriter,
-                               StateMonitor::StateMonitor& stateMonitor)
+                               StateMonitor::StateMonitor& stateMonitor,
+                               Encoder&                    encoder)
         : Task(delay, period)
         , m_sensorEventWriter(sensorEventWriter)
-        , m_stateMonitor(stateMonitor) {};
+        , m_stateMonitor(stateMonitor)
+        , m_encoder(encoder) {};
 
    private:
     inline unsigned erpWipersToAngle(unsigned const wiper0, unsigned const wiper1)
@@ -127,7 +131,7 @@ namespace Task
           break;
         case 5:
           lsd0 = IPC_ReadAdcBufferSum(ADC_PSU_5V);
-          lsd1 = 0;  // ROTENC
+          lsd1 = uint32_t(m_encoder.getAndClearEncoderDelta());
           lsd2 = IOpins::readButtons();
           break;
         case 6:

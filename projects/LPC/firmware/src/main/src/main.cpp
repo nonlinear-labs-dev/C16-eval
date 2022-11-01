@@ -91,6 +91,7 @@ static void test2(void)
 #endif
 
 static inline void HardwareAndLowLevelInit(void);
+static inline void M4SysTick_Init(void);
 
 static Task::TaskScheduler *pScheduler;
 
@@ -105,6 +106,7 @@ int main(void)
   static Task::TaskScheduler scheduler;  // alas, data on stack doesn't solve the problem as expected from the above
   pScheduler = &scheduler;
 
+  M4SysTick_Init();
   while (1)
   {
     scheduler.run();
@@ -125,7 +127,6 @@ static inline void HardwareAndLowLevelInit(void)
   IPC_Init();
   UART_Init();
 
-  M4SysTick_Init();
   cr_start_m0(&__core_m0app_START__);
 
   USB_MIDI_Config(0, Receive_IRQ_DummyCallback);
@@ -155,10 +156,19 @@ static inline void M4SysTick_Init(void)
 
 extern "C" void SysTick_Handler(void)
 {
-  s.ticker5us++;
-  if (++s.timesliceTicker5us == 25u)  // 25 * 5us   = 125us time slice)
+  uint32_t timesliceTicker5us = ++s.timesliceTicker5us;
+  switch (timesliceTicker5us)  // 25 * 5us   = 125us time slice)
   {
-    s.timesliceTicker5us = 0u;
-    pScheduler->dispatch();
+    case 3:
+    case 9:
+    case 15:
+    case 21:  // runs at 4x speed, and values chosen to afford good interleaving with the dispatcher
+      pScheduler->runTIRQ4x();
+      break;
+
+    case 25:
+      s.timesliceTicker5us = 0u;
+      pScheduler->dispatch();
+      break;
   }
 }

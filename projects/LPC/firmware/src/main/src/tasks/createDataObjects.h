@@ -12,6 +12,7 @@
 #include "tasks/keybedScannerTask.h"
 #include "tasks/ledHeartBeatM4Task.h"
 #include "tasks/sensorDataWriterTask.h"
+#include "tasks/encoderTask.h"
 #include "tasks/usbTask.h"
 #include "tasks/lraTask.h"
 #include "usb/driver/nl_usb_core_circular_buffers.h"
@@ -45,10 +46,14 @@ namespace Task
     KeybedScanner m_keybedScannerTask { m_usbSensorAndKeyEventMidiSysexWriter,
                                         m_stateMonitor };
 
+    // Interrupt Task for Rotary Encoder, runs at 4x speed (31us)
+    Encoder m_encoder;
+
     // task for Sensor Scanner, shares a common MidiSysexWriter with Keybed Scanner
     SensorDataWriter m_sensorDataWriterTask { 3, usToTicks(500),
                                               m_usbSensorAndKeyEventMidiSysexWriter,
-                                              m_stateMonitor };
+                                              m_stateMonitor,
+                                              m_encoder };
 
     // task for LRA handling
     LRAHandler m_lraTask { 4, usToTicks(LraHardware::resonancePeriodInMicroseconds),
@@ -93,6 +98,12 @@ namespace Task
 
       m_allTimedIoPinsTask.run();
     };
+
+    // this function is run at 4x speed from within the timer interrupt
+    inline void runTIRQ4x(void)
+    {
+      m_encoder.run();
+    }
   };
 
 }  // namespace
