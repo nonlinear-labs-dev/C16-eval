@@ -257,8 +257,8 @@ namespace UartProtocol
 
     inline void putTan(uint16_t const tan)
     {
-      putRawByte(uint8_t(tan >> 8));
-      putRawByte(uint8_t(tan & 0xFF));
+      putPayloadDataByte(uint8_t(tan >> 8));
+      putPayloadDataByte(uint8_t(tan & 0xFF));
     };
 
     inline void putPayloadSize(uint8_t byte)

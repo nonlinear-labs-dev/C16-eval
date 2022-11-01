@@ -26,8 +26,8 @@ namespace UartProtocol
       m_txAssembler.putHeader();
       m_txAssembler.putMessageId(MessageIds::Acknowledge);
       m_txAssembler.putPayloadSize(2);
-      m_txAssembler.putRawByte(tanHi);
-      m_txAssembler.putRawByte(tanLo);
+      m_txAssembler.putPayloadDataByte(tanHi);
+      m_txAssembler.putPayloadDataByte(tanLo);
     };
 
     inline void sendEhcSetup(uint8_t const seriesRs, uint8_t const pullupRs, uint8_t const pulldownRs)
