@@ -39,8 +39,16 @@ namespace Task
     // shared MidiSysexWriter for Keybed Scanner and Sensor Scanner
     Usb::UsbMidiSysexWriter m_usbSensorAndKeyEventMidiSysexWriter { m_stateMonitor };
 
+    // USB Writer for Data from Host to Bridge
+    Usb::UsbBridgeWriter m_hostToBridge { 0, m_stateMonitor };
+
+    // USB Writer for Data from Bridge To Host
+    Usb::UsbBridgeWriter m_bridgeToHost { 1, m_stateMonitor };
+
     // high prio task that handles the high level USB I/O
-    UsbProcess m_usbProcessTask { m_usbSensorAndKeyEventMidiSysexWriter };
+    UsbProcess m_usbProcessTask { m_usbSensorAndKeyEventMidiSysexWriter,
+                                  m_bridgeToHost,
+                                  m_hostToBridge };
 
     // high prio task for Keybed Scanner, shares a common MidiSysexWriter with Sensor Scanner
     KeybedScanner m_keybedScannerTask { m_usbSensorAndKeyEventMidiSysexWriter,

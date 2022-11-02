@@ -4,7 +4,7 @@
 #include "ipc/ipc.h"
 #include "tasks/mtask.h"
 #include "tasks/statemonitor.h"
-#include "usb/usb.h"
+#include "usb/usbWriters.h"
 
 namespace Task
 {

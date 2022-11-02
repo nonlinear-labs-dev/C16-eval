@@ -103,7 +103,7 @@ int main(void)
   //test1();
   //test2();
 
-  static Task::TaskScheduler scheduler;  // alas, data on stack doesn't solve the problem as expected from the above
+  Task::TaskScheduler scheduler;  // alas, data on stack doesn't solve the problem as expected from the above
   pScheduler = &scheduler;
 
   M4SysTick_Init();
