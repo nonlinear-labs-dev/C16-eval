@@ -15,7 +15,7 @@
 #include <alsa/asoundlib.h>
 #include <math.h>
 
-#define SHOW_RAW (01)
+#define SHOW_RAW (0)
 
 // qtcreator bugs
 //#include </usr/include/stdarg.h>
@@ -345,7 +345,7 @@ static inline BOOL examineContent(void const *const data, unsigned const len)
   static double   minTime  = 1.0e9;
   static double   average  = 495.0;
   static int      period   = 500;
-  static unsigned settling = 1000;
+  static unsigned settling = 2000;
   static uint64_t bins[9];
   static uint64_t total;
   static uint32_t packetNr;
@@ -420,7 +420,7 @@ static inline BOOL examineContent(void const *const data, unsigned const len)
   else
   {
 #if !SHOW_RAW
-    printf("%5.0lfus %5.0lfus %7.2lfus -- ", maxTime, minTime, average);
+    printf("        %5.0lfus %7.2lfus %5.0lfus -- ", minTime, average, maxTime);
     for (int i = 0; i < 9; i++)
       printf("%8.4lf%c", 100.0 * (double) bins[i] / (double) total, bins[i] ? ' ' : 'z');
     printf("\n\033[1A");
