@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <inttypes.h>
+#include <signal.h>
 
 // Linux headers
 #include <fcntl.h>            // Contains file controls like O_RDWR
@@ -67,17 +68,37 @@ static void prompt(char const* const pString)
 {
   if (pString)
     printf("%s", pString);
-  char*   line     = nullptr;
-  size_t  len      = 0;
-  ssize_t lineSize = getline(&line, &len, stdin);
-  free(line);
+  (void) getchar();
 }
 
-int main(void)
+void usage(void)
 {
-  int portFd = open("/dev/ttyUSB0", O_RDWR | O_NOCTTY);
-  if (portFd == -1)
+  puts("Usage:\n"
+       " test-serial <portname>\n"
+       "  portname: /dev/tty..., for example /dev/ttyAMA1");
+}
+
+static volatile int keepRunning = 1;
+
+void intHandler(int dummy)
+{
+  keepRunning = 0;
+}
+
+int main(int argc, char* argv[])
+{
+  if (argc != 2)
+  {
+    usage();
     return 3;
+  }
+
+  int portFd = open(argv[1], O_RDWR | O_NOCTTY);
+  if (portFd == -1)
+  {
+    printf("cannot open device '%s'", argv[1]);
+    return 3;
+  }
 
   setupPort(portFd);
 
@@ -96,7 +117,10 @@ int main(void)
     0x01,  // lraCtrl LRA0, SingleBlip_Soft
   };
 
-  while (1)
+  puts("Press Ctrl-C to break...");
+  signal(SIGINT, intHandler);
+
+  while (keepRunning)
   {
     if (write(portFd, sendMsg, sizeof sendMsg) == -1)
       return 3;
@@ -116,6 +140,8 @@ int main(void)
     }
     printf("\n");
     fflush(stdout);
+
+    usleep(100000);
   }
 
   prompt("press Enter to terminate...");
