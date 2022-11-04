@@ -14,6 +14,8 @@
 #include <fcntl.h>
 #include <alsa/asoundlib.h>
 #include <math.h>
+#include <termios.h>
+#include <sys/ioctl.h>
 
 #define SHOW_RAW (0)
 
@@ -48,6 +50,25 @@ static snd_rawmidi_t *port;   // MIDI port
 static BOOL           stop;
 
 static BOOL dump = FALSE;
+
+int kbhit(void)
+{
+  struct termios original;
+  tcgetattr(STDIN_FILENO, &original);
+
+  struct termios term;
+  memcpy(&term, &original, sizeof(term));
+
+  term.c_lflag &= ~ICANON;
+  tcsetattr(STDIN_FILENO, TCSANOW, &term);
+
+  int characters_buffered = 0;
+  ioctl(STDIN_FILENO, FIONREAD, &characters_buffered);
+
+  tcsetattr(STDIN_FILENO, TCSANOW, &original);
+
+  return (characters_buffered != 0);
+}
 
 static void error(char const *const format, ...)
 {
@@ -353,6 +374,21 @@ static inline BOOL examineContent(void const *const data, unsigned const len)
   static unsigned angleErrors  = 0;
 
   uint8_t const *const pErpData = data;
+
+  if (kbhit())
+  {
+    int c = getchar();
+    if (c == 'r')
+    {
+      settling = 1000;
+      maxTime  = 0.0;
+      minTime  = 1.0e9;
+      average  = 495.0;
+      total    = 0;
+      for (int i = 0; i < 9; i++)
+        bins[i] = 0;
+    }
+  }
 
   if (!settling)
   {
