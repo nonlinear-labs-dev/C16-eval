@@ -52,8 +52,8 @@ static void setupPort(int const portFd)
   tty.c_oflag &= ~OPOST;  // Prevent special interpretation of output bytes (e.g. newline chars)
   tty.c_oflag &= ~ONLCR;  // Prevent conversion of newline to carriage return/line feed
 
-  tty.c_cc[VTIME] = 0;  // non-blocking...
-  tty.c_cc[VMIN]  = 0;  //...reads
+  tty.c_cc[VTIME] = 1;  // blocking read with timeout...
+  tty.c_cc[VMIN]  = 0;  //...after 0.1sec
 
   // Set in/out baud rate to 115200
   cfsetispeed(&tty, B115200);
@@ -141,7 +141,7 @@ int main(int argc, char* argv[])
     printf("\n");
     fflush(stdout);
 
-    usleep(100000);
+    usleep(30000);
   }
 
   prompt("press Enter to terminate...");
