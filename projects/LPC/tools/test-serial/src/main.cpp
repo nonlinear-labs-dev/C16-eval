@@ -80,10 +80,13 @@ void usage(void)
 
 static volatile int keepRunning = 1;
 
-void intHandler(int dummy)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+void                   intHandler(int dummy)
 {
   keepRunning = 0;
 }
+#pragma GCC diagnostic pop
 
 int main(int argc, char* argv[])
 {
