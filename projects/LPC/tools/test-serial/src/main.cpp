@@ -6,9 +6,10 @@
 #include <signal.h>
 
 // Linux headers
-#include <fcntl.h>            // Contains file controls like O_RDWR
-#include <errno.h>            // Error integer and strerror() function
-#include <termios.h>          // Contains POSIX terminal control definitions
+#include <fcntl.h>    // Contains file controls like O_RDWR
+#include <errno.h>    // Error integer and strerror() function
+#include <termios.h>  // Contains POSIX terminal control definitions
+#include <linux/serial.h>
 #include <unistd.h>           // write(), read(), close()
 #include <sys/ioctl.h>        //ioctl() call defenitions
 #include <linux/tty_flags.h>  // for ASYNC_LOW_LATENCY
@@ -26,9 +27,10 @@ static void setupPort(int const portFd)
   ioctl(portFd, TIOCMBIC, &data);
 
   // low latency
-  ioctl(portFd, TIOCGSERIAL, &data);
-  data |= ASYNC_LOW_LATENCY;
-  ioctl(portFd, TIOCSSERIAL, &data);
+  struct serial_struct serial;
+  ioctl(portFd, TIOCGSERIAL, &serial);
+  serial.flags |= ASYNC_LOW_LATENCY;
+  ioctl(portFd, TIOCSSERIAL, &serial);
 
   struct termios tty;
   if (tcgetattr(portFd, &tty) != 0)
@@ -135,8 +137,17 @@ int main(int argc, char* argv[])
       ssize_t ret;
       uint8_t byte;
       do
-        ret = read(portFd, &byte, 1);
-      while (ret != 1);
+      {
+        ret     = read(portFd, &byte, 1);
+        int err = errno;
+        if (ret == -1 && err != EAGAIN)
+        {
+          printf("\ndevice error:%d\n", err);
+          goto done;
+        }
+        if (!keepRunning)
+          goto done;
+      } while (ret != 1);
       printf("%02X ", byte);
       fflush(stdout);
       cnt++;
@@ -147,8 +158,8 @@ int main(int argc, char* argv[])
     usleep(30000);
   }
 
-  prompt("press Enter to terminate...");
-
+done:
+  prompt("\npress Enter to terminate...");
   close(portFd);
   return 0;
 }
