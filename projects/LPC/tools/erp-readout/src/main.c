@@ -838,7 +838,7 @@ static inline void doReceive(void)
 
   do
   {
-    err = poll(pfds, npfds, 0);               // poll as fast as possible
+    err = poll(pfds, npfds, 10);              // timeout if no data even after 10msec
     if (stop || (err < 0 && errno == EINTR))  // interrupted ?
       break;
     if (err < 0)
