@@ -29,7 +29,8 @@ namespace Task
     // run unconditionally
     inline void run(void) const
     {
-      if (!m_sensorAndKeyEventWriter.processPendingTransactions())
+      m_sensorAndKeyEventWriter.processPendingTransactions();
+      if (m_sensorAndKeyEventWriter.isIdle())
         m_bridgeToHost.processPendingTransactions();
       m_hostToBridge.processPendingTransactions();
     };

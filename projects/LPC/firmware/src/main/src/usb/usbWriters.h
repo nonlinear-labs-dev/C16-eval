@@ -111,15 +111,21 @@ namespace Usb
     };
 
    public:
-    inline int processPendingTransactions(void)
+    inline int isIdle(void)
+    {
+      return m_state == States::IDLE;
+    };
+
+    inline void processPendingTransactions(void)
     {
       uint8_t *sendBuffer;
       unsigned sendBufferLen;
       switch (m_state)
       {
+      again:
         case States::IDLE:
           if (m_sendBufferIndex == m_bufIndex)
-            return 0;
+            return;
           m_state = States::WAIT_FOR_XMIT_READY;
           // intentional fall-through
 
@@ -129,21 +135,20 @@ namespace Usb
           if (USB_MIDI_Send(0, sendBuffer, sendBufferLen) == -1)
           {  // failed
             m_stateMonitor.event(StateMonitor::WARNING_USB_DELAYED_PACKET);
-            return 1;
+            return;
           }
           m_state                       = States::WAIT_FOR_XMIT_DONE;
           m_sendBufferIndex             = m_bufIndex;
           m_currentTransactionElemCount = sendBufferLen / sizeof m_buffer[0];
-          return 1;
+          // intentional fall-through
 
         case States::WAIT_FOR_XMIT_DONE:
           if (USB_MIDI_BytesToSend(0) > 0)
-            return 1;
+            return;
           m_state                       = States::IDLE;
           m_currentTransactionElemCount = 0;
-          return 0;
+          goto again;
       }
-      return 0;
     };
 
   };  // class UsbMidiSysexWriter
