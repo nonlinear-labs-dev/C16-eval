@@ -84,7 +84,7 @@ static void Handler_ReadFromHost(uint8_t const port, uint32_t const event)
       {
         usbMidi[port].ReceiveCallback(port, &(rx[port].buffer[rx[port].index]), length);
         usbMidi[port].primed = 0;
-        rx[port].index = (uint16_t)((rx[port].index + length) % USB_BUFFER_BRIDGE_HOST_SIZE);
+        rx[port].index       = (uint16_t)((rx[port].index + length) % USB_BUFFER_BRIDGE_HOST_SIZE);
       }
       // prepare the next potential transfer right now to avoid extra NAK phase later
       primeReceive(port);

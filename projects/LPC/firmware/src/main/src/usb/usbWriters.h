@@ -4,11 +4,16 @@
 #include "drv/IoPin.h"
 #include "usb/driver/nl_usb_midi.h"
 #include "usb/driver/nl_usb_core_circular_buffers.h"
-#include "tasks/mtask.h"
-#include "tasks/statemonitor.h"
+#include "usb/driver/nl_usb_descmidi.h"
 
 namespace Usb
 {
+  enum class USBPorts
+  {
+    USB0 = 0,
+    USB1 = 1,
+  };
+
   static inline uint8_t getSysexHi4Byte(unsigned const value)
   {
     return (uint8_t)((value & 0b11110000000000000000000000000000) >> 28);
@@ -42,6 +47,7 @@ namespace Usb
     unsigned                    m_bufIndex { 0 };
     unsigned                    m_sendBufferIndex { 0 };
     unsigned                    m_currentTransactionElemCount { 0 };
+    uint8_t                     m_outgoingPort;
     StateMonitor::StateMonitor &m_stateMonitor;
 
     // relies on buffer sizes being 2^N for efficiency (modulo operator optimized out)
@@ -61,8 +67,9 @@ namespace Usb
     };
 
    public:
-    constexpr UsbMidiSysexWriter(StateMonitor::StateMonitor &stateMonitor)
-        : m_stateMonitor(stateMonitor) {};
+    constexpr UsbMidiSysexWriter(enum Usb::USBPorts const outgoingPort, StateMonitor::StateMonitor &stateMonitor)
+        : m_outgoingPort(outgoingPort == Usb::USBPorts::USB0 ? 0 : 1)
+        , m_stateMonitor(stateMonitor) {};
 
     inline int claimBufferElements(unsigned const requestedElemCount) const
     {
@@ -120,34 +127,36 @@ namespace Usb
     {
       uint8_t *sendBuffer;
       unsigned sendBufferLen;
-      switch (m_state)
+      while (1)
       {
-      again:
-        case States::IDLE:
-          if (m_sendBufferIndex == m_bufIndex)
-            return;
-          m_state = States::WAIT_FOR_XMIT_READY;
-          // intentional fall-through
+        switch (m_state)
+        {
+          case States::IDLE:
+            if (m_sendBufferIndex == m_bufIndex)
+              return;
+            m_state = States::WAIT_FOR_XMIT_READY;
+            // intentional fall-through
 
-        case States::WAIT_FOR_XMIT_READY:
-          sendBuffer    = (uint8_t *) (&m_buffer[m_sendBufferIndex]);
-          sendBufferLen = usedBuffer() * sizeof m_buffer[0];
-          if (USB_MIDI_Send(0, sendBuffer, sendBufferLen) == -1)
-          {  // failed
-            m_stateMonitor.event(StateMonitor::WARNING_USB_DELAYED_PACKET);
-            return;
-          }
-          m_state                       = States::WAIT_FOR_XMIT_DONE;
-          m_sendBufferIndex             = m_bufIndex;
-          m_currentTransactionElemCount = sendBufferLen / sizeof m_buffer[0];
-          // intentional fall-through
+          case States::WAIT_FOR_XMIT_READY:
+            sendBuffer    = (uint8_t *) (&m_buffer[m_sendBufferIndex]);
+            sendBufferLen = usedBuffer() * sizeof m_buffer[0];
+            if (USB_MIDI_Send(m_outgoingPort, sendBuffer, sendBufferLen) == -1)
+            {  // failed
+              m_stateMonitor.event(StateMonitor::WARNING_USB_DELAYED_PACKET);
+              return;
+            }
+            m_state                       = States::WAIT_FOR_XMIT_DONE;
+            m_sendBufferIndex             = m_bufIndex;
+            m_currentTransactionElemCount = sendBufferLen / sizeof m_buffer[0];
+            // intentional fall-through
 
-        case States::WAIT_FOR_XMIT_DONE:
-          if (USB_MIDI_BytesToSend(0) > 0)
-            return;
-          m_state                       = States::IDLE;
-          m_currentTransactionElemCount = 0;
-          goto again;
+          case States::WAIT_FOR_XMIT_DONE:
+            if (USB_MIDI_BytesToSend(m_outgoingPort) > 0)
+              return;
+            m_state                       = States::IDLE;
+            m_currentTransactionElemCount = 0;
+            // check for pending transfer immediately to avoid an IDLE glitch
+        }
       }
     };
 
@@ -158,14 +167,14 @@ namespace Usb
   class UsbBridgeWriter
   {
    private:
-    uint8_t                     m_incomingPort;
     uint8_t                     m_outgoingPort;
+    uint8_t                     m_incomingPort;
     StateMonitor::StateMonitor &m_stateMonitor;
 
    public:
-    constexpr UsbBridgeWriter(uint8_t const incomingPort, StateMonitor::StateMonitor &stateMonitor)
-        : m_incomingPort(incomingPort == 0 ? 0 : 1)
-        , m_outgoingPort(1 - m_incomingPort)
+    constexpr UsbBridgeWriter(enum Usb::USBPorts const outgoingPort, StateMonitor::StateMonitor &stateMonitor)
+        : m_outgoingPort(outgoingPort == Usb::USBPorts::USB0 ? 0 : 1)
+        , m_incomingPort(1 - m_outgoingPort)
         , m_stateMonitor(stateMonitor) {};
 
    private:
@@ -186,9 +195,13 @@ namespace Usb
    public:
     inline void processPendingTransactions(void)
     {
+
+      if (m_state == States::IDLE)
+        return;
+
       switch (m_state)
       {
-        case States::IDLE:
+        default:
           return;
 
         case States::DATA_RECEIVED:
@@ -199,7 +212,7 @@ namespace Usb
           if (USB_MIDI_Send(m_outgoingPort, m_pData, m_dataSize) == -1)
           {  // failed
             m_stateMonitor.event(StateMonitor::WARNING_USB_DELAYED_PACKET);
-            return;
+            return;  // could not start transfer now, try later
           }
           m_state = States::WAIT_FOR_XMIT_DONE;
           return;
@@ -226,7 +239,7 @@ namespace Usb
       m_dataSize = length;
       m_state    = States::DATA_RECEIVED;
       USB_MIDI_SuspendReceive(m_incomingPort, 1);  // block receiver until transmit finished/failed
-    }
+    };
 
   };  // class UsbBridgeWriter
 
@@ -247,12 +260,20 @@ namespace Usb
     pBridgeToHost->onReceive(buff, (uint16_t) len);
   }
 
-  inline void setBridgesAndCallbacks(UsbBridgeWriter &bridgeToHost, UsbBridgeWriter &hostToBridge)
+  inline void initBridges(void)
+  {
+    USB_MIDI_Config(0, Receive_IRQ_Callback_0);
+    USB_MIDI_Config(1, Receive_IRQ_Callback_1);
+    USB_MIDI_SetupDescriptors();
+    USB_MIDI_Init(0);
+    USB_MIDI_Init(1);
+  }
+
+  inline void initBridges(UsbBridgeWriter &bridgeToHost, UsbBridgeWriter &hostToBridge)
   {
     pBridgeToHost = &bridgeToHost;
     pHostToBridge = &hostToBridge;
-    USB_MIDI_Config(0, Receive_IRQ_Callback_0);
-    USB_MIDI_Config(1, Receive_IRQ_Callback_1);
+    initBridges();
   }
 
 }  // namespace

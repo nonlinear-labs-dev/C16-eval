@@ -2,6 +2,7 @@
 
 namespace Task
 {
+
   class UsbProcess : public Task::Task
   {
     using Task::Task;
@@ -19,7 +20,7 @@ namespace Task
         , m_bridgeToHost(bridgeToHost)
         , m_hostToBridge(hostToBridge)
     {
-      Usb::setBridgesAndCallbacks(bridgeToHost, hostToBridge);
+      Usb::initBridges(bridgeToHost, hostToBridge);
     };
 
     // no dispatcher and body needed
