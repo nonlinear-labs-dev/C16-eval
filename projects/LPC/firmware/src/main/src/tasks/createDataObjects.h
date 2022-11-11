@@ -17,6 +17,9 @@
 #include "drv/LRA.h"
 #include "sys/ticker.h"
 
+#include "usb/usbWriter.h"
+#include "usb/bridgeDataUsbWriter.h"
+
 namespace Task
 {
   //
