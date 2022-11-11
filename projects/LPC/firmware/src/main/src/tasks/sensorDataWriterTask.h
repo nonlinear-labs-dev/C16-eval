@@ -4,7 +4,7 @@
 #include "ipc/ipc.h"
 #include "tasks/mtask.h"
 #include "tasks/encoderTask.h"
-#include "usb/usb.h"
+#include "usb/usbWriters.h"
 #include "tasks/statemonitor.h"
 #include "erp/ERP_Decoder.h"
 

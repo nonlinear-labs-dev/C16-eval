@@ -3,11 +3,13 @@
 #include <string.h>
 #include <stdlib.h>
 #include <inttypes.h>
+#include <signal.h>
 
 // Linux headers
-#include <fcntl.h>            // Contains file controls like O_RDWR
-#include <errno.h>            // Error integer and strerror() function
-#include <termios.h>          // Contains POSIX terminal control definitions
+#include <fcntl.h>    // Contains file controls like O_RDWR
+#include <errno.h>    // Error integer and strerror() function
+#include <termios.h>  // Contains POSIX terminal control definitions
+#include <linux/serial.h>
 #include <unistd.h>           // write(), read(), close()
 #include <sys/ioctl.h>        //ioctl() call defenitions
 #include <linux/tty_flags.h>  // for ASYNC_LOW_LATENCY
@@ -25,9 +27,10 @@ static void setupPort(int const portFd)
   ioctl(portFd, TIOCMBIC, &data);
 
   // low latency
-  ioctl(portFd, TIOCGSERIAL, &data);
-  data |= ASYNC_LOW_LATENCY;
-  ioctl(portFd, TIOCSSERIAL, &data);
+  struct serial_struct serial;
+  ioctl(portFd, TIOCGSERIAL, &serial);
+  serial.flags |= ASYNC_LOW_LATENCY;
+  ioctl(portFd, TIOCSSERIAL, &serial);
 
   struct termios tty;
   if (tcgetattr(portFd, &tty) != 0)
@@ -51,8 +54,8 @@ static void setupPort(int const portFd)
   tty.c_oflag &= ~OPOST;  // Prevent special interpretation of output bytes (e.g. newline chars)
   tty.c_oflag &= ~ONLCR;  // Prevent conversion of newline to carriage return/line feed
 
-  tty.c_cc[VTIME] = 0;  // non-blocking...
-  tty.c_cc[VMIN]  = 0;  //...reads
+  tty.c_cc[VTIME] = 1;  // blocking read with timeout...
+  tty.c_cc[VMIN]  = 0;  //...after 0.1sec
 
   // Set in/out baud rate to 115200
   cfsetispeed(&tty, B115200);
@@ -67,17 +70,40 @@ static void prompt(char const* const pString)
 {
   if (pString)
     printf("%s", pString);
-  char*   line     = nullptr;
-  size_t  len      = 0;
-  ssize_t lineSize = getline(&line, &len, stdin);
-  free(line);
+  (void) getchar();
 }
 
-int main(void)
+void usage(void)
 {
-  int portFd = open("/dev/ttyUSB0", O_RDWR | O_NOCTTY);
-  if (portFd == -1)
+  puts("Usage:\n"
+       " test-serial <portname>\n"
+       "  portname: /dev/tty..., for example /dev/ttyAMA1");
+}
+
+static volatile int keepRunning = 1;
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+void                   intHandler(int dummy)
+{
+  keepRunning = 0;
+}
+#pragma GCC diagnostic pop
+
+int main(int argc, char* argv[])
+{
+  if (argc != 2)
+  {
+    usage();
     return 3;
+  }
+
+  int portFd = open(argv[1], O_RDWR | O_NOCTTY);
+  if (portFd == -1)
+  {
+    printf("cannot open device '%s'", argv[1]);
+    return 3;
+  }
 
   setupPort(portFd);
 
@@ -96,7 +122,10 @@ int main(void)
     0x01,  // lraCtrl LRA0, SingleBlip_Soft
   };
 
-  while (1)
+  puts("Press Ctrl-C to break...");
+  signal(SIGINT, intHandler);
+
+  while (keepRunning)
   {
     if (write(portFd, sendMsg, sizeof sendMsg) == -1)
       return 3;
@@ -108,18 +137,29 @@ int main(void)
       ssize_t ret;
       uint8_t byte;
       do
-        ret = read(portFd, &byte, 1);
-      while (ret != 1);
+      {
+        ret     = read(portFd, &byte, 1);
+        int err = errno;
+        if (ret == -1 && err != EAGAIN)
+        {
+          printf("\ndevice error:%d\n", err);
+          goto done;
+        }
+        if (!keepRunning)
+          goto done;
+      } while (ret != 1);
       printf("%02X ", byte);
       fflush(stdout);
       cnt++;
     }
     printf("\n");
     fflush(stdout);
+
+    usleep(30000);
   }
 
-  prompt("press Enter to terminate...");
-
+done:
+  prompt("\npress Enter to terminate...");
   close(portFd);
   return 0;
 }

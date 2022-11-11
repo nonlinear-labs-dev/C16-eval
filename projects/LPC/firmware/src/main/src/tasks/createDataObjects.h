@@ -14,9 +14,8 @@
 #include "tasks/sensorDataWriterTask.h"
 #include "tasks/encoderTask.h"
 #include "tasks/usbTask.h"
-#include "tasks/lraTask.h"
-#include "usb/driver/nl_usb_core_circular_buffers.h"
 #include "drv/LRA.h"
+#include "sys/ticker.h"
 
 namespace Task
 {
@@ -25,6 +24,12 @@ namespace Task
   //
   class TaskScheduler
   {
+   public:
+    TaskScheduler(void)
+    {
+      ticker = 0;
+    }
+
    private:
     // task processes pins that have timed functions
     AllIoPins m_allTimedIoPinsTask { 1, msToTicks(100) };
@@ -36,11 +41,19 @@ namespace Task
     LedHeartBeatM4 m_ledHeartBeatM4Task { 2, msToTicks(500),
                                           m_allTimedIoPinsTask.m_LED_m4HeartBeat };
 
-    // shared MidiSysexWriter for Keybed Scanner and Sensor Scanner
-    Usb::UsbMidiSysexWriter m_usbSensorAndKeyEventMidiSysexWriter { m_stateMonitor };
+    // shared MidiSysexWriter for Keybed Scanner and Sensor Scanner to Host (USB0 HS)
+    Usb::UsbMidiSysexWriter m_usbSensorAndKeyEventMidiSysexWriter { Usb::USBPorts::USB0, m_stateMonitor };
+
+    // USB Writer for Data from Host (USB0 HS) to Bridge (USB1 FS)
+    Usb::UsbBridgeWriter m_hostToBridge { Usb::USBPorts::USB1, m_stateMonitor };
+
+    // USB Writer for Data from Bridge (USB1 FS) To Host USB0 HS)
+    Usb::UsbBridgeWriter m_bridgeToHost { Usb::USBPorts::USB0, m_stateMonitor };
 
     // high prio task that handles the high level USB I/O
-    UsbProcess m_usbProcessTask { m_usbSensorAndKeyEventMidiSysexWriter };
+    UsbProcess m_usbProcessTask { m_usbSensorAndKeyEventMidiSysexWriter,
+                                  m_bridgeToHost,
+                                  m_hostToBridge };
 
     // high prio task for Keybed Scanner, shares a common MidiSysexWriter with Sensor Scanner
     KeybedScanner m_keybedScannerTask { m_usbSensorAndKeyEventMidiSysexWriter,
@@ -62,19 +75,10 @@ namespace Task
     // high prio task for uart processing
     Uart m_uartTask { m_allTimedIoPinsTask.m_LED_uartActivity, m_allTimedIoPinsTask.m_LED_uartError, m_lraTask };
 
-    static inline constexpr uint32_t usToTicks(uint32_t const us)
-    {
-      return us / 125u;
-    };
-
-    static inline constexpr uint32_t msToTicks(uint32_t const ms)
-    {
-      return 1000u * ms / 125u;
-    };
-
    public:
     inline void dispatch(void)
     {
+      ticker++;
       m_keybedScannerTask.dispatch();
       m_usbProcessTask.dispatch();
 

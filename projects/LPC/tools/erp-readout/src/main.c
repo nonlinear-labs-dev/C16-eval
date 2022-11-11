@@ -14,8 +14,10 @@
 #include <fcntl.h>
 #include <alsa/asoundlib.h>
 #include <math.h>
+#include <termios.h>
+#include <sys/ioctl.h>
 
-#define SHOW_RAW (01)
+#define SHOW_RAW (0)
 
 // qtcreator bugs
 //#include </usr/include/stdarg.h>
@@ -48,6 +50,25 @@ static snd_rawmidi_t *port;   // MIDI port
 static BOOL           stop;
 
 static BOOL dump = FALSE;
+
+int kbhit(void)
+{
+  struct termios original;
+  tcgetattr(STDIN_FILENO, &original);
+
+  struct termios term;
+  memcpy(&term, &original, sizeof(term));
+
+  term.c_lflag &= ~ICANON;
+  tcsetattr(STDIN_FILENO, TCSANOW, &term);
+
+  int characters_buffered = 0;
+  ioctl(STDIN_FILENO, FIONREAD, &characters_buffered);
+
+  tcsetattr(STDIN_FILENO, TCSANOW, &original);
+
+  return (characters_buffered != 0);
+}
 
 static void error(char const *const format, ...)
 {
@@ -345,7 +366,7 @@ static inline BOOL examineContent(void const *const data, unsigned const len)
   static double   minTime  = 1.0e9;
   static double   average  = 495.0;
   static int      period   = 500;
-  static unsigned settling = 1000;
+  static unsigned settling = 2000;
   static uint64_t bins[9];
   static uint64_t total;
   static uint32_t packetNr;
@@ -353,6 +374,21 @@ static inline BOOL examineContent(void const *const data, unsigned const len)
   static unsigned angleErrors  = 0;
 
   uint8_t const *const pErpData = data;
+
+  if (kbhit())
+  {
+    int c = getchar();
+    if (c == 'r')
+    {
+      settling = 1000;
+      maxTime  = 0.0;
+      minTime  = 1.0e9;
+      average  = 495.0;
+      total    = 0;
+      for (int i = 0; i < 9; i++)
+        bins[i] = 0;
+    }
+  }
 
   if (!settling)
   {
@@ -420,7 +456,7 @@ static inline BOOL examineContent(void const *const data, unsigned const len)
   else
   {
 #if !SHOW_RAW
-    printf("%5.0lfus %5.0lfus %7.2lfus -- ", maxTime, minTime, average);
+    printf("        %5.0lfus %7.2lfus %5.0lfus -- ", minTime, average, maxTime);
     for (int i = 0; i < 9; i++)
       printf("%8.4lf%c", 100.0 * (double) bins[i] / (double) total, bins[i] ? ' ' : 'z');
     printf("\n\033[1A");
@@ -802,7 +838,7 @@ static inline void doReceive(void)
 
   do
   {
-    err = poll(pfds, npfds, 0);               // poll as fast as possible
+    err = poll(pfds, npfds, 10);              // timeout if no data even after 10msec
     if (stop || (err < 0 && errno == EINTR))  // interrupted ?
       break;
     if (err < 0)

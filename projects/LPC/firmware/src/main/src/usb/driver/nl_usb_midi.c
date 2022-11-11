@@ -9,12 +9,10 @@
 #include "usb/driver/nl_usb_midi.h"
 #include "usb/driver/nl_usb_descmidi.h"
 #include "usb/driver/nl_usb_core.h"
+#include "usb/driver/nl_usb_core_circular_buffers.h"
 #include "cmsis/LPC43xx.h"
 #include "cmsis/core_cm4.h"
 #include "cmsis/core_cmFunc.h"
-//#include "sys/nl_stdlib.h"
-//#include "io/pins.h"
-//#include "drv/nl_leds.h"
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wundef"
@@ -29,22 +27,21 @@ typedef struct
 
 static UsbMidi_t usbMidi[2];
 
-// buffer sizes must match the values set up in the configuration descriptors !
-static uint8_t rxBuffer0[USB_HS_BULK_SIZE] __attribute__((aligned(4)));
-static uint8_t rxBuffer1[USB_FS_BULK_SIZE] __attribute__((aligned(4)));
-
 struct _rxBuffer
 {
-  uint8_t *data;
-  uint16_t size;
-} static rxBuffer[2] = {
+  uint8_t *buffer;
+  uint16_t index;
+  uint16_t bulkSize;
+} static rx[2] = {
   {
-      .data = rxBuffer0,
-      .size = sizeof rxBuffer0,
+      .buffer   = (uint8_t *) USB_BUFFER_HOST_TO_BRIDGE,
+      .index    = 0,
+      .bulkSize = USB_HS_BULK_SIZE,
   },
   {
-      .data = rxBuffer1,
-      .size = sizeof rxBuffer1,
+      .buffer   = (uint8_t *) USB_BUFFER_BRIDGE_TO_HOST,
+      .index    = 0,
+      .bulkSize = USB_FS_BULK_SIZE,
   },
 };
 
@@ -59,7 +56,7 @@ static inline void primeReceive(uint8_t const port)
   {
     if (!usbMidi[port].primed)
     {
-      USB_ReadReqEP(port, 0x01, rxBuffer[port].data, rxBuffer[port].size);
+      USB_ReadReqEP(port, 0x01, &(rx[port].buffer[rx[port].index]), rx[port].bulkSize);
       usbMidi[port].primed = 1;
     }
   }
@@ -82,11 +79,12 @@ static void Handler_ReadFromHost(uint8_t const port, uint32_t const event)
 
     case USB_EVT_OUT:  // transfer finished successfully --> hand data over to application
     {
-      uint32_t length = USB_ReadEP(port, 0x01);
+      uint16_t length = (uint16_t) USB_ReadEP(port, 0x01);
       if (usbMidi[port].ReceiveCallback)
       {
-        usbMidi[port].ReceiveCallback(port, rxBuffer[port].data, length);
+        usbMidi[port].ReceiveCallback(port, &(rx[port].buffer[rx[port].index]), length);
         usbMidi[port].primed = 0;
+        rx[port].index       = (uint16_t)((rx[port].index + length) % USB_BUFFER_BRIDGE_HOST_SIZE);
       }
       // prepare the next potential transfer right now to avoid extra NAK phase later
       primeReceive(port);

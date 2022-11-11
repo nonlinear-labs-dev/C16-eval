@@ -1,12 +1,10 @@
+#include <stdint.h>
 #include "tasks/createDataObjects.h"
 #include "CPU_clock.h"
 #include "drv/nl_cgu.h"
 #include "ipc/ipc.h"
 #include "cr_start_m0.h"
 #include "drv/uart/uartHardware.h"
-
-#include "usb/driver/nl_usb_midi.h"
-#include "usb/driver/nl_usb_descmidi.h"
 
 #if 0
 
@@ -103,7 +101,7 @@ int main(void)
   //test1();
   //test2();
 
-  static Task::TaskScheduler scheduler;  // alas, data on stack doesn't solve the problem as expected from the above
+  Task::TaskScheduler scheduler;  // alas, data on stack doesn't solve the problem as expected from the above
   pScheduler = &scheduler;
 
   M4SysTick_Init();
@@ -117,10 +115,6 @@ int main(void)
 // ----------------
 static inline void M4SysTick_Init(void);
 
-static void Receive_IRQ_DummyCallback(uint8_t const port, uint8_t *buff, uint32_t len)
-{
-}
-
 static inline void HardwareAndLowLevelInit(void)
 {
   CPU_ConfigureClocks();
@@ -129,11 +123,7 @@ static inline void HardwareAndLowLevelInit(void)
 
   cr_start_m0(&__core_m0app_START__);
 
-  USB_MIDI_Config(0, Receive_IRQ_DummyCallback);
-  USB_MIDI_Config(1, Receive_IRQ_DummyCallback);
-  USB_MIDI_SetupDescriptors();
-  USB_MIDI_Init(0);
-  USB_MIDI_Init(1);
+  Usb::initBridges();
 
   pinLED_ERROR   = 0;
   pinLED_WARNING = 0;
