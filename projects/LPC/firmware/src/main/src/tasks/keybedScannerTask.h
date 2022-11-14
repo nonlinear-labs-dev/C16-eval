@@ -4,7 +4,8 @@
 #include "ipc/ipc.h"
 #include "tasks/mtask.h"
 #include "tasks/statemonitor.h"
-#include "usb/usbWriters.h"
+#include "usb/usbWriter_MidiSysex.h"
+#include "usb/sysexFunctions.h"
 
 namespace Task
 {
@@ -16,11 +17,11 @@ namespace Task
 
    private:
     unsigned                    m_tan { 0 };
-    Usb::UsbMidiSysexWriter&    m_keyEventWriter;
+    UsbWriter::MidiSysexWriter& m_keyEventWriter;
     StateMonitor::StateMonitor& m_stateMonitor;
 
    public:
-    constexpr KeybedScanner(Usb::UsbMidiSysexWriter& keyEventWriter, StateMonitor::StateMonitor& stateMonitor)
+    constexpr KeybedScanner(UsbWriter::MidiSysexWriter& keyEventWriter, StateMonitor::StateMonitor& stateMonitor)
         : Task()
         , m_keyEventWriter(keyEventWriter)
         , m_stateMonitor(stateMonitor) {};
@@ -42,9 +43,18 @@ namespace Task
 
         if (m_keyEventWriter.claimBufferElements(3))  // 3 4-byte frames available ?
         {
-          m_keyEventWriter.write(KEYBED_DATA_CABLE_NUMBER, 0xF0, Usb::getSysexHiByte(m_tan), Usb::getSysexLoByte(m_tan));                          // start, tanH/tanL
-          m_keyEventWriter.write(KEYBED_DATA_CABLE_NUMBER, Usb::getSysexLoByte(event), Usb::getSysexHi4Byte(event), Usb::getSysexHi3Byte(event));  // keynum+make, timeHH/HL
-          m_keyEventWriter.writeLast(KEYBED_DATA_CABLE_NUMBER, Usb::getSysexHi2Byte(event), Usb::getSysexHiByte(event), 0xF7);                     // timeLH/LL, end
+          m_keyEventWriter.write(KEYBED_DATA_CABLE_NUMBER,
+                                 0xF0,                           // Sysex start
+                                 SysEx::getSysexHiByte(m_tan),   // tanH
+                                 SysEx::getSysexLoByte(m_tan));  // tanL
+          m_keyEventWriter.write(KEYBED_DATA_CABLE_NUMBER,
+                                 SysEx::getSysexLoByte(event),    // keynum+make,
+                                 SysEx::getSysexHi4Byte(event),   // timeHH
+                                 SysEx::getSysexHi3Byte(event));  // timeHL
+          m_keyEventWriter.writeLast(KEYBED_DATA_CABLE_NUMBER,
+                                     SysEx::getSysexHi2Byte(event),  // timeLH
+                                     SysEx::getSysexHiByte(event),   // timeLL
+                                     0xF7);                          // Sysex end
         }
         else  // Data Loss !!!
           m_stateMonitor.event(StateMonitor::ERROR_KEYBED_DATA_LOSS);

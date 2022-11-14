@@ -123,8 +123,6 @@ static inline void HardwareAndLowLevelInit(void)
 
   cr_start_m0(&__core_m0app_START__);
 
-  Usb::initBridges();
-
   pinLED_ERROR   = 0;
   pinLED_WARNING = 0;
 }

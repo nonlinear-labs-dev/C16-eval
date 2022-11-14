@@ -11,7 +11,7 @@
 #include "nl_usbd.h"
 
 /* Definition for Midi Callback functions */
-typedef void (*MidiReceiveComplete_Callback)(uint8_t const port, uint8_t* buff, uint32_t len);
+typedef void (*MidiReceiveComplete_Callback)(uint8_t const port, uint8_t const* const buff, uint32_t const len);
 typedef void (*MidiSendComplete_Callback)(uint8_t const port);
 
 #include "cppbegin.inc"

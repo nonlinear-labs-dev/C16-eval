@@ -4,7 +4,8 @@
 #include "ipc/ipc.h"
 #include "tasks/mtask.h"
 #include "tasks/encoderTask.h"
-#include "usb/usbWriters.h"
+#include "usb/usbWriter_MidiSysex.h"
+#include "usb/sysexFunctions.h"
 #include "tasks/statemonitor.h"
 #include "erp/ERP_Decoder.h"
 
@@ -21,13 +22,13 @@ namespace Task
 
    private:
     unsigned                    m_tan { 0 };
-    Usb::UsbMidiSysexWriter&    m_sensorEventWriter;
+    UsbWriter::MidiSysexWriter& m_sensorEventWriter;
     StateMonitor::StateMonitor& m_stateMonitor;
     Encoder&                    m_encoder;
 
    public:
     constexpr SensorDataWriter(uint32_t const delay, uint32_t const period,
-                               Usb::UsbMidiSysexWriter&    sensorEventWriter,
+                               UsbWriter::MidiSysexWriter& sensorEventWriter,
                                StateMonitor::StateMonitor& stateMonitor,
                                Encoder&                    encoder)
         : Task(delay, period)
@@ -48,9 +49,9 @@ namespace Task
     {
       unsigned angle = erpWipersToAngle(IPC_ReadAdcBufferSum(erpNumber * 2), IPC_ReadAdcBufferSum(erpNumber * 2 + 1));
       m_sensorEventWriter.write(SENSOR_DATA_CABLE_NUMBER,
-                                Usb::getSysexHi2Byte(angle),
-                                Usb::getSysexHiByte(angle),
-                                Usb::getSysexLoByte(angle));
+                                SysEx::getSysexHi2Byte(angle),
+                                SysEx::getSysexHiByte(angle),
+                                SysEx::getSysexLoByte(angle));
     };
 
    public:
@@ -74,9 +75,9 @@ namespace Task
       }
 
       m_sensorEventWriter.write(SENSOR_DATA_CABLE_NUMBER,
-                                0xF0,  // SysEx Start
-                                Usb::getSysexHiByte(m_tan),
-                                Usb::getSysexLoByte(m_tan));
+                                0xF0,                           // SysEx Start
+                                SysEx::getSysexHiByte(m_tan),   // tanH
+                                SysEx::getSysexLoByte(m_tan));  // tanL
 
       // 8x ERP
       writeErp(0);
@@ -93,9 +94,9 @@ namespace Task
       uint32_t status = m_stateMonitor.getStatus();
 
       m_sensorEventWriter.write(SENSOR_DATA_CABLE_NUMBER,
-                                Usb::getSysexHi3Byte(status),  // stat0 hi/lo, stat1 hi
-                                Usb::getSysexHi2Byte(status),
-                                Usb::getSysexHiByte(status));
+                                SysEx::getSysexHi3Byte(status),  // statHH
+                                SysEx::getSysexHi2Byte(status),  // statHL
+                                SysEx::getSysexHiByte(status));  // statLH
 
       // Low Speed Data
       uint32_t lsd0 = 0;
@@ -147,16 +148,16 @@ namespace Task
       }
 
       m_sensorEventWriter.write(SENSOR_DATA_CABLE_NUMBER,
-                                Usb::getSysexLoByte(status),
-                                Usb::getSysexHiByte(lsd0),
-                                Usb::getSysexLoByte(lsd0));  // stat1 lo, lsd0 hi/lo
+                                SysEx::getSysexLoByte(status),  // statLL
+                                SysEx::getSysexHiByte(lsd0),    // LSD0H
+                                SysEx::getSysexLoByte(lsd0));   // LSD0L
       m_sensorEventWriter.write(SENSOR_DATA_CABLE_NUMBER,
-                                Usb::getSysexHiByte(lsd1),
-                                Usb::getSysexLoByte(lsd1),
-                                Usb::getSysexHiByte(lsd2));  // lsd1 hi/lo, lsd2 hi
+                                SysEx::getSysexHiByte(lsd1),   // LSD1H
+                                SysEx::getSysexLoByte(lsd1),   // LSD1L
+                                SysEx::getSysexHiByte(lsd2));  // LSD2H
       m_sensorEventWriter.writeLast(SENSOR_DATA_CABLE_NUMBER,
-                                    Usb::getSysexLoByte(lsd2),
-                                    0xF7);  // SysEx End
+                                    SysEx::getSysexLoByte(lsd2),  // LSD2L
+                                    0xF7);                        // SysEx End
     }
 
   };  // class SensorDataWriter

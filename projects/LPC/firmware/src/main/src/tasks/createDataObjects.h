@@ -16,9 +16,9 @@
 #include "tasks/usbTask.h"
 #include "drv/LRA.h"
 #include "sys/ticker.h"
-
-#include "usb/usbWriter.h"
-#include "usb/bridgeDataUsbWriter.h"
+#include "usb/usbWriter_HardwareAccess.h"
+#include "usb/usbWriter_MidiSysex.h"
+#include "usb/usbWriter_Bridge.h"
 
 namespace Task
 {
@@ -44,19 +44,23 @@ namespace Task
     LedHeartBeatM4 m_ledHeartBeatM4Task { 2, msToTicks(500),
                                           m_allTimedIoPinsTask.m_LED_m4HeartBeat };
 
-    // shared MidiSysexWriter for Keybed Scanner and Sensor Scanner to Host (USB0 HS)
-    Usb::UsbMidiSysexWriter m_usbSensorAndKeyEventMidiSysexWriter { Usb::USBPorts::USB0, m_stateMonitor };
+    // USB Writer to Host
+    UsbWriter::HardwareAccess m_usbToHostWriter { UsbWriter::USBPorts::USB0 };
 
-    // USB Writer for Data from Host (USB0 HS) to Bridge (USB1 FS)
-    Usb::UsbBridgeWriter m_hostToBridge { Usb::USBPorts::USB1, m_stateMonitor };
+    // USB Writer to Bridge
+    UsbWriter::HardwareAccess m_usbToBridgeWriter { UsbWriter::USBPorts::USB1 };
+
+    // shared MidiSysexWriter for Keybed Scanner and Sensor Scanner to Host (USB0 HS)
+    UsbWriter::MidiSysexWriter m_usbSensorAndKeyEventMidiSysexWriter { m_usbToHostWriter };
 
     // USB Writer for Data from Bridge (USB1 FS) To Host USB0 HS)
-    Usb::UsbBridgeWriter m_bridgeToHost { Usb::USBPorts::USB0, m_stateMonitor };
+    UsbWriter::BridgeWriter m_bridgeToHostWriter { m_usbToHostWriter };
+
+    // USB Writer for Data from Host (USB0 HS) to Bridge (USB1 FS)
+    UsbWriter::BridgeWriter m_hostToBridgeWriter { m_usbToBridgeWriter };
 
     // high prio task that handles the high level USB I/O
-    UsbProcess m_usbProcessTask { m_usbSensorAndKeyEventMidiSysexWriter,
-                                  m_bridgeToHost,
-                                  m_hostToBridge };
+    UsbProcess m_usbProcessTask { m_usbSensorAndKeyEventMidiSysexWriter, m_bridgeToHostWriter, m_hostToBridgeWriter };
 
     // high prio task for Keybed Scanner, shares a common MidiSysexWriter with Sensor Scanner
     KeybedScanner m_keybedScannerTask { m_usbSensorAndKeyEventMidiSysexWriter,
