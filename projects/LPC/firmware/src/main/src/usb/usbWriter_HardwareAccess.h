@@ -4,6 +4,7 @@
 #include "sys/ticker.h"
 #include "usb/driver/nl_usb_midi.h"
 
+
 namespace UsbWriter
 {
   enum class USBPorts
@@ -57,12 +58,15 @@ namespace UsbWriter
     bool startTransaction(void)
     {
       m_busy = true;
-      return USB_MIDI_Send(m_outgoingPort, m_pData, m_dataSize) != -1;
+      bool retValue = USB_MIDI_Send(m_outgoingPort, m_pData, m_dataSize) != -1;
+      return retValue;
     };
 
     bool transactionFinished(void)
     {
-      return !(m_busy = (USB_MIDI_BytesToSend(m_outgoingPort) > 0));
+      bool retValue = !(USB_MIDI_BytesToSend(m_outgoingPort) > 0);
+      m_busy = !retValue;
+      return retValue;
     };
 
     bool timedOut(void) const

@@ -6,7 +6,7 @@
 *******************************************************************************/
 #pragma once
 
-#define NL_LPC_CLK              (204000000ul)
+#define NL_LPC_CLK              (203800000ul)  // not exactly 204Mhz, for better jitter distribution (USB vs. ticker)
 #define NL_LPC_CLK_PERIOD_100PS (10000000000ul / NL_LPC_CLK)
 #define NL_LPC_AUDIO_CLK        (12288000ul)
 
