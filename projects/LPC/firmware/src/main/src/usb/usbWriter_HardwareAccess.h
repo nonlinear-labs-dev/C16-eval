@@ -4,7 +4,6 @@
 #include "sys/ticker.h"
 #include "usb/driver/nl_usb_midi.h"
 
-
 namespace UsbWriter
 {
   enum class USBPorts
@@ -14,7 +13,7 @@ namespace UsbWriter
   };
 
   typedef uint64_t       tTime;
-  static constexpr tTime TIMEOUT_TIMEOUT_INITIAL    = msToTicks(100);
+  static constexpr tTime TIMEOUT_TIMEOUT_INITIAL    = msToTicks(400);
   static constexpr tTime TIMEOUT_TIMEOUT_SUBSEQUENT = msToTicks(10);
 
   class HardwareAccess
@@ -32,15 +31,17 @@ namespace UsbWriter
       return m_outgoingPort;
     };
 
-    friend class WriterStateMachine;
+    bool isOnline(void) const
+    {
+      return USB_MIDI_IsConfigured(m_outgoingPort);
+    };
 
-   private:
     void setupTransactionData(void *const pData, uint16_t const dataSize, bool const useTimeout)
     {
       m_useTimeout = useTimeout;
       m_pData      = (uint8_t const *const) pData;
       m_dataSize   = dataSize;
-    }
+    };
 
     bool prepareTransaction(void)
     {
@@ -58,15 +59,17 @@ namespace UsbWriter
     bool startTransaction(void)
     {
       m_busy = true;
-      bool retValue = USB_MIDI_Send(m_outgoingPort, m_pData, m_dataSize) != -1;
-      return retValue;
+      if (isOnline())
+        return USB_MIDI_Send(m_outgoingPort, m_pData, m_dataSize) != -1;
+      return true;
     };
 
     bool transactionFinished(void)
     {
-      bool retValue = !(USB_MIDI_BytesToSend(m_outgoingPort) > 0);
-      m_busy = !retValue;
-      return retValue;
+      if (isOnline())
+        return !(m_busy = USB_MIDI_BytesToSend(m_outgoingPort) > 0);
+      m_busy = false;
+      return true;
     };
 
     bool timedOut(void) const
@@ -83,6 +86,7 @@ namespace UsbWriter
       m_busy    = false;
     };
 
+   private:
     // ---- data members ----
     bool  m_busy { false };
     bool  m_useTimeout { false };

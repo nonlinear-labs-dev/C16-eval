@@ -6,40 +6,43 @@
 namespace UsbWriter
 {
 
-  class BridgeWriter : WriterStateMachine
+  class BridgeWriter : public WriterStateMachine
   {
    public:
     constexpr BridgeWriter(HardwareAccess &hwAccess)
         : WriterStateMachine(hwAccess)
         , m_incomingPort(1 - hwAccess.getPort()) {};
 
-    void process(void)
-    {
-      WriterStateMachine::process();
-    };
-
    private:
     // ---- implemented virtuals
-    bool waitingForUserDataReady(void) const
+    bool waitingForUserDataReady(void) override
     {
       return m_pData == nullptr;
     };
 
-    void userTransactionPreStart(void)
+    void userTransactionPreStart(void) override
     {
       if (waitingForUserDataReady())
         return;
       setupTransmitData((void *) m_pData, m_dataSize, USBTimeouts::UseTimeout);
     };
 
-    void finishUserTransaction(void)
+    void onGoingOnline(void) override
+    {
+      USB_MIDI_SuspendReceive(m_hwAccess.getPort(), 0);  // re-enable receiver
+      USB_MIDI_ClearReceive(m_hwAccess.getPort());
+      USB_MIDI_primeReceive(m_hwAccess.getPort());
+    };
+
+    void finishUserTransaction(void) override
     {
       USB_MIDI_SuspendReceive(m_incomingPort, 0);  // re-enable receiver
+      USB_MIDI_ClearReceive(m_incomingPort);
       USB_MIDI_primeReceive(m_incomingPort);
       m_pData = nullptr;
     };
 
-    void abortUserTransaction(void)
+    void abortUserTransaction(void) override
     {
       finishUserTransaction();
     };

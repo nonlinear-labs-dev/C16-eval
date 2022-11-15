@@ -7,45 +7,45 @@
 namespace UsbWriter
 {
 
-  class MidiSysexWriter : WriterStateMachine
+  class MidiSysexWriter : public WriterStateMachine
   {
    public:
     constexpr MidiSysexWriter(HardwareAccess &hwAccess)
         : WriterStateMachine(hwAccess) {};
 
-    void process(void)
-    {
-      WriterStateMachine::process();
-    };
-
    private:
     // ---- implemented virtuals
-    bool processOnlyOneTransmitAtATime(void) const
+    bool processOnlyOneTransmitAtATime(void) override
     {
       return false;
     };
 
-    bool waitingForUserDataReady(void) const
+    bool waitingForUserDataReady(void) override
     {
       return m_sendBufferIndex == m_bufIndex;
     };
 
-    void userTransactionPreStart(void)
+    void userTransactionPreStart(void) override
     {
       if (waitingForUserDataReady())
         return;
       m_currentTransactionElemCount = usedBuffer();
-      setupTransmitData((void *) (&m_buffer[m_sendBufferIndex]), uint16_t(m_currentTransactionElemCount * sizeof m_buffer[0]), USBTimeouts::DontUseTimeout);
+      setupTransmitData((void *) (&m_buffer[m_sendBufferIndex]), uint16_t(m_currentTransactionElemCount * sizeof m_buffer[0]), USBTimeouts::UseTimeout);
     };
 
-    void userTransactionPostStart(void)
+    void userTransactionPostStart(void) override
     {
       m_sendBufferIndex = m_bufIndex;
     };
 
-    void finishUserTransaction(void)
+    void finishUserTransaction(void) override
     {
       m_currentTransactionElemCount = 0;
+    };
+
+    void abortUserTransaction(void) override
+    {
+      finishUserTransaction();
     };
 
     // --- interface functions ----

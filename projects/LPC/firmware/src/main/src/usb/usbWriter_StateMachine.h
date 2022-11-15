@@ -8,10 +8,9 @@ namespace UsbWriter
   class WriterStateMachine
   {
    private:
-    virtual bool waitingForUserDataReady(void) const  // user class must implement this
-    {
-      return false;
-    };
+    virtual void onGoingOnline(void) {};  // user class may shadow this
+
+    virtual bool waitingForUserDataReady(void) = 0;  // user class must implement this
 
     virtual void userTransactionPreStart(void) {};  // user class may shadow this
 
@@ -21,7 +20,7 @@ namespace UsbWriter
 
     virtual void abortUserTransaction(void) {};  // user class may shadow this
 
-    virtual bool processOnlyOneTransmitAtATime(void) const  // user class may shadow this
+    virtual bool processOnlyOneTransmitAtATime(void)  // user class may shadow this
     {
       return true;
     };
@@ -43,6 +42,9 @@ namespace UsbWriter
 
     void process(void)
     {
+      if (wentOnline())
+        onGoingOnline();
+
       do
       {
         switch (m_state)
@@ -57,7 +59,7 @@ namespace UsbWriter
 
           case States::DATA_READY:
             if (timeOut())
-              continue;  // check for new data after abort
+              return;  // check for new data after abort
             userTransactionPreStart();
             if (!m_hwAccess.startTransaction())
               return;  // try again next time
@@ -67,7 +69,7 @@ namespace UsbWriter
 
           case States::TRANSMITTING:
             if (timeOut())
-              continue;  // check for new data after abort
+              return;  // check for new data after abort
             if (!m_hwAccess.transactionFinished())
               return;  // still sending
             finishUserTransaction();
@@ -80,6 +82,17 @@ namespace UsbWriter
     };
 
    private:
+    bool wentOnline(void)
+    {
+      bool online = m_hwAccess.isOnline();
+      if (m_online != online)
+      {
+        m_online = online;
+        return online;
+      }
+      return false;
+    };
+
     bool timeOut(void)
     {
       if (m_hwAccess.timedOut())
@@ -107,6 +120,8 @@ namespace UsbWriter
     {
       States::IDLE
     };
+
+    uint8_t m_online { 0xAA };
 
   };  // class WriterStateMachine
 
