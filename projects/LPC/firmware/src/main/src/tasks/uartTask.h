@@ -7,6 +7,7 @@
 #include "drv/uart/uartProtocol.h"
 #include "drv/uart/uartCallbacks.h"
 #include "drv/uart/uartMessageComposer.h"
+#include "usb/usbWriter_HardwareAccess.h"
 
 namespace Task
 {
@@ -21,13 +22,14 @@ namespace Task
     UartProtocol::RxParser        m_rxParser { UartProtocol::uartReceiveComplete_Callback };
 
    public:
-    Uart(IOpins::IOpin& uartActivityLED, IOpins::IOpin& uartErrorLED, LRAHandler& lraHandler)
+    Uart(IOpins::IOpin& uartActivityLED, IOpins::IOpin& uartErrorLED, LRAHandler& lraHandler, UsbWriter::HardwareAccess& usbHw0, UsbWriter::HardwareAccess& usbHw1)
         : Task()
         , m_uartActivityLED(uartActivityLED)
         , m_uartErrorLED(uartErrorLED)
     {
       UartProtocol::setLeds(m_uartActivityLED, m_uartErrorLED);
       UartProtocol::setLraHandler(lraHandler);
+      UartProtocol::setUsbHw(usbHw0, usbHw1);
       UartProtocol::setMsgComposer(m_msgComposer);
     };
 

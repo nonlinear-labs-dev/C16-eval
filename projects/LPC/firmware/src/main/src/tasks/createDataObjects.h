@@ -45,19 +45,19 @@ namespace Task
                                           m_allTimedIoPinsTask.m_LED_m4HeartBeat };
 
     // USB Writer to Host
-    UsbWriter::HardwareAccess m_usbToHostWriter { UsbWriter::USBPorts::USB0 };
+    UsbWriter::HardwareAccess m_usbToHostUSB0Writer { UsbWriter::USBPorts::USB0 };
 
     // USB Writer to Bridge
-    UsbWriter::HardwareAccess m_usbToBridgeWriter { UsbWriter::USBPorts::USB1 };
+    UsbWriter::HardwareAccess m_usbToBridgeUSB1Writer { UsbWriter::USBPorts::USB1 };
 
     // shared MidiSysexWriter for Keybed Scanner and Sensor Scanner to Host (USB0 HS)
-    UsbWriter::MidiSysexWriter m_usbSensorAndKeyEventMidiSysexWriter { m_usbToHostWriter };
+    UsbWriter::MidiSysexWriter m_usbSensorAndKeyEventMidiSysexWriter { m_usbToHostUSB0Writer };
 
     // USB Writer for Data from Bridge (USB1 FS) To Host USB0 HS)
-    UsbWriter::BridgeWriter m_bridgeToHostWriter { m_usbToHostWriter };
+    UsbWriter::BridgeWriter m_bridgeToHostWriter { m_usbToHostUSB0Writer };
 
     // USB Writer for Data from Host (USB0 HS) to Bridge (USB1 FS)
-    UsbWriter::BridgeWriter m_hostToBridgeWriter { m_usbToBridgeWriter };
+    UsbWriter::BridgeWriter m_hostToBridgeWriter { m_usbToBridgeUSB1Writer };
 
     // high prio task that handles the high level USB I/O
     UsbProcess m_usbProcessTask { m_usbSensorAndKeyEventMidiSysexWriter, m_bridgeToHostWriter, m_hostToBridgeWriter };
@@ -80,7 +80,7 @@ namespace Task
                            m_allTimedIoPinsTask.m_LED_lraActivity };
 
     // high prio task for uart processing
-    Uart m_uartTask { m_allTimedIoPinsTask.m_LED_uartActivity, m_allTimedIoPinsTask.m_LED_uartError, m_lraTask };
+    Uart m_uartTask { m_allTimedIoPinsTask.m_LED_uartActivity, m_allTimedIoPinsTask.m_LED_uartError, m_lraTask, m_usbToHostUSB0Writer, m_usbToBridgeUSB1Writer };
 
    public:
     inline void dispatch(void)
