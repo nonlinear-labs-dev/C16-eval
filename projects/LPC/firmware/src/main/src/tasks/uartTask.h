@@ -43,7 +43,7 @@ namespace Task
       {
         m_lineStatus = UART_GetAndClearLineStatusRegister();
 
-        m_txAssembler.processPendingTransmits(m_lineStatus);
+        (void) m_txAssembler.processPendingTransmits(m_lineStatus);
 
         if (UART_ReceiveError(m_lineStatus))
         {
