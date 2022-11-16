@@ -3,6 +3,22 @@
 #include <stdint.h>
 #include "usb/usbWriter_StateMachine.h"
 
+#ifdef MONITOR_HW_EVENTS_AND_PACKETS
+
+#include "io/pins.h"
+static void bridgeDataPacketHwMonitor(bool const on)
+{
+  pinTP6_5 = on;
+}
+
+#else
+
+static void bridgeDataPacketHwMonitor(bool const on)
+{
+}
+
+#endif
+
 namespace UsbWriter
 {
 
@@ -25,6 +41,7 @@ namespace UsbWriter
       if (waitingForUserDataReady())
         return;
       setupTransmitData((void *) m_pData, m_dataSize, USBTimeouts::UseTimeout);
+      bridgeDataPacketHwMonitor(true);
     };
 
     void onGoingOnline(void) override
@@ -40,6 +57,7 @@ namespace UsbWriter
       USB_MIDI_ClearReceive(m_incomingPort);
       USB_MIDI_primeReceive(m_incomingPort);
       m_pData = nullptr;
+      bridgeDataPacketHwMonitor(false);
     };
 
     void abortUserTransaction(void) override

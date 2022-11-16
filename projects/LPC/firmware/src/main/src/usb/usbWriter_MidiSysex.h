@@ -4,6 +4,22 @@
 #include "usb/driver/nl_usb_core_circular_buffers.h"
 #include "usb/usbWriter_StateMachine.h"
 
+#ifdef MONITOR_HW_EVENTS_AND_PACKETS
+
+#include "io/pins.h"
+static void sensorDataPacketHwMonitor(bool const on)
+{
+  pinTP6_3 = on;
+}
+
+#else
+
+static void sensorDataPacketHwMonitor(bool const on)
+{
+}
+
+#endif
+
 namespace UsbWriter
 {
 
@@ -31,6 +47,7 @@ namespace UsbWriter
         return;
       m_currentTransactionElemCount = usedBuffer();
       setupTransmitData((void *) (&m_buffer[m_sendBufferIndex]), uint16_t(m_currentTransactionElemCount * sizeof m_buffer[0]), USBTimeouts::UseTimeout);
+      sensorDataPacketHwMonitor(true);
     };
 
     void userTransactionPostStart(void) override
@@ -41,6 +58,7 @@ namespace UsbWriter
     void finishUserTransaction(void) override
     {
       m_currentTransactionElemCount = 0;
+      sensorDataPacketHwMonitor(false);
     };
 
     void abortUserTransaction(void) override

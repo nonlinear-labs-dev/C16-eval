@@ -7,6 +7,22 @@
 #include "usb/usbWriter_MidiSysex.h"
 #include "usb/sysexFunctions.h"
 
+#ifdef MONITOR_HW_EVENTS_AND_PACKETS
+
+#include "io/pins.h"
+static void kbdEventHwMonitor(void)
+{
+  pinTP6_1 = ~pinTP6_1;
+}
+
+#else
+
+static void kbdEventHwMonitor(void)
+{
+}
+
+#endif
+
 namespace Task
 {
   static constexpr unsigned KEYBED_DATA_CABLE_NUMBER = 1u;
@@ -60,7 +76,10 @@ namespace Task
           m_stateMonitor.event(StateMonitor::ERROR_KEYBED_DATA_LOSS);
       }
       if (hadEvent)
+      {
         m_stateMonitor.event(StateMonitor::INFO_KEYBED_EVENT);
+        kbdEventHwMonitor();
+      }
     };
   };
 

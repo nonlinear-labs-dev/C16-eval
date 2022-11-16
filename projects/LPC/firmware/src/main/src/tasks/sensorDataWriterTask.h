@@ -9,6 +9,22 @@
 #include "tasks/statemonitor.h"
 #include "erp/ERP_Decoder.h"
 
+#ifdef MONITOR_HW_EVENTS_AND_PACKETS
+
+#include "io/pins.h"
+static void adcEventHwMonitor(void)
+{
+  pinTP1_0 = ~pinTP1_0;
+}
+
+#else
+
+static void adcEventHwMonitor(void)
+{
+}
+
+#endif
+
 namespace Task
 {
   static constexpr unsigned SENSOR_DATA_CABLE_NUMBER = 2u;
@@ -64,6 +80,7 @@ namespace Task
       // because it takes ~20us before the first value in the ADC value array is updated
       // and by that time this collecting function has finished (as takes ~10us).
       s.adcIsConverting = 1;
+      adcEventHwMonitor();
 
       // tan
       m_tan = (m_tan + 1u) & FOURTEEN_ONES;
