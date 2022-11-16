@@ -55,6 +55,16 @@ namespace UartProtocol
       m_txAssembler.putPayloadDataByte(lraCtrl);
     };
 
+    inline void sendUsbControl(uint8_t const configUsb0, uint8_t const configUsb1)
+    {
+      m_txAssembler.putHeader();
+      m_txAssembler.putMessageId(MessageIds::UsbControl);
+      m_txAssembler.putPayloadSize(2 + 2);
+      m_txAssembler.putTan(m_tan++);
+      m_txAssembler.putPayloadDataByte(configUsb0);
+      m_txAssembler.putPayloadDataByte(configUsb1);
+    };
+
    private:
     UartProtocol::TxAssembler& m_txAssembler;
     uint16_t                   m_tan { 0 };

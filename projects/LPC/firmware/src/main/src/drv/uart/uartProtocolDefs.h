@@ -76,6 +76,7 @@ namespace UartProtocol
   {  // message ID == ESC (0x1B) is forbidden !
     EhcSetup    = 'E',
     LraControl  = 'L',
+    UsbControl  = 'U',
     Acknowledge = ACK,
   };
 }  // namespace

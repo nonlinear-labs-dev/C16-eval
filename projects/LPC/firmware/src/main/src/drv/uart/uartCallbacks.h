@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include "drv/IoPin.h"
 #include "drv/EHC.h"
+#include "usb/usbWriter_HardwareAccess.h"
 #include "tasks/lraTask.h"
 #include "uartProtocolDefs.h"
 #include "uartProtocol.h"
@@ -18,6 +19,8 @@ namespace UartProtocol
   static IOpins::IOpin *                pUartErrorLED;
   static Task::LRAHandler *             pLraHandler;
   static UartProtocol::MessageComposer *pMsgComposer;
+  static UsbWriter::HardwareAccess *    pUsbHw0;
+  static UsbWriter::HardwareAccess *    pUsbHw1;
 
   inline static void setLeds(IOpins::IOpin &UartActivityLED, IOpins::IOpin &UartErrorLED)
   {
@@ -33,6 +36,12 @@ namespace UartProtocol
   inline static void setMsgComposer(UartProtocol::MessageComposer &msgComposer)
   {
     pMsgComposer = &msgComposer;
+  }
+
+  inline static void setUsbHw(UsbWriter::HardwareAccess &hw0, UsbWriter::HardwareAccess &hw1)
+  {
+    pUsbHw0 = &hw0;
+    pUsbHw1 = &hw1;
   }
 
   // Message Parser for Playcontroller side
@@ -61,6 +70,16 @@ namespace UartProtocol
           tanHi = pData[0];
           tanLo = pData[1];
           pLraHandler->startPattern(pData[2]);
+          pMsgComposer->sendAck(tanHi, tanLo);
+          continue;
+
+        case UartProtocol::MessageIds::UsbControl:
+          if (len != 2 + 2)
+            break;
+          tanHi = pData[0];
+          tanLo = pData[1];
+          pUsbHw0->config(pData[2]);
+          pUsbHw1->config(pData[3]);
           pMsgComposer->sendAck(tanHi, tanLo);
           continue;
       }

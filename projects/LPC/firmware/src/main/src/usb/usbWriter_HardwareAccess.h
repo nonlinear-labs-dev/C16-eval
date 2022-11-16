@@ -33,7 +33,17 @@ namespace UsbWriter
 
     bool isOnline(void) const
     {
-      return USB_MIDI_IsConfigured(m_outgoingPort);
+      return m_enabled && USB_MIDI_IsConfigured(m_outgoingPort);
+    };
+
+    void enable(bool const enable)
+    {
+      m_enabled = enable;
+    };
+
+    void config(uint8_t const configByte)
+    {
+      enable((configByte & 0b00000001) != 0);
     };
 
     void setupTransactionData(void *const pData, uint16_t const dataSize, bool const useTimeout)
@@ -88,6 +98,7 @@ namespace UsbWriter
 
    private:
     // ---- data members ----
+    bool  m_enabled { false };
     bool  m_busy { false };
     bool  m_useTimeout { false };
     tTime m_packetTime { 0 };
