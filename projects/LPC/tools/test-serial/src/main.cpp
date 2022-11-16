@@ -14,9 +14,10 @@
 #include <sys/ioctl.h>        //ioctl() call defenitions
 #include <linux/tty_flags.h>  // for ASYNC_LOW_LATENCY
 
-#include "uart/uartProtocol.h"
-#include "uart/uartProtocolDefs.h"
-#include "LRApatternIds.h"
+#include "drv/uart/uartProtocol.h"
+#include "drv/uart/uartProtocolDefs.h"
+#include "drv/uart/uartMessageComposer.h"
+#include "drv/LRApatternIds.h"
 
 static void setupPort(int const portFd)
 {
@@ -90,6 +91,19 @@ void                   intHandler(int dummy)
 }
 #pragma GCC diagnostic pop
 
+int portFd = 0;
+
+// hardware access for transmitting a byte
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+static int             uartTransmitCallback(uint8_t const byte, uint32_t const lineStatus)
+{
+  if (write(portFd, &byte, sizeof byte) == -1)
+    exit(3);
+  return 1;
+}
+#pragma GCC diagnostic pop
+
 int main(int argc, char* argv[])
 {
   if (argc != 2)
@@ -98,7 +112,7 @@ int main(int argc, char* argv[])
     return 3;
   }
 
-  int portFd = open(argv[1], O_RDWR | O_NOCTTY);
+  portFd = open(argv[1], O_RDWR | O_NOCTTY);
   if (portFd == -1)
   {
     printf("cannot open device '%s'", argv[1]);
@@ -109,56 +123,39 @@ int main(int argc, char* argv[])
 
   prompt("Start LPC Debugger (if required) and press Enter...");
 
-  uint8_t sendMsg[] = {
-    UartProtocol::MAGIC0,
-    UartProtocol::MAGIC1,
-    UartProtocol::MAGIC2,
-    UartProtocol::MAGIC3,
-    uint8_t(UartProtocol::MessageIds::LraControl),
-    3,     // msgSize
-    0x1B,  // tanHi
-    0x1B,  // tanHi (doubled)
-    0x22,  // tanLo
-    0x01,  // lraCtrl LRA0, SingleBlip_Soft
-  };
+  UartProtocol::TxAssembler     uartTxAssembler(uartTransmitCallback);
+  UartProtocol::MessageComposer uartMessageComposer(uartTxAssembler);
 
   puts("Press Ctrl-C to break...");
   signal(SIGINT, intHandler);
 
+  uartMessageComposer.sendUsbControl(0b00000001, 0b00000001);
+
   while (keepRunning)
   {
-    if (write(portFd, sendMsg, sizeof sendMsg) == -1)
-      return 3;
-    printf("message sent\nReading...");
+    while (uartTxAssembler.processPendingTransmits(0))
+      ;
 
-    unsigned cnt = 0;
-    while (cnt < 4 + 1 + 1 + 2 + 1)
+    char ackMsgBuffer[256];
+    printf("waiting for ACK...");
+    ssize_t bytesRead = read(portFd, ackMsgBuffer, 10);
+    int     err       = errno;
+    if (bytesRead == -1 && err != EAGAIN)
     {
-      ssize_t ret;
-      uint8_t byte;
-      do
-      {
-        ret     = read(portFd, &byte, 1);
-        int err = errno;
-        if (ret == -1 && err != EAGAIN)
-        {
-          printf("\ndevice error:%d\n", err);
-          goto done;
-        }
-        if (!keepRunning)
-          goto done;
-      } while (ret != 1);
-      printf("%02X ", byte);
-      fflush(stdout);
-      cnt++;
+      printf("\ndevice error:%d\n", err);
+      exit(3);
     }
+
+    for (unsigned i = 0; i < bytesRead; i++)
+      printf("%02X ", ackMsgBuffer[i]);
     printf("\n");
     fflush(stdout);
 
     usleep(30000);
+    printf("sending...\n");
+    uartMessageComposer.sendLraControl(0, LRA::LraPatternsIds::SingleBlip_VerySoft);
   }
 
-done:
   prompt("\npress Enter to terminate...");
   close(portFd);
   return 0;

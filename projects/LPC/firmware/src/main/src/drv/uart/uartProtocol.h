@@ -233,13 +233,14 @@ namespace UartProtocol
     TxAssembler(UartTransmit_Callback transmitCallback)
         : m_transmitCallback(transmitCallback) {};
 
-    inline void processPendingTransmits(uint32_t const lineStatus)
+    inline bool processPendingTransmits(uint32_t const lineStatus)
     {
       if (m_head == m_tail)
-        return;
+        return false;
 
       if ((*m_transmitCallback)(m_txBuffer[m_tail], lineStatus))
         m_tail++;
+      return true;
     };
 
     inline void putHeader(void)
