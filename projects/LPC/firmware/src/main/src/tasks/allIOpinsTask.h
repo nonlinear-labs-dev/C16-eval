@@ -12,15 +12,18 @@ namespace Task
     using Task::Task;
 
    public:
+    // system
     IOpins::IOpin m_LED_m4HeartBeat { pinLED_M4HB };
     IOpins::IOpin m_LED_warning { pinLED_WARNING };
     IOpins::IOpin m_LED_error { pinLED_ERROR };
+
+    // user info (yellow)
     IOpins::IOpin m_LED_keybedEvent { pinLED_E };
     IOpins::IOpin m_LED_uartActivity { pinLED_F };
-    IOpins::IOpin m_LED_uartError { pinLED_J };
-    IOpins::IOpin m_LED_usbDelayedPacket { pinLED_H };
-    IOpins::IOpin m_LED_adcOverrun { pinLED_I };
     IOpins::IOpin m_LED_lraActivity { pinLED_G };
+    IOpins::IOpin m_LED_usbDelayedPacket { pinLED_H };
+    // user errors (red)
+    IOpins::IOpin m_LED_uartError { pinLED_I };
 
     inline void body(void)
     {
@@ -31,7 +34,6 @@ namespace Task
       m_LED_uartActivity.process();
       m_LED_uartError.process();
       m_LED_usbDelayedPacket.process();
-      m_LED_adcOverrun.process();
       m_LED_lraActivity.process();
     };
   };

@@ -40,15 +40,11 @@ namespace Task
     // state monitor
     StateMonitor::StateMonitor m_stateMonitor { m_allTimedIoPinsTask };
 
-    // task for heartbeat LED of M4 core
-    LedHeartBeatM4 m_ledHeartBeatM4Task { 2, msToTicks(500),
-                                          m_allTimedIoPinsTask.m_LED_m4HeartBeat };
-
     // USB Writer to Host
-    UsbWriter::HardwareAccess m_usbToHostUSB0Writer { UsbWriter::USBPorts::USB0 };
+    UsbWriter::HardwareAccess m_usbToHostUSB0Writer { UsbWriter::USBPorts::USB0, m_stateMonitor };
 
     // USB Writer to Bridge
-    UsbWriter::HardwareAccess m_usbToBridgeUSB1Writer { UsbWriter::USBPorts::USB1 };
+    UsbWriter::HardwareAccess m_usbToBridgeUSB1Writer { UsbWriter::USBPorts::USB1, m_stateMonitor };
 
     // shared MidiSysexWriter for Keybed Scanner and Sensor Scanner to Host (USB0 HS)
     UsbWriter::MidiSysexWriter m_usbSensorAndKeyEventMidiSysexWriter { m_usbToHostUSB0Writer };
@@ -59,6 +55,22 @@ namespace Task
     // USB Writer for Data from Host (USB0 HS) to Bridge (USB1 FS)
     UsbWriter::BridgeWriter m_hostToBridgeWriter { m_usbToBridgeUSB1Writer };
 
+    // ---- periodic tasks ----
+
+    // task for heartbeat LED of M4 core
+    LedHeartBeatM4 m_ledHeartBeatM4Task { 1, msToTicks(500),
+                                          m_allTimedIoPinsTask.m_LED_m4HeartBeat };
+
+    // task for Sensor Scanner, shares a common MidiSysexWriter with Keybed Scanner
+    SensorDataWriter m_sensorDataWriterTask { 2, usToTicks(500),
+                                              m_usbSensorAndKeyEventMidiSysexWriter,
+                                              m_stateMonitor,
+                                              m_encoder };
+
+    // task for LRA handling
+    LRAHandler m_lraTask { 3, usToTicks(LraHardware::resonancePeriodInMicroseconds),
+                           m_allTimedIoPinsTask.m_LED_lraActivity };
+
     // high prio task that handles the high level USB I/O
     UsbProcess m_usbProcessTask { m_usbSensorAndKeyEventMidiSysexWriter, m_bridgeToHostWriter, m_hostToBridgeWriter };
 
@@ -66,21 +78,11 @@ namespace Task
     KeybedScanner m_keybedScannerTask { m_usbSensorAndKeyEventMidiSysexWriter,
                                         m_stateMonitor };
 
-    // Interrupt task for Rotary Encoder, runs at 4x speed (31us)
-    Encoder m_encoder;
-
-    // task for Sensor Scanner, shares a common MidiSysexWriter with Keybed Scanner
-    SensorDataWriter m_sensorDataWriterTask { 3, usToTicks(500),
-                                              m_usbSensorAndKeyEventMidiSysexWriter,
-                                              m_stateMonitor,
-                                              m_encoder };
-
-    // task for LRA handling
-    LRAHandler m_lraTask { 4, usToTicks(LraHardware::resonancePeriodInMicroseconds),
-                           m_allTimedIoPinsTask.m_LED_lraActivity };
-
     // high prio task for uart processing
     Uart m_uartTask { m_allTimedIoPinsTask.m_LED_uartActivity, m_allTimedIoPinsTask.m_LED_uartError, m_lraTask, m_usbToHostUSB0Writer, m_usbToBridgeUSB1Writer };
+
+    // Special Interrupt task for Rotary Encoder, runs at 4x speed (31us)
+    Encoder m_encoder;
 
    public:
     inline void dispatch(void)

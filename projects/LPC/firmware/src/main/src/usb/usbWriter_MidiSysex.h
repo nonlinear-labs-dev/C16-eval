@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include "usb/driver/nl_usb_core_circular_buffers.h"
 #include "usb/usbWriter_StateMachine.h"
+#include "tasks/statemonitor.h"
 
 #ifdef MONITOR_HW_EVENTS_AND_PACKETS
 
@@ -64,6 +65,7 @@ namespace UsbWriter
     void abortUserTransaction(void) override
     {
       finishUserTransaction();
+      m_hwAccess.m_stateMonitor.event(StateMonitor::Events::ERROR_SENSOR_OR_KEYBED_DATA_LOSS);
     };
 
     // --- interface functions ----

@@ -8,6 +8,7 @@
 #define M4_LED_ERROR_HARD_FAULTS                  (0b10110000000000000000000000000001)
 #define M4_LED_ERROR_CPP_EXCEPTION                (0b10110000000000000000000000000010)
 #define M4_LED_ERROR_TASK_OVERRUN                 (0b10110000000000000000000000000011)
+#define M4_LED_ERROR_ADC_OVERRUN                  (0b10110000000000000000000000000100)
 
 static inline __attribute__((always_inline)) void M4_error(unsigned const ledErrorPattern)
 {

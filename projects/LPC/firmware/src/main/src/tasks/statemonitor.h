@@ -1,6 +1,7 @@
 #pragma once
 
 #include "io/pins.h"
+#include "tasks/allIOpinsTask.h"
 
 namespace StateMonitor
 {
@@ -9,7 +10,8 @@ namespace StateMonitor
     NO_EVENT = 0,
     ERROR_SENSOR_DATA_LOSS,
     ERROR_KEYBED_DATA_LOSS,
-    ERROR_ADC_OVERRUN,
+    ERROR_SENSOR_OR_KEYBED_DATA_LOSS,
+    ERROR_BRIDGE_DATA_LOSS,
     WARNING_USB_DELAYED_PACKET,
     INFO_KEYBED_EVENT,
   };
@@ -39,11 +41,9 @@ namespace StateMonitor
 
         case ERROR_KEYBED_DATA_LOSS:
         case ERROR_SENSOR_DATA_LOSS:
+        case ERROR_SENSOR_OR_KEYBED_DATA_LOSS:
+        case ERROR_BRIDGE_DATA_LOSS:
           m_allIoPins.m_LED_error.timedOn(10);
-          break;
-
-        case ERROR_ADC_OVERRUN:
-          m_allIoPins.m_LED_adcOverrun.timedOn(10);
           break;
 
         case WARNING_USB_DELAYED_PACKET:

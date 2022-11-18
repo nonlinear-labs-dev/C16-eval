@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 #include "usb/usbWriter_StateMachine.h"
+#include "tasks/statemonitor.h"
 
 #ifdef MONITOR_HW_EVENTS_AND_PACKETS
 
@@ -63,6 +64,7 @@ namespace UsbWriter
     void abortUserTransaction(void) override
     {
       finishUserTransaction();
+      m_hwAccess.m_stateMonitor.event(StateMonitor::Events::ERROR_BRIDGE_DATA_LOSS);
     };
 
     // ---- local stuff ----

@@ -52,6 +52,12 @@ namespace UsbWriter
           case States::IDLE:
             if (waitingForUserDataReady())
               return;
+            if (m_hwAccess.isBusy())
+              m_hwAccess.m_stateMonitor.event(StateMonitor::Events::WARNING_USB_DELAYED_PACKET);
+            m_state = States::DRIVER_BUSY;
+            // intentional fall-through
+
+          case States::DRIVER_BUSY:
             if (!m_hwAccess.prepareTransaction())
               return;  // hardware-driver still busy
             m_state = States::DATA_READY;
@@ -113,6 +119,7 @@ namespace UsbWriter
     enum class States
     {
       IDLE,
+      DRIVER_BUSY,
       DATA_READY,
       TRANSMITTING,
     };

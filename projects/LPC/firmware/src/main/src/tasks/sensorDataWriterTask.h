@@ -8,6 +8,7 @@
 #include "usb/sysexFunctions.h"
 #include "tasks/statemonitor.h"
 #include "erp/ERP_Decoder.h"
+#include "M4_error.h"
 
 #ifdef MONITOR_HW_EVENTS_AND_PACKETS
 
@@ -74,7 +75,7 @@ namespace Task
     inline void body(void)
     {
       if (s.adcIsConverting)
-        m_stateMonitor.event(StateMonitor::ERROR_ADC_OVERRUN);
+        M4_error(M4_LED_ERROR_ADC_OVERRUN);
 
       // We can restart the ADC immediately without risk of it overwriting values during collection
       // because it takes ~20us before the first value in the ADC value array is updated

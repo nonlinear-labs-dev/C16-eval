@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include "sys/ticker.h"
 #include "usb/driver/nl_usb_midi.h"
+#include "tasks/statemonitor.h"
 
 namespace UsbWriter
 {
@@ -20,8 +21,9 @@ namespace UsbWriter
   {
 
    public:
-    constexpr HardwareAccess(enum USBPorts const outgoingPort)
-        : m_outgoingPort(outgoingPort == USBPorts::USB0 ? 0 : 1)
+    constexpr HardwareAccess(enum USBPorts const outgoingPort, StateMonitor::StateMonitor &stateMonitor)
+        : m_stateMonitor(stateMonitor)
+        , m_outgoingPort(outgoingPort == USBPorts::USB0 ? 0 : 1)
     {
       USB_MIDI_Init(m_outgoingPort);
     };
@@ -34,6 +36,11 @@ namespace UsbWriter
     bool isOnline(void) const
     {
       return m_enabled && USB_MIDI_IsConfigured(m_outgoingPort);
+    };
+
+    bool isBusy(void) const
+    {
+      return m_busy;
     };
 
     void enable(bool const enable)
@@ -96,9 +103,11 @@ namespace UsbWriter
       m_busy    = false;
     };
 
-   private:
     // ---- data members ----
-    bool  m_enabled { false };
+    StateMonitor::StateMonitor &m_stateMonitor;
+
+   private:
+    bool  m_enabled { true };
     bool  m_busy { false };
     bool  m_useTimeout { false };
     tTime m_packetTime { 0 };
