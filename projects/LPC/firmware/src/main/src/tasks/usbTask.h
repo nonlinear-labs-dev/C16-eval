@@ -75,4 +75,12 @@ namespace Task
     initBridges();
   }
 
+  static bool isUsbOnline(uint8_t const port)
+  {
+    if (port)
+      return pHostToBridgeAccess->isOnline();
+    else
+      return pBridgeToHostAccess->isOnline();
+  }
+
 }  // namespace

@@ -70,6 +70,17 @@ namespace UartProtocol
    *
    *  | ACK (0x06) | msg-len (2) | TAN-Hi | TAN-Lo |
    *
+   *
+   * 4. USB Control Message
+   *
+   *  Both USB ports are controlled in one message
+   *
+   *  | UsbControl ("U") | msg-len (4) | TAN-Hi | TAN-Lo | usb0-control | usb1-control
+   *
+   *  usb-control bit fields:
+   *    bit 0 : enable USB
+   *    bit 1 : clear USB flags
+   *
    */
 
   enum class MessageIds

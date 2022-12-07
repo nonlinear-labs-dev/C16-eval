@@ -7,6 +7,7 @@
 #include "usb/usbWriter_MidiSysex.h"
 #include "usb/sysexFunctions.h"
 #include "tasks/statemonitor.h"
+#include "tasks/usbTask.h"
 #include "erp/ERP_Decoder.h"
 #include "M4_error.h"
 
@@ -71,11 +72,24 @@ namespace Task
                                 SysEx::getSysexLoByte(angle));
     };
 
+    inline uint32_t getStatus(void)
+    {
+      if (isUsbOnline(0))
+        m_stateMonitor.event(StateMonitor::INFO_USB_IS_ONLINE, 0);
+      else
+        m_stateMonitor.event(StateMonitor::INFO_USB_IS_OFFLINE, 0);
+      if (isUsbOnline(1))
+        m_stateMonitor.event(StateMonitor::INFO_USB_IS_ONLINE, 1);
+      else
+        m_stateMonitor.event(StateMonitor::INFO_USB_IS_OFFLINE, 1);
+      return m_stateMonitor.getStatus();
+    };
+
    public:
     inline void body(void)
     {
       if (s.adcIsConverting)
-        M4_error(M4_LED_ERROR_ADC_OVERRUN);
+        M4_error(M4_LED_ERROR_ADC_OVERRUN);  // TODO: seem to happen now and then....
 
       // We can restart the ADC immediately without risk of it overwriting values during collection
       // because it takes ~20us before the first value in the ADC value array is updated
@@ -109,7 +123,7 @@ namespace Task
 
       // status
       m_stateMonitor.setEhcDet();
-      uint32_t status = m_stateMonitor.getStatus();
+      uint32_t status = getStatus();
 
       m_sensorEventWriter.write(SENSOR_DATA_CABLE_NUMBER,
                                 SysEx::getSysexHi3Byte(status),  // statHH

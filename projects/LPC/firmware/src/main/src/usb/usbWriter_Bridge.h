@@ -45,11 +45,14 @@ namespace UsbWriter
       bridgeDataPacketHwMonitor(true);
     };
 
-    void onGoingOnline(void) override
+    void onOnlineChange(bool const online) override
     {
-      USB_MIDI_SuspendReceive(m_hwAccess.getPort(), 0);  // re-enable receiver
-      USB_MIDI_ClearReceive(m_hwAccess.getPort());
-      USB_MIDI_primeReceive(m_hwAccess.getPort());
+      if (online)
+      {
+        USB_MIDI_SuspendReceive(m_hwAccess.getPort(), 0);  // re-enable receiver
+        USB_MIDI_ClearReceive(m_hwAccess.getPort());
+        USB_MIDI_primeReceive(m_hwAccess.getPort());
+      }
     };
 
     void finishUserTransaction(void) override
@@ -85,6 +88,11 @@ namespace UsbWriter
       m_dataSize = length;
       USB_MIDI_SuspendReceive(m_incomingPort, 1);  // block receiver until transmit finished/failed
     };
+
+    bool isOnline(void)
+    {
+      return m_hwAccess.isOnline();
+    }
 
   };  // class BridgeWriter
 

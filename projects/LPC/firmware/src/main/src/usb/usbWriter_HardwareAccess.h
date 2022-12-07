@@ -50,7 +50,9 @@ namespace UsbWriter
 
     void config(uint8_t const configByte)
     {
-      enable((configByte & 0b00000001) != 0);
+      enable((configByte & (1 << 0)) != 0);  // bit 0 : enable
+      if ((configByte & (1 << 1)) != 0)      // bit 1 : clear flags (!! note: only ONE set of flags for both USBs !!)
+        m_stateMonitor.clearUsbFlags(m_outgoingPort);
     };
 
     void setupTransactionData(void *const pData, uint16_t const dataSize, bool const useTimeout)

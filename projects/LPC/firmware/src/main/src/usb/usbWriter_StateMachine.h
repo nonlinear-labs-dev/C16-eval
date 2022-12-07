@@ -8,7 +8,7 @@ namespace UsbWriter
   class WriterStateMachine
   {
    private:
-    virtual void onGoingOnline(void) {};  // user class may shadow this
+    virtual void onOnlineChange(bool const online) {};  // user class may shadow this
 
     virtual bool waitingForUserDataReady(void) = 0;  // user class must implement this
 
@@ -42,8 +42,11 @@ namespace UsbWriter
 
     void process(void)
     {
-      if (wentOnline())
-        onGoingOnline();
+      if (onlineChange())
+      {
+        onOnlineChange(m_online);
+        m_hwAccess.m_stateMonitor.event(m_online ? StateMonitor::Events::INFO_USB_WENT_ONLINE : StateMonitor::Events::INFO_USB_WENT_OFFLINE, m_hwAccess.getPort());
+      }
 
       do
       {
@@ -79,6 +82,7 @@ namespace UsbWriter
             if (!m_hwAccess.transactionFinished())
               return;  // still sending
             finishUserTransaction();
+            m_hwAccess.m_stateMonitor.event(StateMonitor::Events::INFO_USB_PACKET_DELIVERED, m_hwAccess.getPort());
             m_state = States::IDLE;
             if (processOnlyOneTransmitAtATime())
               return;
@@ -88,13 +92,13 @@ namespace UsbWriter
     };
 
    private:
-    bool wentOnline(void)
+    bool onlineChange(void)
     {
       bool online = m_hwAccess.isOnline();
       if (m_online != online)
       {
         m_online = online;
-        return online;
+        return true;
       }
       return false;
     };
@@ -106,6 +110,7 @@ namespace UsbWriter
         m_hwAccess.killTransaction();
         m_state = States::IDLE;
         abortUserTransaction();
+        m_hwAccess.m_stateMonitor.event(StateMonitor::Events::INFO_USB_PACKET_DROPPED, m_hwAccess.getPort());
         return true;
       }
       return false;
