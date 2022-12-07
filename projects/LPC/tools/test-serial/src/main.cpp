@@ -129,7 +129,7 @@ int main(int argc, char* argv[])
   puts("Press Ctrl-C to break...");
   signal(SIGINT, intHandler);
 
-  uartMessageComposer.sendUsbControl(0b00000001, 0b00000001);
+  uartMessageComposer.sendUsbControl(0b00000011, 0b00000011);
 
   while (keepRunning)
   {

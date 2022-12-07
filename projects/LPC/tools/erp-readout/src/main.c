@@ -17,7 +17,7 @@
 #include <termios.h>
 #include <sys/ioctl.h>
 
-#define SHOW_RAW (0)
+#define SHOW_RAW (1)
 
 // qtcreator bugs
 //#include </usr/include/stdarg.h>
@@ -587,7 +587,12 @@ static inline BOOL examineContent(void const *const data, unsigned const len)
   printf("%5d ", ali1);
   printf("%5d(%5.1lfV) ", psu0, (double) (psu0 - 1) / 2046 / (1.72 / 3.3) * 19.0);
   printf("%5d(%5.2lfV)\n", psu1, (double) (psu1 - 1) / 2046 / (3.113 / 3.3) * 5.0);
-  printf("S:%08X ", stat);
+
+  // printf("S:%08X ", stat);
+  printf("EhcD:%c%c%c%c ", stat & (1 << 0) ? 'C' : '-', stat & (1 << 1) ? 'C' : '-', stat & (1 << 2) ? 'C' : '-', stat & (1 << 3) ? 'C' : '-');
+  printf("Usb0:%c/%c%c%c%c ", stat & (1 << 8) ? 'O' : '-', stat & (1 << 4) ? 'O' : '-', stat & (1 << 5) ? 'o' : '-', stat & (1 << 6) ? 'D' : '-', stat & (1 << 7) ? 'd' : '-');
+  printf("Usb1:%c/%c%c%c%c ", stat & (1 << 13) ? 'O' : '-', stat & (1 << 9) ? 'O' : '-', stat & (1 << 10) ? 'o' : '-', stat & (1 << 11) ? 'D' : '-', stat & (1 << 12) ? 'd' : '-');
+
   printf("B:%02X ", buttons);
   printf("R:%+5d ", rotenc);
   printf("\n");
