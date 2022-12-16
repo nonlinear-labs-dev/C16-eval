@@ -17,7 +17,7 @@
 #include <termios.h>
 #include <sys/ioctl.h>
 
-#define SHOW_RAW (1)
+#define SHOW_RAW (0)
 
 // qtcreator bugs
 //#include </usr/include/stdarg.h>
@@ -369,7 +369,7 @@ static inline BOOL examineContent(void const *const data, unsigned const len)
   static unsigned settling = 2000;
   static uint64_t bins[9];
   static uint64_t total;
-  static uint32_t packetNr;
+  static uint32_t packetNr     = 0;
   static unsigned packetErrors = 0;
   static unsigned angleErrors  = 0;
 
@@ -445,6 +445,9 @@ static inline BOOL examineContent(void const *const data, unsigned const len)
     } while (0);
     total++;
   }
+
+  int displayUpdate = (packetNr & 0xFF) == 0;
+
   if (settling)
   {
     settling--;
@@ -456,10 +459,13 @@ static inline BOOL examineContent(void const *const data, unsigned const len)
   else
   {
 #if !SHOW_RAW
-    printf("        %5.0lfus %7.2lfus %5.0lfus -- ", minTime, average, maxTime);
-    for (int i = 0; i < 9; i++)
-      printf("%8.4lf%c", 100.0 * (double) bins[i] / (double) total, bins[i] ? ' ' : 'z');
-    printf("\n\033[1A");
+    if (displayUpdate)
+    {
+      printf("        %5.0lfus %7.2lfus %5.0lfus -- ", minTime, average, maxTime);
+      for (int i = 0; i < 9; i++)
+        printf("%8.4lf%c", 100.0 * (double) bins[i] / (double) total, bins[i] ? ' ' : 'z');
+      printf("\n\033[1A");
+    }
 #endif
   }
   time = now;
@@ -557,46 +563,49 @@ static inline BOOL examineContent(void const *const data, unsigned const len)
       break;
   }
 #if SHOW_RAW
-  // show all data
-  cursorUp(2);
-  printf("%+6.1lf ", angleErp0 == TWENTYONE_ONES ? -0.0001 : (double) angleErp0 * ERP_AngleMultiplier360());
-  printf("%+6.1lf ", angleErp1 == TWENTYONE_ONES ? -0.0001 : (double) angleErp1 * ERP_AngleMultiplier360());
-  printf("%+6.1lf ", angleErp2 == TWENTYONE_ONES ? -0.0001 : (double) angleErp2 * ERP_AngleMultiplier360());
-  printf("%+6.1lf ", angleErp3 == TWENTYONE_ONES ? -0.0001 : (double) angleErp3 * ERP_AngleMultiplier360());
-  printf("%+6.1lf ", angleErp4 == TWENTYONE_ONES ? -0.0001 : (double) angleErp4 * ERP_AngleMultiplier360());
-  printf("%+6.1lf | ", angleErp5 == TWENTYONE_ONES ? -0.0001 : (double) angleErp5 * ERP_AngleMultiplier360());
-  //printf("%+6.1lf ", angleErp6 == TWENTYONE_ONES ? -0.0001 : (double) angleErp6 * ERP_AngleMultiplier360());
-  //printf("%+6.1lf | ", angleErp7 == TWENTYONE_ONES ? -0.0001 : (double) angleErp7 * ERP_AngleMultiplier360());
+  if (displayUpdate)
+  {
+    // show all data
+    cursorUp(2);
+    printf("%+6.1lf ", angleErp0 == TWENTYONE_ONES ? -0.0001 : (double) angleErp0 * ERP_AngleMultiplier360());
+    printf("%+6.1lf ", angleErp1 == TWENTYONE_ONES ? -0.0001 : (double) angleErp1 * ERP_AngleMultiplier360());
+    printf("%+6.1lf ", angleErp2 == TWENTYONE_ONES ? -0.0001 : (double) angleErp2 * ERP_AngleMultiplier360());
+    printf("%+6.1lf ", angleErp3 == TWENTYONE_ONES ? -0.0001 : (double) angleErp3 * ERP_AngleMultiplier360());
+    printf("%+6.1lf ", angleErp4 == TWENTYONE_ONES ? -0.0001 : (double) angleErp4 * ERP_AngleMultiplier360());
+    printf("%+6.1lf | ", angleErp5 == TWENTYONE_ONES ? -0.0001 : (double) angleErp5 * ERP_AngleMultiplier360());
+    //printf("%+6.1lf ", angleErp6 == TWENTYONE_ONES ? -0.0001 : (double) angleErp6 * ERP_AngleMultiplier360());
+    //printf("%+6.1lf | ", angleErp7 == TWENTYONE_ONES ? -0.0001 : (double) angleErp7 * ERP_AngleMultiplier360());
 
-  double ref5VA = (psu1 - 1);
+    double ref5VA = (psu1 - 1);
 
-  printf("%4d(%4.2lfV) ", ehc0, (double) (ehc0 - 1) / ref5VA * 5.0);
-  printf("%4d(%4.2lfV) ", ehc1, (double) (ehc1 - 1) / ref5VA * 5.0);
-  printf("%4d(%4.2lfV) ", ehc2, (double) (ehc2 - 1) / ref5VA * 5.0);
-  printf("%4d(%4.2lfV) ", ehc3, (double) (ehc3 - 1) / ref5VA * 5.0);
-  printf("%4d(%4.2lfV) ", ehc4, (double) (ehc4 - 1) / ref5VA * 5.0);
-  printf("%4d(%4.2lfV) ", ehc5, (double) (ehc5 - 1) / ref5VA * 5.0);
-  printf("%4d(%4.2lfV) ", ehc6, (double) (ehc6 - 1) / ref5VA * 5.0);
-  printf("%4d(%4.2lfV)\n", ehc7, (double) (ehc7 - 1) / ref5VA * 5.0);
+    printf("%4d(%4.2lfV) ", ehc0, (double) (ehc0 - 1) / ref5VA * 5.0);
+    printf("%4d(%4.2lfV) ", ehc1, (double) (ehc1 - 1) / ref5VA * 5.0);
+    printf("%4d(%4.2lfV) ", ehc2, (double) (ehc2 - 1) / ref5VA * 5.0);
+    printf("%4d(%4.2lfV) ", ehc3, (double) (ehc3 - 1) / ref5VA * 5.0);
+    printf("%4d(%4.2lfV) ", ehc4, (double) (ehc4 - 1) / ref5VA * 5.0);
+    printf("%4d(%4.2lfV) ", ehc5, (double) (ehc5 - 1) / ref5VA * 5.0);
+    printf("%4d(%4.2lfV) ", ehc6, (double) (ehc6 - 1) / ref5VA * 5.0);
+    printf("%4d(%4.2lfV)\n", ehc7, (double) (ehc7 - 1) / ref5VA * 5.0);
 
-  printf("%5d ", ihc0);
-  printf("%5d ", ihc1);
-  printf("%5d ", ihc2);
-  printf("%5d | ", ihc3);
-  printf("%5d ", ali0);
-  printf("%5d ", ali1);
-  printf("%5d(%5.1lfV) ", psu0, (double) (psu0 - 1) / 2046 / (1.72 / 3.3) * 19.0);
-  printf("%5d(%5.2lfV)\n", psu1, (double) (psu1 - 1) / 2046 / (3.113 / 3.3) * 5.0);
+    printf("%5d ", ihc0);
+    printf("%5d ", ihc1);
+    printf("%5d ", ihc2);
+    printf("%5d | ", ihc3);
+    printf("%5d ", ali0);
+    printf("%5d ", ali1);
+    printf("%5d(%5.1lfV) ", psu0, (double) (psu0 - 1) / 2046 / (1.72 / 3.3) * 19.0);
+    printf("%5d(%5.2lfV)\n", psu1, (double) (psu1 - 1) / 2046 / (3.113 / 3.3) * 5.0);
 
-  // printf("S:%08X ", stat);
-  printf("EhcD:%c%c%c%c ", stat & (1 << 0) ? 'C' : '-', stat & (1 << 1) ? 'C' : '-', stat & (1 << 2) ? 'C' : '-', stat & (1 << 3) ? 'C' : '-');
-  printf("Usb0:%c/%c%c%c%c ", stat & (1 << 8) ? 'O' : '-', stat & (1 << 4) ? 'O' : '-', stat & (1 << 5) ? 'o' : '-', stat & (1 << 6) ? 'D' : '-', stat & (1 << 7) ? 'd' : '-');
-  printf("Usb1:%c/%c%c%c%c ", stat & (1 << 13) ? 'O' : '-', stat & (1 << 9) ? 'O' : '-', stat & (1 << 10) ? 'o' : '-', stat & (1 << 11) ? 'D' : '-', stat & (1 << 12) ? 'd' : '-');
+    // printf("S:%08X ", stat);
+    printf("EhcD:%c%c%c%c ", stat & (1 << 0) ? 'C' : '-', stat & (1 << 1) ? 'C' : '-', stat & (1 << 2) ? 'C' : '-', stat & (1 << 3) ? 'C' : '-');
+    printf("Usb0:%c/%c%c%c%c ", stat & (1 << 8) ? 'O' : '-', stat & (1 << 4) ? 'O' : '-', stat & (1 << 5) ? 'o' : '-', stat & (1 << 6) ? 'D' : '-', stat & (1 << 7) ? 'd' : '-');
+    printf("Usb1:%c/%c%c%c%c ", stat & (1 << 13) ? 'O' : '-', stat & (1 << 9) ? 'O' : '-', stat & (1 << 10) ? 'o' : '-', stat & (1 << 11) ? 'D' : '-', stat & (1 << 12) ? 'd' : '-');
 
-  printf("B:%02X ", buttons);
-  printf("R:%+5d ", rotenc);
-  printf("\n");
-  cursorUp(1);
+    printf("B:%02X ", buttons);
+    printf("R:%+5d ", rotenc);
+    printf("\n");
+    cursorUp(1);
+  }
 
   return TRUE;
 #endif
@@ -628,7 +637,8 @@ static inline BOOL examineContent(void const *const data, unsigned const len)
     double        diffF         = angle * ERP_AngleMultiplier360();
     static double smoothedDiffF = 0.0;
     smoothedDiffF               = smoothedDiffF - (0.003 * (smoothedDiffF - diffF));
-    printf("%+6.1lf\n", smoothedDiffF), cursorUp(1);
+    if (displayUpdate)
+      printf("%+6.1lf\n", smoothedDiffF), cursorUp(1);
 #endif
 
     static int sum = 10000;
